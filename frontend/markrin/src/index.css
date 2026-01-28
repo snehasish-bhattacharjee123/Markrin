@@ -1,0 +1,38 @@
+/* 1. Imports must come first. Add the full Google Fonts URL. */
+@import url('https://fonts.googleapis.com');
+@import "tailwindcss";
+
+/* 2. Define your theme variables. 
+   This automatically creates utilities like bg-brand-cream and font-inter. */
+@theme {
+  --color-brand-cream: #fdfaf1;      /* Replace with your hex codes */
+  --color-brand-text: #2d2a26;
+  --color-brand-white: #ffffff;
+  --color-brand-dark-brown: #3f1700;
+  
+  --font-inter: "Inter", sans-serif;
+}
+
+/* f5bd63 */
+
+/* 3. Set global base styles. 
+   In v4, use standard CSS with your new variables for the best performance. */
+@layer base {
+  body {
+    background-color: var(--color-brand-cream);
+    color: var(--color-brand-text);
+    font-family: var(--font-inter);
+    @apply antialiased; /* Standard Tailwind utility still works via @apply */
+  }
+}
+
+/* 4. Custom Utility Components */
+@layer components {
+  .bg-white-section {
+    @apply bg-brand-white;
+  }
+  
+  .bg-footer {
+    @apply bg-brand-dark-brown;
+  }
+}
