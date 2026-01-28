@@ -11,6 +11,7 @@ import SearchBar from "./SearchBar";
 import CartDrawer from "../Layout/CartDrawer";
 import logoimage from "../../assets/WhatsApp Image 2026-01-21 at 1.11.31 PM.jpeg";
 import { useAuth } from "../../context/AuthContext";
+import { useCart } from "../../context/CartContext";
 import { toast } from "sonner";
 
 function Navbar() {
@@ -18,6 +19,7 @@ function Navbar() {
   const [navDrawerOpen, setNavDrawerOpen] = useState(false);
 
   const { user, isAuthenticated, isAdmin, logout } = useAuth();
+  const { totalItems } = useCart();
 
   const toggleCartDrawer = () => setDrawerOpen(!drawerOpen);
   const toggleNavDrawer = () => setNavDrawerOpen(!navDrawerOpen);
@@ -97,7 +99,7 @@ function Navbar() {
           <button onClick={toggleCartDrawer} className="relative">
             <HiOutlineShoppingBag className="w-6 h-6 transition-colors duration-200 text-brand-text hover:text-brand-gold" />
             <span className="absolute -top-1 -right-2 bg-red-600 text-white text-[10px] font-bold rounded-full px-1.5 py-0.5 leading-none">
-              0
+              {totalItems}
             </span>
           </button>
 

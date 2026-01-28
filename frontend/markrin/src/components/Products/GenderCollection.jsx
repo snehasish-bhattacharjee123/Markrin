@@ -7,13 +7,13 @@ const collections = [
   {
     title: "Women's Collection",
     image: WomenCollectionImg,
-    path: "/collections/women",
+    path: "/collection/women",
     alt: "Browse our latest women's fashion styles",
   },
   {
     title: "Men's Collection",
     image: MenCollectionImg,
-    path: "/collections/men",
+    path: "/collection/men",
     alt: "Explore our premium men's apparel",
   },
 ];

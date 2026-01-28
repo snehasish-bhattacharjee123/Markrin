@@ -1,5 +1,17 @@
 {
+  "private": true,
+  "scripts": {
+    "dev": "concurrently -n backend,frontend -c blue,green \"npm:dev:backend\" \"npm:dev:frontend\"",
+    "dev:backend": "npm --prefix backend run dev",
+    "dev:frontend": "npm --prefix frontend/markrin run dev",
+    "start": "concurrently -n backend,frontend -c blue,green \"npm:start:backend\" \"npm:start:frontend\"",
+    "start:backend": "npm --prefix backend run start",
+    "start:frontend": "npm --prefix frontend/markrin run preview"
+  },
   "dependencies": {
     "@duck4nh/antigravity-kit": "^2.0.1"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
   }
 }

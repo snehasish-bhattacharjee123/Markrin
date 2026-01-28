@@ -2,10 +2,12 @@ import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { HiOutlineShoppingBag, HiOutlineHeart } from "react-icons/hi2";
 import { productsAPI } from "../../api";
+import { useCart } from "../../context/CartContext";
 
 function FeaturedProducts() {
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
+    const { addItem } = useCart();
 
     useEffect(() => {
         const fetchProducts = async () => {
@@ -17,25 +19,25 @@ function FeaturedProducts() {
                 // Fallback to mock data
                 setProducts([
                     {
-                        _id: "1",
+                        _id: null,
                         name: "Classic White T-Shirt",
                         price: 29.99,
                         images: [{ url: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=500" }],
                     },
                     {
-                        _id: "2",
+                        _id: null,
                         name: "Black Graphic Tee",
                         price: 34.99,
                         images: [{ url: "https://images.unsplash.com/photo-1512436991641-6745cdb1723f?w=500" }],
                     },
                     {
-                        _id: "3",
+                        _id: null,
                         name: "Oversized Streetwear",
                         price: 49.99,
                         images: [{ url: "https://images.unsplash.com/photo-1618354691438-25bc04584c23?w=500" }],
                     },
                     {
-                        _id: "4",
+                        _id: null,
                         name: "Premium Cotton Tee",
                         price: 39.99,
                         images: [{ url: "https://images.unsplash.com/photo-1581655353564-df123a1eb820?w=500" }],
@@ -86,21 +88,32 @@ function FeaturedProducts() {
 
                 {/* Products Grid */}
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
-                    {products.map((product) => (
-                        <div key={product._id} className="group">
+                    {products.map((product, index) => (
+                        <div key={product._id || `${product.name}-${index}`} className="group">
                             <div className="relative overflow-hidden rounded-2xl bg-gray-100 mb-4">
-                                <Link to={`/product/${product._id}`}>
+                                {product._id ? (
+                                    <Link to={`/product/${product._id}`}>
+                                        <img
+                                            src={product.images?.[0]?.url || "https://via.placeholder.com/400"}
+                                            alt={product.name}
+                                            className="w-full h-72 object-cover transition-transform duration-500 group-hover:scale-105"
+                                        />
+                                    </Link>
+                                ) : (
                                     <img
                                         src={product.images?.[0]?.url || "https://via.placeholder.com/400"}
                                         alt={product.name}
                                         className="w-full h-72 object-cover transition-transform duration-500 group-hover:scale-105"
                                     />
-                                </Link>
+                                )}
 
                                 {/* Hover Actions */}
                                 <div className="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                                     <div className="flex gap-2">
-                                        <button className="flex-grow py-3 bg-white text-brand-dark-brown font-bold text-xs uppercase tracking-wider hover:bg-brand-gold transition-colors flex items-center justify-center gap-2">
+                                        <button
+                                            onClick={() => product._id && addItem({ productId: product._id, quantity: 1 })}
+                                            className="flex-grow py-3 bg-white text-brand-dark-brown font-bold text-xs uppercase tracking-wider hover:bg-brand-gold transition-colors flex items-center justify-center gap-2"
+                                        >
                                             <HiOutlineShoppingBag className="w-4 h-4" />
                                             Add to Cart
                                         </button>
@@ -119,14 +132,25 @@ function FeaturedProducts() {
                             </div>
 
                             {/* Product Info */}
-                            <Link to={`/product/${product._id}`}>
-                                <h3 className="font-semibold text-brand-dark-brown mb-1 group-hover:text-brand-gold transition-colors">
-                                    {product.name}
-                                </h3>
-                                <p className="text-lg font-bold text-brand-gold">
-                                    ${product.price?.toFixed(2)}
-                                </p>
-                            </Link>
+                            {product._id ? (
+                                <Link to={`/product/${product._id}`}>
+                                    <h3 className="font-semibold text-brand-dark-brown mb-1 group-hover:text-brand-gold transition-colors">
+                                        {product.name}
+                                    </h3>
+                                    <p className="text-lg font-bold text-brand-gold">
+                                        ${product.price?.toFixed(2)}
+                                    </p>
+                                </Link>
+                            ) : (
+                                <>
+                                    <h3 className="font-semibold text-brand-dark-brown mb-1 group-hover:text-brand-gold transition-colors">
+                                        {product.name}
+                                    </h3>
+                                    <p className="text-lg font-bold text-brand-gold">
+                                        ${product.price?.toFixed(2)}
+                                    </p>
+                                </>
+                            )}
                         </div>
                     ))}
                 </div>

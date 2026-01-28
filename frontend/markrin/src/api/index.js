@@ -1,6 +1,17 @@
 // API Configuration
 const API_BASE_URL = 'http://localhost:9000/api';
 
+const fetchWithTimeout = async (url, options = {}, timeoutMs = 15000) => {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+        const response = await fetch(url, { ...options, signal: controller.signal });
+        return response;
+    } finally {
+        clearTimeout(timeoutId);
+    }
+};
+
 // Helper function to get auth headers
 const getAuthHeaders = () => {
     const userInfo = localStorage.getItem('userInfo');
@@ -74,7 +85,7 @@ export const authAPI = {
 export const productsAPI = {
     getAll: async (filters = {}) => {
         const params = new URLSearchParams(filters).toString();
-        const response = await fetch(`${API_BASE_URL}/products?${params}`);
+        const response = await fetchWithTimeout(`${API_BASE_URL}/products?${params}`);
         const data = await response.json();
         if (!response.ok) {
             throw new Error(data.message || 'Failed to fetch products');
@@ -83,7 +94,7 @@ export const productsAPI = {
     },
 
     getById: async (id) => {
-        const response = await fetch(`${API_BASE_URL}/products/${id}`);
+        const response = await fetchWithTimeout(`${API_BASE_URL}/products/${id}`);
         const data = await response.json();
         if (!response.ok) {
             throw new Error(data.message || 'Failed to fetch product');
@@ -185,6 +196,19 @@ export const ordersAPI = {
         const data = await response.json();
         if (!response.ok) {
             throw new Error(data.message || 'Failed to create order');
+        }
+        return data;
+    },
+
+    pay: async (id, paymentResult) => {
+        const response = await fetch(`${API_BASE_URL}/orders/${id}/pay`, {
+            method: 'PUT',
+            headers: getAuthHeaders(),
+            body: JSON.stringify(paymentResult),
+        });
+        const data = await response.json();
+        if (!response.ok) {
+            throw new Error(data.message || 'Failed to update payment status');
         }
         return data;
     },

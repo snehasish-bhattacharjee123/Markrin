@@ -1,8 +1,11 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { RiShoppingBagLine } from "react-icons/ri";
+import { useCart } from "../../context/CartContext";
 
 function ProductGrid({ products }) {
+  const { addItem } = useCart();
+
   // Return null or a message if products is not an array
   if (!Array.isArray(products) || products.length === 0) {
     return (
@@ -18,18 +21,22 @@ function ProductGrid({ products }) {
     <div className="w-full">
       {/* Grid - Adjusted to 4 columns on large screens, 3 on medium */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-12">
-        {products.map((product) => {
-          // Safety check for image source (handles both array and single object)
-          const displayImage = Array.isArray(product.image)
-            ? product.image[0]?.url
-            : product.image?.url;
+        {products.map((product, index) => {
+          const displayImage = product.images?.[0]?.url;
+
+          const CardWrapper = ({ children }) => {
+            if (!product._id) {
+              return <div className="group block">{children}</div>;
+            }
+            return (
+              <Link to={`/product/${product._id}`} className="group block">
+                {children}
+              </Link>
+            );
+          };
 
           return (
-            <Link
-              key={product._id}
-              to={`/product/${product._id}`}
-              className="group block"
-            >
+            <CardWrapper key={product._id || `${product.name}-${index}`}>
               {/* Image Container with 2026 Aspect Ratio */}
               <div className="relative overflow-hidden bg-brand-white rounded-2xl shadow-sm mb-5 aspect-[3/4]">
                 <img
@@ -43,7 +50,9 @@ function ProductGrid({ products }) {
                   <button
                     onClick={(e) => {
                       e.preventDefault(); // Prevents navigation to product page
-                      // Add to cart logic here
+                      if (product._id) {
+                        addItem({ productId: product._id, quantity: 1 });
+                      }
                     }}
                     className="w-full py-3 bg-brand-gold text-brand-dark-brown text-[10px] font-bold uppercase tracking-[0.2em] rounded-xl flex items-center justify-center gap-2 hover:bg-brand-white transition-all transform active:scale-95"
                   >
@@ -88,7 +97,7 @@ function ProductGrid({ products }) {
                   )}
                 </div>
               </div>
-            </Link>
+            </CardWrapper>
           );
         })}
       </div>

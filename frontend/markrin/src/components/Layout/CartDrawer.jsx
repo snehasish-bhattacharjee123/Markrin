@@ -1,70 +1,49 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { IoMdClose } from "react-icons/io";
 import { HiOutlineShoppingBag, HiOutlineTrash, HiPlus, HiMinus } from "react-icons/hi2";
-import { cartAPI } from "../../api";
 import { useAuth } from "../../context/AuthContext";
-import { toast } from "sonner";
+import { useCart } from "../../context/CartContext";
 
 function CartDrawer({ drawerOpen, toggleCartDrawer }) {
-  const [cart, setCart] = useState({ items: [] });
-  const [loading, setLoading] = useState(false);
   const { isAuthenticated } = useAuth();
+  const { cart, loading, totalItems, subtotal, refreshCart, updateItem, removeItem } = useCart();
 
   useEffect(() => {
     if (drawerOpen && isAuthenticated) {
-      fetchCart();
+      refreshCart();
     }
-  }, [drawerOpen, isAuthenticated]);
+  }, [drawerOpen, isAuthenticated, refreshCart]);
 
-  const fetchCart = async () => {
-    setLoading(true);
-    try {
-      const data = await cartAPI.get();
-      setCart(data);
-    } catch (err) {
-      console.error("Error fetching cart:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  useEffect(() => {
+    if (!drawerOpen) return;
+
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    return () => {
+      document.body.style.overflow = originalOverflow;
+    };
+  }, [drawerOpen]);
 
   const updateQuantity = async (itemId, quantity) => {
     if (quantity < 1) return;
-    try {
-      await cartAPI.updateItem(itemId, quantity);
-      fetchCart();
-    } catch (err) {
-      toast.error(err.message);
-    }
+    await updateItem(itemId, quantity);
   };
-
-  const removeItem = async (itemId) => {
-    try {
-      await cartAPI.removeItem(itemId);
-      toast.success("Item removed from cart");
-      fetchCart();
-    } catch (err) {
-      toast.error(err.message);
-    }
-  };
-
-  const totalItems = cart.items?.reduce((sum, item) => sum + item.quantity, 0) || 0;
-  const totalPrice = cart.items?.reduce((sum, item) => sum + (item.price * item.quantity), 0) || 0;
 
   return (
     <>
       {/* Overlay */}
       {drawerOpen && (
         <div
-          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40"
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[55]"
           onClick={toggleCartDrawer}
         />
       )}
 
       {/* Drawer */}
       <div
-        className={`fixed top-0 right-0 w-full sm:w-[450px] h-full bg-white shadow-2xl transform transition-transform duration-300 flex flex-col z-50 ${drawerOpen ? "translate-x-0" : "translate-x-full"
+        className={`fixed inset-y-0 right-0 w-full sm:w-[450px] h-[100dvh] bg-white shadow-2xl transform transition-transform duration-300 flex flex-col overscroll-contain z-[60] ${drawerOpen ? "translate-x-0" : "translate-x-full"
           }`}
       >
         {/* Header */}
@@ -187,7 +166,7 @@ function CartDrawer({ drawerOpen, toggleCartDrawer }) {
             <div className="flex justify-between items-center mb-4">
               <span className="text-gray-600">Subtotal</span>
               <span className="text-xl font-bold text-brand-dark-brown">
-                ${totalPrice.toFixed(2)}
+                ${subtotal.toFixed(2)}
               </span>
             </div>
             <p className="text-xs text-gray-400 mb-4">

@@ -1,4 +1,5 @@
 const Product = require('../models/Product');
+const mongoose = require('mongoose');
 
 // @desc    Get all products with filters
 // @route   GET /api/products
@@ -151,6 +152,9 @@ const getFeaturedProducts = async (req, res) => {
 // @access  Public
 const getProductById = async (req, res) => {
     try {
+        if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+            return res.status(400).json({ message: 'Invalid product id' });
+        }
         const product = await Product.findById(req.params.id);
 
         if (product) {

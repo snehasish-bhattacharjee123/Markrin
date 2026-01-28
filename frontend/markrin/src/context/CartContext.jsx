@@ -1,0 +1,127 @@
+import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import { cartAPI } from '../api';
+import { useAuth } from './AuthContext';
+import { toast } from 'sonner';
+
+const CartContext = createContext(null);
+
+export const useCart = () => {
+  const context = useContext(CartContext);
+  if (!context) {
+    throw new Error('useCart must be used within a CartProvider');
+  }
+  return context;
+};
+
+export const CartProvider = ({ children }) => {
+  const { isAuthenticated } = useAuth();
+  const [cart, setCart] = useState({ items: [] });
+  const [loading, setLoading] = useState(false);
+
+  const refreshCart = async () => {
+    if (!isAuthenticated) {
+      setCart({ items: [] });
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const data = await cartAPI.get();
+      setCart(data);
+    } catch (err) {
+      setCart({ items: [] });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    refreshCart();
+  }, [isAuthenticated]);
+
+  const addItem = async ({ productId, quantity = 1, size, color }) => {
+    if (!isAuthenticated) {
+      toast.error('Please login to add items to cart');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const updated = await cartAPI.addItem(productId, quantity, size, color);
+      setCart(updated);
+      toast.success('Added to cart');
+    } catch (err) {
+      toast.error(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const updateItem = async (itemId, quantity) => {
+    if (!isAuthenticated) return;
+
+    setLoading(true);
+    try {
+      const updated = await cartAPI.updateItem(itemId, quantity);
+      setCart(updated);
+    } catch (err) {
+      toast.error(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const removeItem = async (itemId) => {
+    if (!isAuthenticated) return;
+
+    setLoading(true);
+    try {
+      const updated = await cartAPI.removeItem(itemId);
+      setCart(updated);
+      toast.success('Item removed from cart');
+    } catch (err) {
+      toast.error(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const clearCart = async () => {
+    if (!isAuthenticated) return;
+
+    setLoading(true);
+    try {
+      await cartAPI.clear();
+      setCart({ items: [] });
+      toast.success('Cart cleared');
+    } catch (err) {
+      toast.error(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const totalItems = useMemo(() => {
+    return cart.items?.reduce((sum, item) => sum + item.quantity, 0) || 0;
+  }, [cart.items]);
+
+  const subtotal = useMemo(() => {
+    return cart.items?.reduce((sum, item) => sum + item.price * item.quantity, 0) || 0;
+  }, [cart.items]);
+
+  const value = {
+    cart,
+    loading,
+    totalItems,
+    subtotal,
+    refreshCart,
+    addItem,
+    updateItem,
+    removeItem,
+    clearCart,
+  };
+
+  return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
+};
+
+export default CartContext;

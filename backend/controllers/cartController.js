@@ -1,5 +1,6 @@
 const Cart = require('../models/Cart');
 const Product = require('../models/Product');
+const mongoose = require('mongoose');
 
 // @desc    Get user's cart
 // @route   GET /api/cart
@@ -14,6 +15,21 @@ const getCart = async (req, res) => {
         if (!cart) {
             // Create empty cart if doesn't exist
             cart = await Cart.create({ user: req.user._id, items: [] });
+            cart = await Cart.findById(cart._id).populate(
+                'items.product',
+                'name price images countInStock'
+            );
+        }
+
+        // Remove stale items whose product reference no longer exists
+        const originalLength = cart.items.length;
+        cart.items = cart.items.filter((item) => item.product);
+        if (cart.items.length !== originalLength) {
+            await cart.save();
+            cart = await Cart.findById(cart._id).populate(
+                'items.product',
+                'name price images countInStock'
+            );
         }
 
         res.json(cart);
@@ -29,6 +45,10 @@ const getCart = async (req, res) => {
 const addToCart = async (req, res) => {
     try {
         const { productId, quantity, size, color } = req.body;
+
+        if (!mongoose.Types.ObjectId.isValid(productId)) {
+            return res.status(400).json({ message: 'Invalid product id' });
+        }
 
         // Validate product exists
         const product = await Product.findById(productId);

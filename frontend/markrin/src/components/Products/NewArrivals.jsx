@@ -18,37 +18,37 @@ function NewArrivals() {
         // Fallback mock data
         setProducts([
           {
-            _id: "1",
+            _id: null,
             name: "Classic White T-Shirt",
             price: 29.99,
             images: [{ url: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=500", altText: "White T-shirt" }],
           },
           {
-            _id: "2",
+            _id: null,
             name: "Black Graphic Tee",
             price: 34.99,
             images: [{ url: "https://images.unsplash.com/photo-1512436991641-6745cdb1723f?w=500", altText: "Black graphic t-shirt" }],
           },
           {
-            _id: "3",
+            _id: null,
             name: "Casual Blue T-Shirt",
             price: 19.99,
             images: [{ url: "https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?w=500", altText: "Blue casual t-shirt" }],
           },
           {
-            _id: "4",
+            _id: null,
             name: "Oversized Streetwear Tee",
             price: 49.99,
             images: [{ url: "https://images.unsplash.com/photo-1618354691438-25bc04584c23?w=500", altText: "Oversized streetwear" }],
           },
           {
-            _id: "5",
+            _id: null,
             name: "Minimal Grey T-Shirt",
             price: 24.99,
             images: [{ url: "https://images.unsplash.com/photo-1585386959984-a41552231693?w=500", altText: "Grey minimal" }],
           },
           {
-            _id: "6",
+            _id: null,
             name: "Printed Fashion Tee",
             price: 59.99,
             images: [{ url: "https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?w=500", altText: "Printed fashion" }],
@@ -129,32 +129,54 @@ function NewArrivals() {
         className="container mx-auto flex space-x-6 overflow-x-auto scroll-smooth pb-4"
         style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
       >
-        {products.map((product) => (
-          <Link
-            key={product._id}
-            to={`/product/${product._id}`}
-            className="flex-shrink-0 w-[280px] group"
-          >
-            <div className="relative overflow-hidden rounded-2xl bg-gray-100">
-              <img
-                src={product.images?.[0]?.url || "https://via.placeholder.com/280x320"}
-                alt={product.images?.[0]?.altText || product.name}
-                className="w-full h-80 object-cover transition-transform duration-500 group-hover:scale-105"
-              />
-              {/* New Badge */}
-              <span className="absolute top-4 left-4 px-3 py-1 bg-green-500 text-white text-xs font-bold uppercase rounded-full">
-                New
-              </span>
-            </div>
-            <div className="mt-4">
-              <h3 className="text-lg font-semibold text-brand-dark-brown group-hover:text-brand-gold transition-colors">
-                {product.name}
-              </h3>
-              <p className="text-brand-gold font-bold mt-1">
-                ${product.price?.toFixed(2)}
-              </p>
-            </div>
-          </Link>
+        {products.map((product, index) => (
+          <div key={product._id || `${product.name}-${index}`} className="flex-shrink-0 w-[280px] group">
+            {product._id ? (
+              <Link to={`/product/${product._id}`}>
+                <div className="relative overflow-hidden rounded-2xl bg-gray-100">
+                  <img
+                    src={product.images?.[0]?.url || "https://via.placeholder.com/280x320"}
+                    alt={product.images?.[0]?.altText || product.name}
+                    className="w-full h-80 object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
+                  {/* New Badge */}
+                  <span className="absolute top-4 left-4 px-3 py-1 bg-green-500 text-white text-xs font-bold uppercase rounded-full">
+                    New
+                  </span>
+                </div>
+                <div className="mt-4">
+                  <h3 className="text-lg font-semibold text-brand-dark-brown group-hover:text-brand-gold transition-colors">
+                    {product.name}
+                  </h3>
+                  <p className="text-brand-gold font-bold mt-1">
+                    ${product.price?.toFixed(2)}
+                  </p>
+                </div>
+              </Link>
+            ) : (
+              <>
+                <div className="relative overflow-hidden rounded-2xl bg-gray-100">
+                  <img
+                    src={product.images?.[0]?.url || "https://via.placeholder.com/280x320"}
+                    alt={product.images?.[0]?.altText || product.name}
+                    className="w-full h-80 object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
+                  {/* New Badge */}
+                  <span className="absolute top-4 left-4 px-3 py-1 bg-green-500 text-white text-xs font-bold uppercase rounded-full">
+                    New
+                  </span>
+                </div>
+                <div className="mt-4">
+                  <h3 className="text-lg font-semibold text-brand-dark-brown group-hover:text-brand-gold transition-colors">
+                    {product.name}
+                  </h3>
+                  <p className="text-brand-gold font-bold mt-1">
+                    ${product.price?.toFixed(2)}
+                  </p>
+                </div>
+              </>
+            )}
+          </div>
         ))}
       </div>
 

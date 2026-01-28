@@ -1,13 +1,16 @@
 import React, { useState, useEffect, useRef } from "react";
 import { FiFilter, FiX } from "react-icons/fi";
+import { useParams } from "react-router-dom";
 import SortOption from "../components/Products/SortOption";
 import ProductGrid from "../components/Products/ProductGrid";
 import FilterSidebar from "../components/Products/FilterSidebar";
+import { productsAPI } from "../api";
 
 const CollectionPage = () => {
   const [products, setProducts] = useState([]);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const sidebarRef = useRef(null);
+  const { collection } = useParams();
 
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
 
@@ -25,32 +28,55 @@ const CollectionPage = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [isSidebarOpen]);
 
-  // Simulated Data Fetch
   useEffect(() => {
-    setTimeout(() => {
-      const fetchedProducts = [
-        {
-          _id: 1,
-          name: "Classic White T-Shirt",
-          price: "29.99",
-          image: { url: "https://images.unsplash.com" },
-        },
-        {
-          _id: 2,
-          name: "Classic Black T-Shirt",
-          price: "29.99",
-          image: { url: "https://images.unsplash.com" },
-        },
-        {
-          _id: 3,
-          name: "Classic Blue T-Shirt",
-          price: "29.99",
-          image: { url: "https://images.unsplash.com" },
-        },
-      ];
-      setProducts(fetchedProducts);
-    }, 500);
-  }, []);
+    const fetchProducts = async () => {
+      try {
+        const filters = {};
+
+        const categorySlugToEnum = {
+          'graphic-tees': 'Graphic Tees',
+          't-shirts': 'T-Shirts',
+          'jeans': 'Jeans',
+          'jackets': 'Jackets',
+          'shoes': 'Shoes',
+          'accessories': 'Accessories',
+          'hoodies': 'Hoodies',
+          'pants': 'Pants',
+        };
+
+        // Map route to backend filters
+        // Backend schema expects gender values: Men/Women/Unisex
+        if (collection === 'men') filters.gender = 'Men';
+        if (collection === 'women') filters.gender = 'Women';
+
+        // Allow category based collections (e.g., graphic-tees)
+        if (collection && !['all', 'men', 'women', 'new-arrivals', 'featured'].includes(collection)) {
+          filters.category = categorySlugToEnum[collection] || collection;
+        }
+
+        let data;
+        if (collection === 'new-arrivals') {
+          data = await productsAPI.getNewArrivals();
+          setProducts(data);
+          return;
+        }
+
+        if (collection === 'featured') {
+          data = await productsAPI.getFeatured();
+          setProducts(data);
+          return;
+        }
+
+        data = await productsAPI.getAll(filters);
+        setProducts(data.products || data);
+      } catch (err) {
+        console.error('Error fetching collection products:', err);
+        setProducts([]);
+      }
+    };
+
+    fetchProducts();
+  }, [collection]);
 
   return (
     <div className="flex flex-col lg:flex-row bg-brand-cream min-h-screen">
@@ -100,7 +126,7 @@ const CollectionPage = () => {
         <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
           <div>
             <h1 className="text-3xl font-bold text-brand-dark-brown tracking-tighter uppercase">
-              All Collection
+              {collection || 'Collection'}
             </h1>
             <p className="text-sm text-gray-500 mt-1">
               {products.length} Products Found

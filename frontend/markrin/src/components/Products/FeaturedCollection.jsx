@@ -22,7 +22,7 @@ function FeaturedCollection() {
           </p>
 
           <Link
-            to="/collections/all"
+            to="/shop"
             className="inline-block bg-brand-dark-brown text-brand-white px-10 py-4 rounded-lg text-sm font-bold uppercase tracking-widest hover:bg-brand-gold hover:text-brand-dark-brown transition-all duration-300 shadow-lg shadow-brand-dark-brown/10"
           >
             Shop the Collection
