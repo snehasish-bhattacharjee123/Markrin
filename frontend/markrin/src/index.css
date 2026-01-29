@@ -7,10 +7,10 @@
 /* 3. Theme Configuration */
 @theme {
   --color-brand-cream: #fdfaf1;
-  --color-brand-text: #2d2a26;
+  --color-brand-text: #d27b06;
   --color-brand-white: #ffffff;
   --color-brand-dark-brown: #3f1700;
-  
+
   --font-inter: "Inter", sans-serif;
 }
 
