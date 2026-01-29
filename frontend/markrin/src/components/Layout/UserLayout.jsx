@@ -10,7 +10,7 @@ function UserLayout() {
   return (
     <>
       {/* Header */}
-      <header className="border-b ">
+      <header className="border-b sticky top-0 z-50">
         <Topbar />
         <Navbar />
       </header>

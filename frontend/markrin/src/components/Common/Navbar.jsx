@@ -32,7 +32,7 @@ function Navbar() {
 
   return (
     <>
-      <nav className="container flex items-center justify-between px-6 py-4 mx-auto font-inter bg-brand-cream">
+      <nav className="flex items-center justify-between px-6 py-4 mx-auto font-inter bg-brand-cream">
         {/* Logo */}
         <div>
           <Link
