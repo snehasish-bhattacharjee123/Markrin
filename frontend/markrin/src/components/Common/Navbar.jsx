@@ -36,6 +36,24 @@ function Navbar() {
   return (
     <>
       <nav className="container flex items-center justify-between px-6 py-4 mx-auto font-inter bg-brand-cream">
+        {/* Logo */}
+        <div>
+          <Link
+            to="/"
+            className="flex items-center gap-2 text-2xl font-bold tracking-tighter uppercase text-brand-dark-brown"
+          >
+            {/* 1. Add your logo image here */}
+            <img
+              src={logoimage}
+              alt="Markrin Logo"
+              className="object-contain w-auto h-8"
+            />
+
+            {/* 2. Brand Text */}
+            <span>Markrin</span>
+          </Link>
+        </div>
+
         {/* Navigation Links - Desktop */}
         <div className="hidden space-x-6 md:flex">
           {["Shop", "Collections", "About", "Contact"].map((item) => (
@@ -142,9 +160,8 @@ function Navbar() {
 
       {/* Mobile Navigation Drawer */}
       <div
-        className={`fixed top-0 left-0 w-3/4 sm:w-1/2 h-full bg-brand-cream shadow-2xl transform transition-transform duration-300 ease-in-out z-50 ${
-          navDrawerOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
+        className={`fixed top-0 left-0 w-3/4 sm:w-1/2 h-full bg-brand-cream shadow-2xl transform transition-transform duration-300 ease-in-out z-50 ${navDrawerOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
       >
         <div className="flex justify-end p-4">
           <button onClick={toggleNavDrawer}>
