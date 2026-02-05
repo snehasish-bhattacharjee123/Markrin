@@ -11,8 +11,9 @@ import SearchBar from "./SearchBar";
 import CartDrawer from "../Layout/CartDrawer";
 // import logoimage from "../../assets/Markrin_Logomark.png";
 // import logoImage1 from "../../assets/brand name _TM.png";
-import logoimage from "../../assets/Markrin.svg";
-import logoImage1 from "../../assets/Asset 2.svg";
+import logoimage from "../../assets/BNL_WEB.svg";
+import logoImage1 from "../../assets/final_logo_cc_website.svg";
+
 import { useAuth } from "../../context/AuthContext";
 import { useCart } from "../../context/CartContext";
 import { toast } from "sonner";
@@ -37,25 +38,14 @@ function Navbar() {
     <>
       <nav className="container flex items-center justify-between px-6 py-4 mx-auto font-inter bg-brand-cream">
         {/* Logo */}
-        <div>
-          <Link
-            to="/"
-            className="flex items-center gap-2 text-2xl font-bold tracking-tighter uppercase text-brand-dark-brown"
-          >
-            {/* 1. Add your logo image here */}
-            <img
-              src={logoimage}
-              alt="Markrin Logo"
-              className="object-contain w-auto h-8"
-            />
 
-            {/* 2. Brand Text */}
-            <span>Markrin</span>
-          </Link>
-        </div>
+        <button onClick={toggleNavDrawer} >
+            <HiBars3BottomRight className="w-6 h-6 text-brand-text cursor-pointer" />
+          </button>
+        
 
         {/* Navigation Links - Desktop */}
-        <div className="hidden space-x-6 md:flex">
+        {/* <div className="hidden space-x-6 md:flex">
           {["Shop", "Collections", "About", "Contact"].map((item) => (
             <Link
               key={item}
@@ -65,7 +55,7 @@ function Navbar() {
               {item}
             </Link>
           ))}
-        </div>
+        </div> */}
 
         {/* Logo */}
         {/* <div>
@@ -100,11 +90,11 @@ function Navbar() {
             />
 
             {/* 2. Brand Wordmark (Text) */}
-            <img
+            {/* <img
               src={logoImage1}
               alt="Markrin"
               className="object-contain w-auto h-10"
-            />
+            /> */}
           </Link>
         </div>
 
@@ -121,7 +111,7 @@ function Navbar() {
           )}
 
           {/* User Icon / Login */}
-          {isAuthenticated ? (
+          {/* {isAuthenticated ? (
             <Link to="/profile" className="flex items-center gap-2">
               <HiOutlineUser className="w-6 h-6 transition-colors duration-200 text-brand-dark-brown hover:text-brand-gold" />
               <span className="hidden md:inline text-sm font-medium text-brand-dark-brown">
@@ -136,7 +126,65 @@ function Navbar() {
               <HiOutlineUser className="w-6 h-6" />
               <span className="hidden md:inline">Login</span>
             </Link>
-          )}
+          )} */}
+          {/* User Icon / Login with Dropdown */}
+<div className="relative group">
+  {isAuthenticated ? (
+    <>
+      {/* Trigger: Profile Link */}
+      <Link to="/profile" className="flex items-center gap-2 py-2">
+        <HiOutlineUser className="w-6 h-6 transition-colors duration-200 text-brand-dark-brown group-hover:text-brand-gold" />
+        <span className="hidden md:inline text-sm font-medium text-brand-dark-brown group-hover:text-brand-gold">
+          {user?.name?.split(" ")[0]}
+        </span>
+      </Link>
+
+      {/* Dropdown Box */}
+      <div className="absolute right-0 top-full w-48 pt-2 transition-all duration-300 opacity-0 invisible group-hover:opacity-100 group-hover:visible z-50">
+        <div className="bg-white border border-gray-100 rounded-lg shadow-xl overflow-hidden py-2">
+          
+          <Link to="/profile" className="block px-4 py-2 text-sm text-gray-700 hover:bg-brand-cream hover:text-brand-dark-brown">
+            My Account
+          </Link>
+          
+          <Link to="/orders" className="block px-4 py-2 text-sm text-gray-700 hover:bg-brand-cream hover:text-brand-dark-brown">
+            Orders
+          </Link>
+          
+          <Link to="/wishlist" className="block px-4 py-2 text-sm text-gray-700 hover:bg-brand-cream hover:text-brand-dark-brown">
+            My Wishlist
+          </Link>
+          
+          <Link to="/contact" className="block px-4 py-2 text-sm text-gray-700 hover:bg-brand-cream hover:text-brand-dark-brown">
+            Contact Us
+          </Link>
+          
+          <Link to="/faqs" className="block px-4 py-2 text-sm text-gray-700 hover:bg-brand-cream hover:text-brand-dark-brown">
+            FAQs
+          </Link>
+
+          <div className="border-t border-gray-100 mt-1 pt-1">
+            <button
+              onClick={handleLogout}
+              className="flex items-center w-full gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+            >
+              <RiLogoutCircleLine /> Logout
+            </button>
+          </div>
+        </div>
+      </div>
+    </>
+  ) : (
+    /* Login Link for Unauthenticated Users */
+    <Link
+      to="/login"
+      className="flex items-center gap-2 text-sm font-medium text-brand-dark-brown hover:text-brand-gold transition-colors"
+    >
+      <HiOutlineUser className="w-6 h-6" />
+      <span className="hidden md:inline">Login</span>
+    </Link>
+  )}
+</div>
 
           {/* Cart Button */}
           <button onClick={toggleCartDrawer} className="relative">
@@ -149,9 +197,9 @@ function Navbar() {
           <SearchBar />
 
           {/* Mobile Menu Icon */}
-          <button onClick={toggleNavDrawer} className="md:hidden">
+          {/* <button onClick={toggleNavDrawer} >
             <HiBars3BottomRight className="w-6 h-6 text-brand-text" />
-          </button>
+          </button> */}
         </div>
       </nav>
 
@@ -160,21 +208,33 @@ function Navbar() {
 
       {/* Mobile Navigation Drawer */}
       <div
-        className={`fixed top-0 left-0 w-3/4 sm:w-1/2 h-full bg-brand-cream shadow-2xl transform transition-transform duration-300 ease-in-out z-50 ${navDrawerOpen ? "translate-x-0" : "-translate-x-full"
-          }`}
+        className={`fixed top-0 left-0 h-full bg-brand-cream shadow-2xl transform transition-transform duration-300 ease-in-out z-50 
+  w-3/4 sm:w-1/2 lg:w-1/3 2xl:w-1/4 
+  rounded-r-lg lg:rounded-r-xl 2xl:rounded-r-2xl 
+  ${navDrawerOpen ? "translate-x-0" : "-translate-x-full"}`}
+
       >
-        <div className="flex justify-end p-4">
+        
+        
+        <div className="flex items-center justify-between p-4">
+
+          <img
+              src={logoImage1}
+              alt="Markrin"
+              className="object-contain w-auto h-10"
+            />
+        
           <button onClick={toggleNavDrawer}>
-            <IoMdClose className="w-6 h-6 text-brand-text" />
+            <IoMdClose className="w-6 h-6 text-brand-text cursor-pointer" />
           </button>
         </div>
 
         <div className="flex flex-col p-6 space-y-6">
           {/* User Info in Mobile */}
           {isAuthenticated && (
-            <div className="pb-4 border-b border-gray-200">
-              <p className="text-sm text-gray-500 uppercase tracking-wider">
-                Welcome,
+            <div className="flex items-center pb-4 border-b border-brand-dark-brown">
+              <p className="text-sm text-gray-500 uppercase tracking-wider pr-2">
+                Hey 
               </p>
               <p className="text-xl font-bold text-brand-dark-brown">
                 {user?.name}
@@ -182,30 +242,30 @@ function Navbar() {
             </div>
           )}
 
-          <h2 className="text-xl font-bold tracking-tight uppercase text-brand-dark-brown">
+          {/* <h2 className="text-xl font-bold tracking-tight uppercase text-brand-dark-brown">
             Menu
-          </h2>
-          <nav className="flex flex-col space-y-4">
-            {["Shop", "Collections", "About", "Contact"].map((item) => (
+          </h2> */}
+          <nav className="flex flex-col space-y-3 ">
+            {["Shop", "Collections", "Bulk/CorporateOrders",  "About", "Contact"].map((item) => (
               <Link
                 key={item}
                 onClick={toggleNavDrawer}
                 to={`/${item.toLowerCase()}`}
-                className="text-lg font-medium uppercase text-brand-text hover:text-brand-gold"
+                className="text-lg font-medium uppercase text-brand-text hover:text-brand-white hover:bg-brand-dark-brown m-0 p-4 rounded-lg transition-transform duration-200"
               >
                 {item}
               </Link>
             ))}
 
             {/* Mobile Auth Links */}
-            <div className="pt-4 border-t border-gray-200 space-y-4">
+            <div className="flex flex-col pt-4 border-t border-brand-dark-brown space-y-4">
               {isAuthenticated ? (
                 <>
                   <Link
                     to="/profile"
                     onClick={toggleNavDrawer}
-                    className="text-lg font-medium uppercase text-brand-text hover:text-brand-gold"
-                  >
+                    className="text-lg font-medium uppercase text-brand-text hover:text-brand-white hover:bg-brand-dark-brown m-0 p-4 rounded-lg transition-transform duration-200"
+              >
                     My Profile
                   </Link>
                   {isAdmin && (
@@ -219,7 +279,7 @@ function Navbar() {
                   )}
                   <button
                     onClick={handleLogout}
-                    className="flex items-center gap-2 text-lg font-medium uppercase text-brand-maroon-accent hover:text-brand-dark-brown"
+                    className="flex items-center gap-2 text-lg font-medium uppercase text-brand-maroon-accent hover:text-brand-dark-brown hover:text-brand-white hover:bg-brand-dark-brown m-0 p-4 rounded-lg transition-transform duration-200"
                   >
                     <RiLogoutCircleLine size={20} /> Logout
                   </button>
