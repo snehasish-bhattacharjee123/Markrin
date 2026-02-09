@@ -61,9 +61,12 @@ const getProducts = async (req, res) => {
             if (maxPrice) query.price.$lte = Number(maxPrice);
         }
 
-        // Search by name
+        // Search by name or SKU
         if (search) {
-            query.name = { $regex: search, $options: 'i' };
+            query.$or = [
+                { name: { $regex: search, $options: 'i' } },
+                { sku: { $regex: search, $options: 'i' } },
+            ];
         }
 
         // Build sort object
@@ -152,10 +155,14 @@ const getFeaturedProducts = async (req, res) => {
 // @access  Public
 const getProductById = async (req, res) => {
     try {
-        if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
-            return res.status(400).json({ message: 'Invalid product id' });
+        const { id } = req.params;
+        let product;
+
+        if (mongoose.Types.ObjectId.isValid(id)) {
+            product = await Product.findById(id);
+        } else {
+            product = await Product.findOne({ slug: id.toLowerCase() });
         }
-        const product = await Product.findById(req.params.id);
 
         if (product) {
             res.json(product);
@@ -177,32 +184,51 @@ const createProduct = async (req, res) => {
             name,
             description,
             price,
-            category,
-            gender,
-            colors,
-            sizes,
-            material,
-            brand,
-            images,
+            discountPrice,
             countInStock,
+            category,
+            brand,
+            sizes,
+            colors,
+            collections,
+            material,
+            gender,
+            images,
             isFeatured,
             isNewArrival,
+            tags,
+            sku,
+            dimensions,
+            weight,
+            metaTitle,
+            metaDescription,
+            metaKeywords,
         } = req.body;
 
         const product = new Product({
             name,
             description,
             price,
-            category,
-            gender,
-            colors: colors || [],
-            sizes: sizes || [],
-            material,
-            brand,
-            images: images || [],
+            discountPrice,
             countInStock: countInStock || 0,
+            category,
+            brand,
+            sizes: sizes || [],
+            colors: colors || [],
+            collections,
+            material,
+            gender,
+            images: images || [],
             isFeatured: isFeatured || false,
             isNewArrival: isNewArrival || false,
+            tags: tags || [],
+            sku,
+            user: req.user._id,
+            dimensions,
+            weight,
+            metaTitle,
+            metaDescription,
+            metaKeywords,
         });
 
         const createdProduct = await product.save();

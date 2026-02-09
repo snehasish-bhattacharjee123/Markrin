@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import React, { createContext, useContext, useEffect, useMemo, useState, useCallback } from 'react';
 import { cartAPI } from '../api';
 import { useAuth } from './AuthContext';
 import { toast } from 'sonner';
@@ -18,7 +18,7 @@ export const CartProvider = ({ children }) => {
   const [cart, setCart] = useState({ items: [] });
   const [loading, setLoading] = useState(false);
 
-  const refreshCart = async () => {
+  const refreshCart = useCallback(async () => {
     if (!isAuthenticated) {
       setCart({ items: [] });
       return;
@@ -33,13 +33,13 @@ export const CartProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [isAuthenticated]);
 
   useEffect(() => {
     refreshCart();
-  }, [isAuthenticated]);
+  }, [isAuthenticated, refreshCart]);
 
-  const addItem = async ({ productId, quantity = 1, size, color }) => {
+  const addItem = useCallback(async ({ productId, quantity = 1, size, color }) => {
     if (!isAuthenticated) {
       toast.error('Please login to add items to cart');
       return;
@@ -55,23 +55,30 @@ export const CartProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [isAuthenticated]);
 
-  const updateItem = async (itemId, quantity) => {
+  const updateItem = useCallback(async (itemId, updates) => {
     if (!isAuthenticated) return;
 
-    setLoading(true);
+    // Optimistic update - update UI immediately
+    setCart(prev => ({
+      ...prev,
+      items: prev.items.map(item =>
+        item._id === itemId ? { ...item, ...updates } : item
+      )
+    }));
+
     try {
-      const updated = await cartAPI.updateItem(itemId, quantity);
+      const updated = await cartAPI.updateItem(itemId, updates);
       setCart(updated);
     } catch (err) {
       toast.error(err.message);
-    } finally {
-      setLoading(false);
+      // Revert on error
+      refreshCart();
     }
-  };
+  }, [isAuthenticated, refreshCart]);
 
-  const removeItem = async (itemId) => {
+  const removeItem = useCallback(async (itemId) => {
     if (!isAuthenticated) return;
 
     setLoading(true);
@@ -84,9 +91,9 @@ export const CartProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [isAuthenticated]);
 
-  const clearCart = async () => {
+  const clearCart = useCallback(async () => {
     if (!isAuthenticated) return;
 
     setLoading(true);
@@ -99,7 +106,7 @@ export const CartProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [isAuthenticated]);
 
   const totalItems = useMemo(() => {
     return cart.items?.reduce((sum, item) => sum + item.quantity, 0) || 0;

@@ -65,7 +65,7 @@ function Footer() {
           <ul className="space-y-3 text-sm">
             <li><Link to="/contact" className="transition-colors hover:text-brand-gold">Contact Us</Link></li>
             <li><Link to="/about" className="transition-colors hover:text-brand-gold">About Us</Link></li>
-            <li><Link to="/contact#faq" className="transition-colors hover:text-brand-gold">FAQs</Link></li>
+            <li><Link to="/faq" className="transition-colors hover:text-brand-gold">FAQs</Link></li>
             <li><Link to="/shipping" className="transition-colors hover:text-brand-gold">Shipping Policy</Link></li>
             <li><Link to="/returns" className="transition-colors hover:text-brand-gold">Returns & Refunds</Link></li>
             <li><Link to="/privacy" className="transition-colors hover:text-brand-gold">Privacy Policy</Link></li>

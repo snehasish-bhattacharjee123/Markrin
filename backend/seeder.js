@@ -7,14 +7,15 @@ const User = require('./models/User');
 const Product = require('./models/Product');
 
 // Sample Products Data
+// Sample Products Data
 const products = [
     {
         name: 'Classic White T-Shirt',
         description: 'A timeless classic white t-shirt made from 100% organic cotton. Perfect for everyday wear.',
         price: 29.99,
-        category: 'T-Shirts',
+        category: 'Topwear',
         gender: 'Unisex',
-        colors: ['White'],
+        colors: ['Black'],
         sizes: ['XS', 'S', 'M', 'L', 'XL', 'XXL'],
         material: 'Cotton',
         brand: 'Brand A',
@@ -34,7 +35,7 @@ const products = [
         name: 'Black Graphic Tee',
         description: 'Bold graphic design on premium black cotton. Stand out from the crowd.',
         price: 34.99,
-        category: 'T-Shirts',
+        category: 'Topwear',
         gender: 'Men',
         colors: ['Black'],
         sizes: ['S', 'M', 'L', 'XL'],
@@ -56,9 +57,9 @@ const products = [
         name: 'Casual Blue T-Shirt',
         description: 'Relaxed fit blue t-shirt for casual outings. Comfortable and stylish.',
         price: 19.99,
-        category: 'T-Shirts',
+        category: 'Topwear',
         gender: 'Men',
-        colors: ['Blue'],
+        colors: ['Black'],
         sizes: ['M', 'L', 'XL'],
         material: 'Cotton',
         brand: 'Brand C',
@@ -78,9 +79,9 @@ const products = [
         name: 'Oversized Streetwear Tee',
         description: 'Trendy oversized fit for the modern streetwear enthusiast.',
         price: 49.99,
-        category: 'T-Shirts',
+        category: 'Topwear',
         gender: 'Unisex',
-        colors: ['Black', 'White', 'Grey'],
+        colors: ['Black'],
         sizes: ['M', 'L', 'XL', 'XXL'],
         material: 'Cotton',
         brand: 'Brand D',
@@ -100,9 +101,9 @@ const products = [
         name: 'Minimal Grey T-Shirt',
         description: 'Simple and elegant grey t-shirt. A wardrobe essential.',
         price: 24.99,
-        category: 'T-Shirts',
+        category: 'Topwear',
         gender: 'Unisex',
-        colors: ['Grey'],
+        colors: ['Black'],
         sizes: ['XS', 'S', 'M', 'L', 'XL'],
         material: 'Cotton',
         brand: 'Brand A',
@@ -122,9 +123,9 @@ const products = [
         name: 'Printed Fashion Tee',
         description: 'Premium fashion t-shirt with unique artistic print.',
         price: 59.99,
-        category: 'T-Shirts',
+        category: 'Topwear',
         gender: 'Women',
-        colors: ['White', 'Pink'],
+        colors: ['Black'],
         sizes: ['XS', 'S', 'M', 'L'],
         material: 'Cotton',
         brand: 'Brand B',
@@ -139,94 +140,6 @@ const products = [
         isNewArrival: true,
         rating: 4.8,
         numReviews: 28,
-    },
-    {
-        name: 'Classic Blue Jeans',
-        description: 'Timeless blue denim jeans with perfect fit and comfort.',
-        price: 79.99,
-        category: 'Jeans',
-        gender: 'Men',
-        colors: ['Blue'],
-        sizes: ['S', 'M', 'L', 'XL'],
-        material: 'Denim',
-        brand: 'Brand C',
-        images: [
-            {
-                url: 'https://images.unsplash.com/photo-1542272604-787c3835535d?w=500',
-                altText: 'Blue jeans',
-            },
-        ],
-        countInStock: 45,
-        isFeatured: true,
-        isNewArrival: false,
-        rating: 4.4,
-        numReviews: 42,
-    },
-    {
-        name: 'Leather Biker Jacket',
-        description: 'Premium genuine leather jacket for the bold and adventurous.',
-        price: 299.99,
-        category: 'Jackets',
-        gender: 'Men',
-        colors: ['Black', 'Brown'],
-        sizes: ['M', 'L', 'XL'],
-        material: 'Leather',
-        brand: 'Brand D',
-        images: [
-            {
-                url: 'https://images.unsplash.com/photo-1551028719-00167b16eac5?w=500',
-                altText: 'Leather biker jacket',
-            },
-        ],
-        countInStock: 20,
-        isFeatured: true,
-        isNewArrival: false,
-        rating: 4.9,
-        numReviews: 56,
-    },
-    {
-        name: 'White Sneakers',
-        description: 'Clean white sneakers that go with everything. Ultra comfortable.',
-        price: 89.99,
-        category: 'Shoes',
-        gender: 'Unisex',
-        colors: ['White'],
-        sizes: ['S', 'M', 'L', 'XL'],
-        material: 'Leather',
-        brand: 'Brand A',
-        images: [
-            {
-                url: 'https://images.unsplash.com/photo-1549298916-b41d501d3772?w=500',
-                altText: 'White sneakers',
-            },
-        ],
-        countInStock: 80,
-        isFeatured: true,
-        isNewArrival: true,
-        rating: 4.6,
-        numReviews: 67,
-    },
-    {
-        name: 'Gold Watch',
-        description: 'Elegant gold-plated watch for the sophisticated individual.',
-        price: 149.99,
-        category: 'Accessories',
-        gender: 'Unisex',
-        colors: ['Yellow'],
-        sizes: ['M'],
-        material: 'Cotton',
-        brand: 'Brand B',
-        images: [
-            {
-                url: 'https://images.unsplash.com/photo-1524592094714-0f0654e20314?w=500',
-                altText: 'Gold watch',
-            },
-        ],
-        countInStock: 25,
-        isFeatured: true,
-        isNewArrival: false,
-        rating: 4.7,
-        numReviews: 38,
     },
 ];
 
@@ -255,16 +168,30 @@ const importData = async () => {
         await Product.deleteMany();
 
         // Create users
-        const createdAdmin = await User.create(adminUser);
-        const createdCustomer = await User.create(customerUser);
+        const admin = await User.create(adminUser);
+        const customer = await User.create(customerUser);
 
         console.log('Users created:');
-        console.log(`  Admin: ${createdAdmin.email} (password: admin123)`);
-        console.log(`  Customer: ${createdCustomer.email} (password: password123)`);
+        console.log(`  Admin: ${admin.email} (password: admin123)`);
+        console.log(`  Customer: ${customer.email} (password: password123)`);
 
         // Create products
-        await Product.insertMany(products);
-        console.log(`\n${products.length} products created successfully!`);
+        const sampleProducts = products.map((product, index) => {
+            return {
+                ...product,
+                user: admin._id,
+                sku: `SKU-${index + 1}`,
+                collections: 'Latest Collection',
+                dimensions: { length: 10, width: 10, height: 10 },
+                weight: 0.5,
+                metaTitle: product.name,
+                metaDescription: product.description,
+                metaKeywords: `${product.category}, ${product.brand}, ${product.gender}`,
+            };
+        });
+
+        await Product.insertMany(sampleProducts);
+        console.log(`\n${sampleProducts.length} products created successfully!`);
 
         console.log('\nData imported successfully!');
         process.exit();

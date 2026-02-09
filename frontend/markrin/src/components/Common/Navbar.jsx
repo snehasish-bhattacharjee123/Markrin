@@ -4,6 +4,7 @@ import {
   HiOutlineUser,
   HiOutlineShoppingBag,
   HiBars3BottomRight,
+  HiHeart,
 } from "react-icons/hi2";
 import { IoMdClose } from "react-icons/io";
 import { RiLogoutCircleLine } from "react-icons/ri";
@@ -16,6 +17,7 @@ import logoImage1 from "../../assets/final_logo_cc_website.svg";
 
 import { useAuth } from "../../context/AuthContext";
 import { useCart } from "../../context/CartContext";
+import { useWishlist } from "../../context/WishlistContext";
 import { toast } from "sonner";
 
 function Navbar() {
@@ -24,6 +26,7 @@ function Navbar() {
 
   const { user, isAuthenticated, isAdmin, logout } = useAuth();
   const { totalItems } = useCart();
+  const { wishlistCount } = useWishlist();
 
   const toggleCartDrawer = () => setDrawerOpen(!drawerOpen);
   const toggleNavDrawer = () => setNavDrawerOpen(!navDrawerOpen);
@@ -40,9 +43,9 @@ function Navbar() {
         {/* Logo */}
 
         <button onClick={toggleNavDrawer} >
-            <HiBars3BottomRight className="w-6 h-6 text-brand-text cursor-pointer" />
-          </button>
-        
+          <HiBars3BottomRight className="w-6 h-6 text-brand-text cursor-pointer" />
+        </button>
+
 
         {/* Navigation Links - Desktop */}
         {/* <div className="hidden space-x-6 md:flex">
@@ -128,70 +131,80 @@ function Navbar() {
             </Link>
           )} */}
           {/* User Icon / Login with Dropdown */}
-<div className="relative group">
-  {isAuthenticated ? (
-    <>
-      {/* Trigger: Profile Link */}
-      <Link to="/profile" className="flex items-center gap-2 py-2">
-        <HiOutlineUser className="w-6 h-6 transition-colors duration-200 text-brand-dark-brown group-hover:text-brand-gold" />
-        <span className="hidden md:inline text-sm font-medium text-brand-dark-brown group-hover:text-brand-gold">
-          {user?.name?.split(" ")[0]}
-        </span>
-      </Link>
+          <div className="relative group">
+            {isAuthenticated ? (
+              <>
+                {/* Trigger: Profile Link */}
+                <Link to="/profile" className="flex items-center gap-2 py-2">
+                  <HiOutlineUser className="w-6 h-6 transition-colors duration-200 text-brand-dark-brown group-hover:text-brand-gold" />
+                  <span className="hidden md:inline text-sm font-medium text-brand-dark-brown group-hover:text-brand-gold">
+                    {user?.name?.split(" ")[0]}
+                  </span>
+                </Link>
 
-      {/* Dropdown Box */}
-      <div className="absolute right-0 top-full w-48 pt-2 transition-all duration-300 opacity-0 invisible group-hover:opacity-100 group-hover:visible z-50">
-        <div className="bg-white border border-gray-100 rounded-lg shadow-xl overflow-hidden py-2">
-          
-          <Link to="/profile" className="block px-4 py-2 text-sm text-gray-700 hover:bg-brand-cream hover:text-brand-dark-brown">
-            My Account
-          </Link>
-          
-          <Link to="/orders" className="block px-4 py-2 text-sm text-gray-700 hover:bg-brand-cream hover:text-brand-dark-brown">
-            Orders
-          </Link>
-          
-          <Link to="/wishlist" className="block px-4 py-2 text-sm text-gray-700 hover:bg-brand-cream hover:text-brand-dark-brown">
-            My Wishlist
-          </Link>
-          
-          <Link to="/contact" className="block px-4 py-2 text-sm text-gray-700 hover:bg-brand-cream hover:text-brand-dark-brown">
-            Contact Us
-          </Link>
-          
-          <Link to="/faqs" className="block px-4 py-2 text-sm text-gray-700 hover:bg-brand-cream hover:text-brand-dark-brown">
-            FAQs
-          </Link>
+                {/* Dropdown Box */}
+                <div className="absolute right-0 top-full w-48 pt-2 transition-all duration-300 opacity-0 invisible group-hover:opacity-100 group-hover:visible z-50">
+                  <div className="bg-white border border-gray-100 rounded-lg shadow-xl overflow-hidden py-2">
 
-          <div className="border-t border-gray-100 mt-1 pt-1">
-            <button
-              onClick={handleLogout}
-              className="flex items-center w-full gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50"
-            >
-              <RiLogoutCircleLine /> Logout
-            </button>
+                    <Link to="/profile" className="block px-4 py-2 text-sm text-gray-700 hover:bg-brand-cream hover:text-brand-dark-brown">
+                      My Account
+                    </Link>
+
+                    <Link to="/orders" className="block px-4 py-2 text-sm text-gray-700 hover:bg-brand-cream hover:text-brand-dark-brown">
+                      Orders
+                    </Link>
+
+                    <Link to="/contact" className="block px-4 py-2 text-sm text-gray-700 hover:bg-brand-cream hover:text-brand-dark-brown">
+                      Contact Us
+                    </Link>
+
+                    <Link to="/faq" className="block px-4 py-2 text-sm text-gray-700 hover:bg-brand-cream hover:text-brand-dark-brown">
+                      FAQs
+                    </Link>
+
+                    <div className="border-t border-gray-100 mt-1 pt-1">
+                      <button
+                        onClick={handleLogout}
+                        className="flex items-center w-full gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+                      >
+                        <RiLogoutCircleLine /> Logout
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </>
+            ) : (
+              /* Login Link for Unauthenticated Users */
+              <Link
+                to="/login"
+                className="flex items-center gap-2 text-sm font-medium text-brand-dark-brown hover:text-brand-gold transition-colors"
+              >
+                <HiOutlineUser className="w-6 h-6" />
+                <span className="hidden md:inline">Login</span>
+              </Link>
+            )}
           </div>
-        </div>
-      </div>
-    </>
-  ) : (
-    /* Login Link for Unauthenticated Users */
-    <Link
-      to="/login"
-      className="flex items-center gap-2 text-sm font-medium text-brand-dark-brown hover:text-brand-gold transition-colors"
-    >
-      <HiOutlineUser className="w-6 h-6" />
-      <span className="hidden md:inline">Login</span>
-    </Link>
-  )}
-</div>
+
+          {/* Wishlist Button */}
+          {isAuthenticated && (
+            <Link to="/wishlist" className="relative">
+              <HiHeart className="w-6 h-6 transition-colors duration-200 text-brand-dark-brown hover:text-brand-gold" />
+              {wishlistCount > 0 && (
+                <span className="absolute -top-1 -right-2 bg-brand-gold text-white text-[10px] font-bold rounded-full px-1.5 py-0.5 leading-none">
+                  {wishlistCount}
+                </span>
+              )}
+            </Link>
+          )}
 
           {/* Cart Button */}
           <button onClick={toggleCartDrawer} className="relative">
             <HiOutlineShoppingBag className="w-6 h-6 transition-colors duration-200 text-brand-dark-brown hover:text-brand-gold" />
-            <span className="absolute -top-1 -right-2 bg-red-600 text-white text-[10px] font-bold rounded-full px-1.5 py-0.5 leading-none">
-              {totalItems}
-            </span>
+            {totalItems > 0 && (
+              <span className="absolute -top-1 -right-2 bg-red-600 text-white text-[10px] font-bold rounded-full px-1.5 py-0.5 leading-none">
+                {totalItems}
+              </span>
+            )}
           </button>
 
           <SearchBar />
@@ -214,16 +227,16 @@ function Navbar() {
   ${navDrawerOpen ? "translate-x-0" : "-translate-x-full"}`}
 
       >
-        
-        
+
+
         <div className="flex items-center justify-between p-4">
 
           <img
-              src={logoImage1}
-              alt="Markrin"
-              className="object-contain w-auto h-10"
-            />
-        
+            src={logoImage1}
+            alt="Markrin"
+            className="object-contain w-auto h-10"
+          />
+
           <button onClick={toggleNavDrawer}>
             <IoMdClose className="w-6 h-6 text-brand-text cursor-pointer" />
           </button>
@@ -234,7 +247,7 @@ function Navbar() {
           {isAuthenticated && (
             <div className="flex items-center pb-4 border-b border-brand-dark-brown">
               <p className="text-sm text-gray-500 uppercase tracking-wider pr-2">
-                Hey 
+                Hey
               </p>
               <p className="text-xl font-bold text-brand-dark-brown">
                 {user?.name}
@@ -246,7 +259,7 @@ function Navbar() {
             Menu
           </h2> */}
           <nav className="flex flex-col space-y-3 ">
-            {["Shop", "Collections", "Bulk/CorporateOrders",  "About", "Contact"].map((item) => (
+            {["Shop", "Collections", "Bulk/CorporateOrders", "About", "Contact"].map((item) => (
               <Link
                 key={item}
                 onClick={toggleNavDrawer}
@@ -265,8 +278,27 @@ function Navbar() {
                     to="/profile"
                     onClick={toggleNavDrawer}
                     className="text-lg font-medium uppercase text-brand-text hover:text-brand-white hover:bg-brand-dark-brown m-0 p-4 rounded-lg transition-transform duration-200"
-              >
+                  >
                     My Profile
+                  </Link>
+                  <Link
+                    to="/wishlist"
+                    onClick={toggleNavDrawer}
+                    className="flex justify-between items-center text-lg font-medium uppercase text-brand-text hover:text-brand-white hover:bg-brand-dark-brown m-0 p-4 rounded-lg transition-transform duration-200"
+                  >
+                    <span>My Wishlist</span>
+                    {wishlistCount > 0 && (
+                      <span className="bg-brand-gold text-brand-dark-brown text-xs font-bold rounded-full px-2 py-1">
+                        {wishlistCount}
+                      </span>
+                    )}
+                  </Link>
+                  <Link
+                    to="/faq"
+                    onClick={toggleNavDrawer}
+                    className="text-lg font-medium uppercase text-brand-text hover:text-brand-white hover:bg-brand-dark-brown m-0 p-4 rounded-lg transition-transform duration-200"
+                  >
+                    FAQ
                   </Link>
                   {isAdmin && (
                     <Link

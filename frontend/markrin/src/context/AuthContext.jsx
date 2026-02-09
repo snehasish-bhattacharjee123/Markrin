@@ -80,6 +80,11 @@ export const AuthProvider = ({ children }) => {
         }
     };
 
+    // Direct user state update
+    const updateUser = (userData) => {
+        setUser((prev) => ({ ...prev, ...userData }));
+    };
+
     const value = {
         user,
         loading,
@@ -90,6 +95,7 @@ export const AuthProvider = ({ children }) => {
         logout,
         getProfile,
         updateProfile,
+        updateUser,
     };
 
     return (

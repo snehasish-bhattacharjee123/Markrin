@@ -14,23 +14,34 @@ const ProductManagement = () => {
         name: '',
         description: '',
         price: '',
+        discountPrice: '',
+        countInStock: '',
+        sku: '',
         category: '',
-        gender: 'Unisex',
+        brand: '',
         sizes: [],
         colors: [],
-        stock: '',
+        collections: '',
+        material: '',
+        gender: 'Unisex',
         images: [{ url: '', altText: '' }],
         isFeatured: false,
         isNewArrival: false,
+        tags: '',
+        dimensions: { length: '', width: '', height: '' },
+        weight: '',
+        metaTitle: '',
+        metaDescription: '',
+        metaKeywords: '',
     });
 
     const { isAdmin, isAuthenticated } = useAuth();
     const navigate = useNavigate();
 
-    const categories = ['T-Shirts', 'Graphic Tees', 'Hoodies', 'Pants', 'Jeans', 'Jackets', 'Shoes', 'Accessories'];
+    const categories = ['Topwear', 'Bottomwear'];
     const genders = ['Men', 'Women', 'Unisex'];
     const availableSizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
-    const availableColors = ['Black', 'White', 'Grey', 'Navy', 'Red', 'Blue', 'Green', 'Yellow'];
+    const availableColors = ['Black']; // 'White', 'Grey', 'Navy', 'Red', 'Blue', 'Green', 'Yellow'
 
     useEffect(() => {
         fetchProducts();
@@ -73,6 +84,17 @@ const ProductManagement = () => {
         }));
     };
 
+    const handleDimensionsChange = (e) => {
+        const { name, value } = e.target;
+        setFormData(prev => ({
+            ...prev,
+            dimensions: {
+                ...prev.dimensions,
+                [name]: value
+            }
+        }));
+    };
+
     const handleImageChange = (index, field, value) => {
         setFormData(prev => {
             const newImages = [...prev.images];
@@ -102,14 +124,29 @@ const ProductManagement = () => {
                 name: product.name || '',
                 description: product.description || '',
                 price: product.price || '',
+                discountPrice: product.discountPrice || '',
+                countInStock: product.countInStock || '',
+                sku: product.sku || '',
                 category: product.category || '',
-                gender: product.gender || 'Unisex',
+                brand: product.brand || '',
                 sizes: product.sizes || [],
                 colors: product.colors || [],
-                stock: product.stock || '',
+                collections: product.collections || '',
+                material: product.material || '',
+                gender: product.gender || 'Unisex',
                 images: product.images?.length ? product.images : [{ url: '', altText: '' }],
                 isFeatured: product.isFeatured || false,
                 isNewArrival: product.isNewArrival || false,
+                tags: product.tags ? product.tags.join(', ') : '',
+                dimensions: {
+                    length: product.dimensions?.length || '',
+                    width: product.dimensions?.width || '',
+                    height: product.dimensions?.height || '',
+                },
+                weight: product.weight || '',
+                metaTitle: product.metaTitle || '',
+                metaDescription: product.metaDescription || '',
+                metaKeywords: product.metaKeywords || '',
             });
         } else {
             setEditingProduct(null);
@@ -117,14 +154,25 @@ const ProductManagement = () => {
                 name: '',
                 description: '',
                 price: '',
+                discountPrice: '',
+                countInStock: '',
+                sku: '',
                 category: '',
-                gender: 'Unisex',
+                brand: '',
                 sizes: [],
                 colors: [],
-                stock: '',
+                collections: '',
+                material: '',
+                gender: 'Unisex',
                 images: [{ url: '', altText: '' }],
                 isFeatured: false,
                 isNewArrival: false,
+                tags: '',
+                dimensions: { length: '', width: '', height: '' },
+                weight: '',
+                metaTitle: '',
+                metaDescription: '',
+                metaKeywords: '',
             });
         }
         setShowModal(true);
@@ -136,7 +184,15 @@ const ProductManagement = () => {
             const productData = {
                 ...formData,
                 price: parseFloat(formData.price),
-                stock: parseInt(formData.stock),
+                discountPrice: parseFloat(formData.discountPrice) || 0,
+                countInStock: parseInt(formData.countInStock) || 0,
+                weight: parseFloat(formData.weight) || 0,
+                dimensions: {
+                    length: parseFloat(formData.dimensions.length) || 0,
+                    width: parseFloat(formData.dimensions.width) || 0,
+                    height: parseFloat(formData.dimensions.height) || 0,
+                },
+                tags: formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag),
                 images: formData.images.filter(img => img.url),
             };
 
@@ -214,12 +270,14 @@ const ProductManagement = () => {
                         <div className="p-4">
                             <h3 className="font-semibold text-gray-800 truncate">{product.name}</h3>
                             <p className="text-sm text-gray-500">{product.category}</p>
+                            <p className="text-sm text-gray-400">SKU: {product.sku}</p>
+                            <p className="text-[10px] text-brand-gold font-mono mt-1 truncate">Slug: {product.slug}</p>
                             <div className="flex justify-between items-center mt-3">
                                 <span className="text-lg font-bold text-brand-gold">
                                     ${product.price?.toFixed(2)}
                                 </span>
                                 <span className="text-sm text-gray-400">
-                                    Stock: {product.stock}
+                                    Stock: {product.countInStock}
                                 </span>
                             </div>
                             <div className="flex gap-2 mt-4">
@@ -275,93 +333,257 @@ const ProductManagement = () => {
                         </div>
 
                         <form onSubmit={handleSubmit} className="p-6 space-y-6">
-                            {/* Basic Info */}
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div className="md:col-span-2">
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        Product Name *
-                                    </label>
-                                    <input
-                                        type="text"
-                                        name="name"
-                                        value={formData.name}
-                                        onChange={handleChange}
-                                        className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
-                                        required
-                                    />
+                            {/* Identity & Basic Info */}
+                            <div className="space-y-4">
+                                <h4 className="font-medium text-gray-800 border-b pb-2">Basic Information</h4>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="md:col-span-2">
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Product Name *</label>
+                                        <input
+                                            type="text"
+                                            name="name"
+                                            value={formData.name}
+                                            onChange={handleChange}
+                                            className="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
+                                            required
+                                        />
+                                    </div>
+                                    {editingProduct && (
+                                        <div className="md:col-span-2">
+                                            <label className="block text-xs font-medium text-gray-400 mb-1 uppercase tracking-wider">Product Slug (Auto-generated)</label>
+                                            <div className="p-2 bg-gray-50 border rounded-md text-sm text-gray-500 font-mono">
+                                                {editingProduct.slug}
+                                            </div>
+                                        </div>
+                                    )}
+                                    <div className="md:col-span-2">
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                                        <textarea
+                                            name="description"
+                                            value={formData.description}
+                                            onChange={handleChange}
+                                            rows={3}
+                                            className="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none resize-none"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">SKU *</label>
+                                        <input
+                                            type="text"
+                                            name="sku"
+                                            value={formData.sku}
+                                            onChange={handleChange}
+                                            className="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
+                                            required
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Brand</label>
+                                        <input
+                                            type="text"
+                                            name="brand"
+                                            value={formData.brand}
+                                            onChange={handleChange}
+                                            className="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
+                                        />
+                                    </div>
                                 </div>
-                                <div className="md:col-span-2">
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        Description
-                                    </label>
-                                    <textarea
-                                        name="description"
-                                        value={formData.description}
-                                        onChange={handleChange}
-                                        rows={3}
-                                        className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none resize-none"
-                                    />
+                            </div>
+
+                            {/* Pricing & Inventory */}
+                            <div className="space-y-4">
+                                <h4 className="font-medium text-gray-800 border-b pb-2">Pricing & Inventory</h4>
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Price *</label>
+                                        <input
+                                            type="number"
+                                            name="price"
+                                            value={formData.price}
+                                            onChange={handleChange}
+                                            step="0.01"
+                                            min="0"
+                                            className="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
+                                            required
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Discount Price</label>
+                                        <input
+                                            type="number"
+                                            name="discountPrice"
+                                            value={formData.discountPrice}
+                                            onChange={handleChange}
+                                            step="0.01"
+                                            min="0"
+                                            className="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Count In Stock *</label>
+                                        <input
+                                            type="number"
+                                            name="countInStock"
+                                            value={formData.countInStock}
+                                            onChange={handleChange}
+                                            min="0"
+                                            className="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
+                                            required
+                                        />
+                                    </div>
                                 </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        Price *
-                                    </label>
-                                    <input
-                                        type="number"
-                                        name="price"
-                                        value={formData.price}
-                                        onChange={handleChange}
-                                        step="0.01"
-                                        min="0"
-                                        className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
-                                        required
-                                    />
+                            </div>
+
+                            {/* Classification */}
+                            <div className="space-y-4">
+                                <h4 className="font-medium text-gray-800 border-b pb-2">Classification</h4>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Category *</label>
+                                        <select
+                                            name="category"
+                                            value={formData.category}
+                                            onChange={handleChange}
+                                            className="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
+                                            required
+                                        >
+                                            <option value="">Select Category</option>
+                                            {categories.map(cat => (
+                                                <option key={cat} value={cat}>{cat}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Collections *</label>
+                                        <input
+                                            type="text"
+                                            name="collections"
+                                            value={formData.collections}
+                                            onChange={handleChange}
+                                            className="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
+                                            required
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Gender</label>
+                                        <select
+                                            name="gender"
+                                            value={formData.gender}
+                                            onChange={handleChange}
+                                            className="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
+                                        >
+                                            {genders.map(g => (
+                                                <option key={g} value={g}>{g}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Material</label>
+                                        <input
+                                            type="text"
+                                            name="material"
+                                            value={formData.material}
+                                            onChange={handleChange}
+                                            className="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
+                                        />
+                                    </div>
+                                    <div className="md:col-span-2">
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Tags (Comma Separated)</label>
+                                        <input
+                                            type="text"
+                                            name="tags"
+                                            value={formData.tags}
+                                            onChange={handleChange}
+                                            className="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
+                                            placeholder="T-Shirt, Summer, Sale"
+                                        />
+                                    </div>
                                 </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        Stock *
-                                    </label>
-                                    <input
-                                        type="number"
-                                        name="stock"
-                                        value={formData.stock}
-                                        onChange={handleChange}
-                                        min="0"
-                                        className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
-                                        required
-                                    />
+                            </div>
+
+                            {/* Physical & SEO */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                {/* Physical */}
+                                <div className="space-y-4">
+                                    <h4 className="font-medium text-gray-800 border-b pb-2">Dimensions & Weight</h4>
+                                    <div className="grid grid-cols-3 gap-2">
+                                        <div>
+                                            <label className="block text-xs font-medium text-gray-700">Length</label>
+                                            <input
+                                                type="number"
+                                                name="length"
+                                                value={formData.dimensions.length}
+                                                onChange={handleDimensionsChange}
+                                                className="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs font-medium text-gray-700">Width</label>
+                                            <input
+                                                type="number"
+                                                name="width"
+                                                value={formData.dimensions.width}
+                                                onChange={handleDimensionsChange}
+                                                className="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs font-medium text-gray-700">Height</label>
+                                            <input
+                                                type="number"
+                                                name="height"
+                                                value={formData.dimensions.height}
+                                                onChange={handleDimensionsChange}
+                                                className="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
+                                            />
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Weight (kg)</label>
+                                        <input
+                                            type="number"
+                                            name="weight"
+                                            value={formData.weight}
+                                            onChange={handleChange}
+                                            step="0.01"
+                                            className="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
+                                        />
+                                    </div>
                                 </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        Category *
-                                    </label>
-                                    <select
-                                        name="category"
-                                        value={formData.category}
-                                        onChange={handleChange}
-                                        className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
-                                        required
-                                    >
-                                        <option value="">Select Category</option>
-                                        {categories.map(cat => (
-                                            <option key={cat} value={cat}>{cat}</option>
-                                        ))}
-                                    </select>
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        Gender
-                                    </label>
-                                    <select
-                                        name="gender"
-                                        value={formData.gender}
-                                        onChange={handleChange}
-                                        className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
-                                    >
-                                        {genders.map(g => (
-                                            <option key={g} value={g}>{g}</option>
-                                        ))}
-                                    </select>
+
+                                {/* SEO */}
+                                <div className="space-y-4">
+                                    <h4 className="font-medium text-gray-800 border-b pb-2">SEO Fields</h4>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Meta Title</label>
+                                        <input
+                                            type="text"
+                                            name="metaTitle"
+                                            value={formData.metaTitle}
+                                            onChange={handleChange}
+                                            className="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Meta Description</label>
+                                        <input
+                                            type="text"
+                                            name="metaDescription"
+                                            value={formData.metaDescription}
+                                            onChange={handleChange}
+                                            className="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Meta Keywords</label>
+                                        <input
+                                            type="text"
+                                            name="metaKeywords"
+                                            value={formData.metaKeywords}
+                                            onChange={handleChange}
+                                            className="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
+                                        />
+                                    </div>
                                 </div>
                             </div>
 

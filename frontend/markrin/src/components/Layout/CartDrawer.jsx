@@ -6,15 +6,10 @@ import { useAuth } from "../../context/AuthContext";
 import { useCart } from "../../context/CartContext";
 
 function CartDrawer({ drawerOpen, toggleCartDrawer }) {
-  const { isAuthenticated } = useAuth();
-  const { cart, loading, totalItems, subtotal, refreshCart, updateItem, removeItem } = useCart();
+  const { isAuthenticated, user } = useAuth();
+  const { cart, loading, totalItems, subtotal, updateItem, removeItem } = useCart();
 
-  useEffect(() => {
-    if (drawerOpen && isAuthenticated) {
-      refreshCart();
-    }
-  }, [drawerOpen, isAuthenticated, refreshCart]);
-
+  // Lock body scroll when drawer is open
   useEffect(() => {
     if (!drawerOpen) return;
 
@@ -28,7 +23,7 @@ function CartDrawer({ drawerOpen, toggleCartDrawer }) {
 
   const updateQuantity = async (itemId, quantity) => {
     if (quantity < 1) return;
-    await updateItem(itemId, quantity);
+    await updateItem(itemId, { quantity });
   };
 
   return (
@@ -106,17 +101,27 @@ function CartDrawer({ drawerOpen, toggleCartDrawer }) {
                   className="flex gap-4 p-4 bg-gray-50 rounded-xl"
                 >
                   {/* Product Image */}
-                  <img
-                    src={item.product?.images?.[0]?.url || "https://via.placeholder.com/100"}
-                    alt={item.product?.name || "Product"}
-                    className="w-20 h-20 object-cover rounded-lg"
-                  />
+                  <Link
+                    to={`/product/${item.product?.slug || item.product?._id}`}
+                    onClick={toggleCartDrawer}
+                  >
+                    <img
+                      src={item.product?.images?.[0]?.url || "https://via.placeholder.com/100"}
+                      alt={item.product?.name || "Product"}
+                      className="w-20 h-20 object-cover rounded-lg hover:opacity-80 transition-opacity"
+                    />
+                  </Link>
 
                   {/* Product Details */}
                   <div className="flex-grow">
-                    <h3 className="font-semibold text-brand-dark-brown text-sm line-clamp-1">
-                      {item.product?.name || "Product"}
-                    </h3>
+                    <Link
+                      to={`/product/${item.product?.slug || item.product?._id}`}
+                      onClick={toggleCartDrawer}
+                    >
+                      <h3 className="font-semibold text-brand-dark-brown text-sm line-clamp-1 hover:text-brand-gold transition-colors">
+                        {item.product?.name || "Product"}
+                      </h3>
+                    </Link>
                     <div className="flex gap-2 mt-1">
                       {item.size && (
                         <span className="text-xs text-gray-500">Size: {item.size}</span>
@@ -163,6 +168,18 @@ function CartDrawer({ drawerOpen, toggleCartDrawer }) {
         {/* Footer - Checkout */}
         {isAuthenticated && cart.items?.length > 0 && (
           <div className="p-6 border-t border-gray-100 bg-gray-50">
+            {/* Address Preview */}
+            <div className="mb-4">
+              <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Shipping To</h3>
+              {user?.address?.street ? (
+                <p className="text-sm text-brand-dark-brown">
+                  {user.address.street}, {user.address.city}, {user.address.state}
+                </p>
+              ) : (
+                <p className="text-sm text-gray-500 italic">No address set. Updated at Checkout.</p>
+              )}
+            </div>
+
             <div className="flex justify-between items-center mb-4">
               <span className="text-gray-600">Subtotal</span>
               <span className="text-xl font-bold text-brand-dark-brown">

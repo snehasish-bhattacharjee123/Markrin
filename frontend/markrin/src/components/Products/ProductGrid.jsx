@@ -29,7 +29,10 @@ function ProductGrid({ products }) {
               return <div className="group block">{children}</div>;
             }
             return (
-              <Link to={`/product/${product._id}`} className="group block">
+              <Link
+                to={`/product/${product.slug || product._id}`}
+                className="group block"
+              >
                 {children}
               </Link>
             );
@@ -70,7 +73,7 @@ function ProductGrid({ products }) {
                         ((parseFloat(product.originalPrice) -
                           parseFloat(product.price)) /
                           parseFloat(product.originalPrice)) *
-                          100,
+                        100,
                       )}
                       %
                     </span>
@@ -101,7 +104,7 @@ function ProductGrid({ products }) {
           );
         })}
       </div>
-    </div>
+    </div >
   );
 }
 

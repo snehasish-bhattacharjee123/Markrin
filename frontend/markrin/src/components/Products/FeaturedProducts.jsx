@@ -92,7 +92,7 @@ function FeaturedProducts() {
                         <div key={product._id || `${product.name}-${index}`} className="group">
                             <div className="relative overflow-hidden rounded-2xl bg-gray-100 mb-4">
                                 {product._id ? (
-                                    <Link to={`/product/${product._id}`}>
+                                    <Link to={`/product/${product.slug || product._id}`}>
                                         <img
                                             src={product.images?.[0]?.url || "https://via.placeholder.com/400"}
                                             alt={product.name}
@@ -133,12 +133,12 @@ function FeaturedProducts() {
 
                             {/* Product Info */}
                             {product._id ? (
-                                <Link to={`/product/${product._id}`}>
+                                <Link to={`/product/${product.slug || product._id}`}>
                                     <h3 className="font-semibold text-brand-dark-brown mb-1 group-hover:text-brand-gold transition-colors">
                                         {product.name}
                                     </h3>
                                     <p className="text-lg font-bold text-brand-gold">
-                                        ${product.price?.toFixed(2)}
+                                        ₹{product.price?.toFixed(2)}
                                     </p>
                                 </Link>
                             ) : (

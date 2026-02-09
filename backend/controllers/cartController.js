@@ -9,7 +9,7 @@ const getCart = async (req, res) => {
     try {
         let cart = await Cart.findOne({ user: req.user._id }).populate(
             'items.product',
-            'name price images countInStock'
+            'name price images countInStock sizes colors'
         );
 
         if (!cart) {
@@ -17,7 +17,7 @@ const getCart = async (req, res) => {
             cart = await Cart.create({ user: req.user._id, items: [] });
             cart = await Cart.findById(cart._id).populate(
                 'items.product',
-                'name price images countInStock'
+                'name price images countInStock sizes colors'
             );
         }
 
@@ -28,7 +28,7 @@ const getCart = async (req, res) => {
             await cart.save();
             cart = await Cart.findById(cart._id).populate(
                 'items.product',
-                'name price images countInStock'
+                'name price images countInStock sizes colors'
             );
         }
 
@@ -98,7 +98,7 @@ const addToCart = async (req, res) => {
         // Populate and return
         cart = await Cart.findById(cart._id).populate(
             'items.product',
-            'name price images countInStock'
+            'name price images countInStock sizes colors'
         );
 
         res.json(cart);
@@ -113,7 +113,7 @@ const addToCart = async (req, res) => {
 // @access  Private
 const updateCartItem = async (req, res) => {
     try {
-        const { quantity } = req.body;
+        const { quantity, size, color } = req.body;
         const { itemId } = req.params;
 
         const cart = await Cart.findOne({ user: req.user._id });
@@ -130,18 +130,45 @@ const updateCartItem = async (req, res) => {
             return res.status(404).json({ message: 'Item not found in cart' });
         }
 
-        if (quantity <= 0) {
-            // Remove item
-            cart.items.splice(itemIndex, 1);
-        } else {
-            cart.items[itemIndex].quantity = quantity;
+        const item = cart.items[itemIndex];
+        const productId = item.product.toString();
+
+        // If updating size or color, check if another item with same specs already exists
+        if (size !== undefined || color !== undefined) {
+            const newSize = size !== undefined ? size : item.size;
+            const newColor = color !== undefined ? color : item.color;
+
+            const existingSameItemIndex = cart.items.findIndex(
+                (it, idx) =>
+                    idx !== itemIndex &&
+                    it.product.toString() === productId &&
+                    it.size === newSize &&
+                    it.color === newColor
+            );
+
+            if (existingSameItemIndex > -1) {
+                // Merge quantities and remove the current item
+                cart.items[existingSameItemIndex].quantity += (quantity !== undefined ? quantity : item.quantity);
+                cart.items.splice(itemIndex, 1);
+            } else {
+                // Just update specs
+                if (size !== undefined) item.size = size;
+                if (color !== undefined) item.color = color;
+                if (quantity !== undefined) item.quantity = quantity;
+            }
+        } else if (quantity !== undefined) {
+            if (quantity <= 0) {
+                cart.items.splice(itemIndex, 1);
+            } else {
+                item.quantity = quantity;
+            }
         }
 
         await cart.save();
 
         const updatedCart = await Cart.findById(cart._id).populate(
             'items.product',
-            'name price images countInStock'
+            'name price images countInStock sizes colors'
         );
 
         res.json(updatedCart);

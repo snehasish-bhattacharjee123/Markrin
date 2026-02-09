@@ -132,7 +132,7 @@ function NewArrivals() {
         {products.map((product, index) => (
           <div key={product._id || `${product.name}-${index}`} className="flex-shrink-0 w-[280px] group">
             {product._id ? (
-              <Link to={`/product/${product._id}`}>
+              <Link to={`/product/${product.slug || product._id}`}>
                 <div className="relative overflow-hidden rounded-2xl bg-gray-100">
                   <img
                     src={product.images?.[0]?.url || "https://via.placeholder.com/280x320"}

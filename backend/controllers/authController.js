@@ -61,6 +61,7 @@ const loginUser = async (req, res) => {
                 name: user.name,
                 email: user.email,
                 role: user.role,
+                address: user.address,
                 token: generateToken(user._id),
             });
         } else {
@@ -85,6 +86,7 @@ const getUserProfile = async (req, res) => {
                 name: user.name,
                 email: user.email,
                 role: user.role,
+                address: user.address,
                 createdAt: user.createdAt,
             });
         } else {
@@ -111,6 +113,10 @@ const updateUserProfile = async (req, res) => {
                 user.password = req.body.password;
             }
 
+            if (req.body.address) {
+                user.address = req.body.address;
+            }
+
             const updatedUser = await user.save();
 
             res.json({
@@ -118,6 +124,7 @@ const updateUserProfile = async (req, res) => {
                 name: updatedUser.name,
                 email: updatedUser.email,
                 role: updatedUser.role,
+                address: updatedUser.address,
                 token: generateToken(updatedUser._id),
             });
         } else {

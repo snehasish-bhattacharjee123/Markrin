@@ -147,11 +147,11 @@ export const cartAPI = {
         return data;
     },
 
-    updateItem: async (itemId, quantity) => {
+    updateItem: async (itemId, updates) => {
         const response = await fetch(`${API_BASE_URL}/cart/${itemId}`, {
             method: 'PUT',
             headers: getAuthHeaders(),
-            body: JSON.stringify({ quantity }),
+            body: JSON.stringify(updates),
         });
         const data = await response.json();
         if (!response.ok) {
@@ -231,6 +231,67 @@ export const ordersAPI = {
         const data = await response.json();
         if (!response.ok) {
             throw new Error(data.message || 'Failed to fetch order');
+        }
+        return data;
+    },
+};
+
+// Wishlist API
+export const wishlistAPI = {
+    get: async (page = 1, limit = 8) => {
+        const response = await fetch(`${API_BASE_URL}/wishlist?page=${page}&limit=${limit}`, {
+            headers: getAuthHeaders(),
+        });
+        const data = await response.json();
+        if (!response.ok) {
+            throw new Error(data.message || 'Failed to fetch wishlist');
+        }
+        return data;
+    },
+
+    add: async (productId) => {
+        const response = await fetch(`${API_BASE_URL}/wishlist/${productId}`, {
+            method: 'POST',
+            headers: getAuthHeaders(),
+        });
+        const data = await response.json();
+        if (!response.ok) {
+            throw new Error(data.message || 'Failed to add to wishlist');
+        }
+        return data;
+    },
+
+    remove: async (productId) => {
+        const response = await fetch(`${API_BASE_URL}/wishlist/${productId}`, {
+            method: 'DELETE',
+            headers: getAuthHeaders(),
+        });
+        const data = await response.json();
+        if (!response.ok) {
+            throw new Error(data.message || 'Failed to remove from wishlist');
+        }
+        return data;
+    },
+
+    check: async (productId) => {
+        const response = await fetch(`${API_BASE_URL}/wishlist/check/${productId}`, {
+            headers: getAuthHeaders(),
+        });
+        const data = await response.json();
+        if (!response.ok) {
+            throw new Error(data.message || 'Failed to check wishlist');
+        }
+        return data;
+    },
+
+    clear: async () => {
+        const response = await fetch(`${API_BASE_URL}/wishlist`, {
+            method: 'DELETE',
+            headers: getAuthHeaders(),
+        });
+        const data = await response.json();
+        if (!response.ok) {
+            throw new Error(data.message || 'Failed to clear wishlist');
         }
         return data;
     },
@@ -362,10 +423,37 @@ export const adminAPI = {
     },
 };
 
+// Payment API
+export const paymentAPI = {
+    createPaymentIntent: async (orderId) => {
+        const response = await fetch(`${API_BASE_URL}/payment/create-payment-intent`, {
+            method: 'POST',
+            headers: getAuthHeaders(),
+            body: JSON.stringify({ orderId }),
+        });
+        const data = await response.json();
+        if (!response.ok) {
+            throw new Error(data.message || 'Failed to create payment intent');
+        }
+        return data;
+    },
+
+    getConfig: async () => {
+        const response = await fetch(`${API_BASE_URL}/payment/config`);
+        const data = await response.json();
+        if (!response.ok) {
+            throw new Error(data.message || 'Failed to get payment config');
+        }
+        return data;
+    },
+};
+
 export default {
     auth: authAPI,
     products: productsAPI,
     cart: cartAPI,
     orders: ordersAPI,
+    wishlist: wishlistAPI,
     admin: adminAPI,
+    payment: paymentAPI,
 };

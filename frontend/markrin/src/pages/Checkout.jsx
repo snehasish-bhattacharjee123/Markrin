@@ -4,10 +4,12 @@ import { ordersAPI } from '../api';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import { toast } from 'sonner';
+import StripePayment from '../components/Checkout/StripePayment';
+import { RiDeleteBinLine } from 'react-icons/ri';
 
 function Checkout() {
   const navigate = useNavigate();
-  const { user, updateProfile } = useAuth();
+  const { user } = useAuth();
   const {
     cart,
     subtotal,
@@ -24,48 +26,30 @@ function Checkout() {
   const [country, setCountry] = useState('India');
   const [paymentMethod, setPaymentMethod] = useState('COD');
   const [submitting, setSubmitting] = useState(false);
-
-  const [profileName, setProfileName] = useState('');
-  const [profileEmail, setProfileEmail] = useState('');
-  const [profilePassword, setProfilePassword] = useState('');
-  const [profileSubmitting, setProfileSubmitting] = useState(false);
-
-  const [openFaqIndex, setOpenFaqIndex] = useState(0);
+  const [activeOrder, setActiveOrder] = useState(null);
 
   useEffect(() => {
     if (user) {
-      setProfileName(user.name || '');
-      setProfileEmail(user.email || '');
+      if (user.address) {
+        setStreet(user.address.street || '');
+        setCity(user.address.city || '');
+        setState(user.address.state || '');
+        setPostalCode(user.address.postalCode || '');
+        setCountry(user.address.country || 'India');
+      }
     }
   }, [user]);
 
-  const faqItems = useMemo(
-    () => [
-      {
-        q: 'How do I place an order?',
-        a: 'Review your bag, fill your address, choose a payment method, and click Proceed to Pay.',
-      },
-      {
-        q: 'Can I edit my profile during checkout?',
-        a: 'Yes. Use the profile section on the left to update your name, email, or password.',
-      },
-      {
-        q: 'What payment methods are available?',
-        a: 'Cash on Delivery and Online Payment. Online payment is currently a mock flow that marks the order as paid.',
-      },
-      {
-        q: 'What if my bag is empty?',
-        a: 'You will need to add products to your cart before placing an order.',
-      },
-    ],
-    []
-  );
-
   const placeOrder = async (e) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
 
     if (!cart.items || cart.items.length === 0) {
       toast.error('Your cart is empty');
+      return;
+    }
+
+    if (!street || !city || !state || !postalCode) {
+      toast.error('Please fill in all address fields');
       return;
     }
 
@@ -77,18 +61,14 @@ function Checkout() {
       );
 
       if (paymentMethod === 'ONLINE') {
-        await ordersAPI.pay(order._id, {
-          id: `mock_${Date.now()}`,
-          status: 'COMPLETED',
-          update_time: new Date().toISOString(),
-          email_address: 'mock@markrin.local',
-        });
+        setActiveOrder(order);
+        setSubmitting(false);
+        return;
       }
 
       await refreshCart();
-      toast.success(paymentMethod === 'ONLINE' ? 'Payment successful' : 'Order placed successfully');
-      navigate('/profile');
-      return order;
+      toast.success('Order placed successfully');
+      navigate(`/order-confirmation/${order._id}`);
     } catch (err) {
       toast.error(err.message);
     } finally {
@@ -96,294 +76,193 @@ function Checkout() {
     }
   };
 
-  const saveProfile = async (e) => {
-    e.preventDefault();
-
-    if (!profileName.trim() || !profileEmail.trim()) {
-      toast.error('Name and email are required');
-      return;
-    }
-
-    setProfileSubmitting(true);
-    try {
-      const payload = {
-        name: profileName.trim(),
-        email: profileEmail.trim(),
-      };
-      if (profilePassword.trim()) {
-        payload.password = profilePassword;
-      }
-
-      const res = await updateProfile(payload);
-      if (!res.success) {
-        toast.error(res.error || 'Failed to update profile');
-        return;
-      }
-      setProfilePassword('');
-      toast.success('Profile updated');
-    } finally {
-      setProfileSubmitting(false);
-    }
-  };
-
   const updateQuantity = async (itemId, quantity) => {
     if (quantity < 1) return;
-    await updateItem(itemId, quantity);
+    await updateItem(itemId, { quantity });
+  };
+
+  const updateSize = async (itemId, size) => {
+    await updateItem(itemId, { size });
   };
 
   return (
     <div className="min-h-screen bg-brand-cream py-12">
       <div className="max-w-7xl mx-auto px-6">
-        <div className="flex flex-col lg:flex-row gap-8 lg:gap-12">
+        <h1 className="text-3xl font-bold text-brand-dark-brown mb-8 flex items-center gap-4">
+          Checkout
+          <span className="text-sm font-normal text-gray-500 bg-white px-3 py-1 rounded-full border border-gray-100">
+            {totalItems} Items
+          </span>
+        </h1>
 
-          <aside className="w-full lg:w-1/3">
-            <div className="space-y-6 lg:sticky lg:top-24">
-              <div className="bg-white rounded-2xl border border-gray-100 p-6">
-                <h2 className="text-lg font-bold text-brand-dark-brown mb-4">Edit Profile</h2>
-                <form onSubmit={saveProfile} className="space-y-4">
-                  <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">Name</label>
-                    <input
-                      value={profileName}
-                      onChange={(e) => setProfileName(e.target.value)}
-                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">Email</label>
-                    <input
-                      type="email"
-                      value={profileEmail}
-                      onChange={(e) => setProfileEmail(e.target.value)}
-                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">New Password</label>
-                    <input
-                      type="password"
-                      value={profilePassword}
-                      onChange={(e) => setProfilePassword(e.target.value)}
-                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none"
-                      placeholder="Leave blank to keep current"
-                    />
-                  </div>
-                  <button
-                    type="submit"
-                    disabled={profileSubmitting}
-                    className="w-full py-3 bg-brand-dark-brown text-white font-bold uppercase tracking-widest text-xs hover:bg-brand-gold hover:text-brand-dark-brown transition-all disabled:opacity-60"
-                  >
-                    {profileSubmitting ? 'Saving...' : 'Save Profile'}
-                  </button>
-                </form>
+        <div className="flex flex-col lg:flex-row gap-8 items-start">
+          {/* Main Content: Address and Payment */}
+          <div className="w-full lg:w-2/3 space-y-6">
+            <section className="bg-white rounded-3xl border border-gray-100 p-8 shadow-sm">
+              <div className="flex items-center gap-4 mb-8">
+                <div className="w-10 h-10 bg-brand-dark-brown text-white rounded-full flex items-center justify-center font-bold">1</div>
+                <h2 className="text-xl font-bold text-brand-dark-brown">Shipping Address</h2>
               </div>
 
-              <div className="bg-white rounded-2xl border border-gray-100 p-6">
-                <h2 className="text-lg font-bold text-brand-dark-brown mb-4">FAQ</h2>
-                <div className="space-y-3">
-                  {faqItems.map((item, idx) => {
-                    const open = openFaqIndex === idx;
-                    return (
-                      <div key={item.q} className="border border-gray-100 rounded-xl overflow-hidden">
-                        <button
-                          type="button"
-                          onClick={() => setOpenFaqIndex(open ? -1 : idx)}
-                          className="w-full flex items-center justify-between gap-4 px-4 py-3 text-left"
-                        >
-                          <span className="text-sm font-semibold text-brand-dark-brown">{item.q}</span>
-                          <span className="text-gray-400 text-sm">{open ? '−' : '+'}</span>
-                        </button>
-                        {open && (
-                          <div className="px-4 pb-4 text-sm text-gray-600">
-                            {item.a}
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="md:col-span-2">
+                  <label className="block text-xs font-bold uppercase tracking-widest text-gray-400 mb-2">Street Address</label>
+                  <input value={street} onChange={(e) => setStreet(e.target.value)} required placeholder="123 Luxury Ave" className="w-full px-5 py-4 bg-gray-50 border border-gray-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-brand-gold/20 focus:bg-white transition-all" />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-widest text-gray-400 mb-2">City</label>
+                  <input value={city} onChange={(e) => setCity(e.target.value)} required placeholder="New York" className="w-full px-5 py-4 bg-gray-50 border border-gray-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-brand-gold/20 focus:bg-white transition-all" />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-widest text-gray-400 mb-2">State / Province</label>
+                  <input value={state} onChange={(e) => setState(e.target.value)} required placeholder="NY" className="w-full px-5 py-4 bg-gray-50 border border-gray-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-brand-gold/20 focus:bg-white transition-all" />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-widest text-gray-400 mb-2">Postal Code</label>
+                  <input value={postalCode} onChange={(e) => setPostalCode(e.target.value)} required placeholder="10001" className="w-full px-5 py-4 bg-gray-50 border border-gray-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-brand-gold/20 focus:bg-white transition-all" />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-widest text-gray-400 mb-2">Country</label>
+                  <input value={country} onChange={(e) => setCountry(e.target.value)} required className="w-full px-5 py-4 bg-gray-50 border border-gray-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-brand-gold/20 focus:bg-white transition-all" />
                 </div>
               </div>
+            </section>
+
+            <section className="bg-white rounded-3xl border border-gray-100 p-8 shadow-sm">
+              <div className="flex items-center gap-4 mb-8">
+                <div className="w-10 h-10 bg-brand-dark-brown text-white rounded-full flex items-center justify-center font-bold">2</div>
+                <h2 className="text-xl font-bold text-brand-dark-brown">Payment Method</h2>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <label className={`flex items-center gap-4 border-2 rounded-2xl px-6 py-5 cursor-pointer transition-all ${paymentMethod === 'COD' ? 'border-brand-gold bg-brand-gold/5' : 'border-gray-50 bg-gray-50 hover:border-gray-200'}`}>
+                  <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${paymentMethod === 'COD' ? 'border-brand-gold' : 'border-gray-300'}`}>
+                    {paymentMethod === 'COD' && <div className="w-2.5 h-2.5 bg-brand-gold rounded-full" />}
+                  </div>
+                  <input type="radio" name="payment" value="COD" checked={paymentMethod === 'COD'} onChange={() => setPaymentMethod('COD')} className="hidden" />
+                  <div>
+                    <span className="block text-sm font-bold text-brand-dark-brown">Cash on Delivery</span>
+                    <span className="text-[10px] text-gray-500 uppercase tracking-wider">Pay when you receive</span>
+                  </div>
+                </label>
+
+                <label className={`flex items-center gap-4 border-2 rounded-2xl px-6 py-5 cursor-pointer transition-all ${paymentMethod === 'ONLINE' ? 'border-brand-gold bg-brand-gold/5' : 'border-gray-50 bg-gray-50 hover:border-gray-200'}`}>
+                  <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${paymentMethod === 'ONLINE' ? 'border-brand-gold' : 'border-gray-300'}`}>
+                    {paymentMethod === 'ONLINE' && <div className="w-2.5 h-2.5 bg-brand-gold rounded-full" />}
+                  </div>
+                  <input type="radio" name="payment" value="ONLINE" checked={paymentMethod === 'ONLINE'} onChange={() => setPaymentMethod('ONLINE')} className="hidden" />
+                  <div>
+                    <span className="block text-sm font-bold text-brand-dark-brown">Online Payment</span>
+                    <span className="text-[10px] text-gray-500 uppercase tracking-wider">Stripe Secure Checkout</span>
+                  </div>
+                </label>
+              </div>
+            </section>
+
+            <div className="p-4 bg-brand-gold/10 rounded-2xl flex items-start gap-3">
+              <div className="text-brand-gold mt-1">ℹ</div>
+              <p className="text-xs text-brand-dark-brown leading-relaxed">
+                By clicking "Place Order", you agree to Markrin's <Link to="/terms" className="font-bold underline">Terms of Service</Link> and <Link to="/privacy" className="font-bold underline">Privacy Policy</Link>. All transactions are secure and encrypted.
+              </p>
             </div>
-          </aside>
+          </div>
 
-          <main className="w-full lg:w-2/3">
-            <h1 className="text-3xl font-bold text-brand-dark-brown mb-8">Checkout</h1>
+          {/* Right Sidebar: Order Summary */}
+          <aside className="w-full lg:w-1/3 sticky top-24">
+            <div className="bg-brand-dark-brown rounded-3xl p-8 text-white shadow-xl shadow-brand-dark-brown/20 overflow-hidden relative">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-brand-gold/10 rounded-full -translate-y-16 translate-x-16 blur-3xl pointer-events-none"></div>
 
-            <form onSubmit={placeOrder} className="space-y-6">
-              <section className="bg-white rounded-2xl border border-gray-100 p-6">
-                <div className="flex items-center justify-between gap-6 mb-4">
-                  <h2 className="text-lg font-bold text-brand-dark-brown">1. My Bag</h2>
-                  <Link to="/shop" className="text-xs font-bold uppercase tracking-widest text-brand-gold hover:text-brand-dark-brown transition-colors">
-                    Continue Shopping
-                  </Link>
-                </div>
+              <h2 className="text-xl font-bold mb-8 uppercase tracking-widest text-brand-gold">Order Summary</h2>
 
-                {(!cart.items || cart.items.length === 0) ? (
-                  <div className="text-sm text-gray-500">
-                    Your bag is empty. Add some items to proceed.
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {cart.items.map((item) => (
-                      <div key={item._id} className="flex gap-4 p-4 bg-gray-50 rounded-xl">
-                        <img
-                          src={item.product?.images?.[0]?.url || 'https://via.placeholder.com/100'}
-                          alt={item.product?.name || 'Product'}
-                          className="w-20 h-20 object-cover rounded-lg"
-                        />
-                        <div className="flex-grow">
-                          <div className="flex items-start justify-between gap-4">
-                            <div>
-                              <h3 className="font-semibold text-brand-dark-brown text-sm line-clamp-1">
-                                {item.product?.name || 'Product'}
-                              </h3>
-                              <div className="flex gap-3 mt-1 text-xs text-gray-500">
-                                {item.size ? <span>Size: {item.size}</span> : null}
-                                {item.color ? <span>Color: {item.color}</span> : null}
-                              </div>
-                            </div>
-                            <button
-                              type="button"
-                              onClick={() => removeItem(item._id)}
-                              className="text-xs font-bold uppercase tracking-widest text-brand-maroon-accent hover:text-brand-dark-brown transition-colors"
-                            >
-                              Remove
-                            </button>
-                          </div>
+              <div className="max-h-[40vh] overflow-y-auto pr-2 space-y-6 mb-8 custom-scrollbar">
+                {cart.items?.map((item) => (
+                  <div key={item._id} className="flex gap-4 items-start">
+                    <div className="relative flex-shrink-0">
+                      <img
+                        src={item.product?.images?.[0]?.url || 'https://via.placeholder.com/100'}
+                        alt={item.product?.name}
+                        className="w-16 h-20 object-cover rounded-xl border border-white/10"
+                      />
+                    </div>
+                    <div className="flex-grow min-w-0">
+                      <div className="flex items-center justify-between gap-2">
+                        <h3 className="text-sm font-bold truncate pr-4">{item.product?.name}</h3>
+                        <button
+                          onClick={() => removeItem(item._id)}
+                          className="text-white/40 hover:text-red-400 transition-colors p-1"
+                          title="Remove item"
+                        >
+                          <RiDeleteBinLine size={16} />
+                        </button>
+                      </div>
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        <select
+                          value={item.size}
+                          onChange={(e) => updateSize(item._id, e.target.value)}
+                          className="bg-white/10 border-none rounded-lg px-2 py-1 text-[10px] uppercase font-bold focus:outline-none focus:ring-1 focus:ring-brand-gold cursor-pointer"
+                        >
+                          {item.product?.sizes?.map(s => (
+                            <option key={s} value={s} className="text-brand-dark-brown">{s}</option>
+                          ))}
+                        </select>
 
-                          <div className="flex items-center justify-between mt-3">
-                            <div className="flex items-center border border-gray-200 rounded-lg overflow-hidden">
-                              <button
-                                type="button"
-                                onClick={() => updateQuantity(item._id, item.quantity - 1)}
-                                className="px-3 py-2 hover:bg-gray-100 transition-colors"
-                              >
-                                −
-                              </button>
-                              <span className="px-4 text-sm font-semibold text-brand-dark-brown">{item.quantity}</span>
-                              <button
-                                type="button"
-                                onClick={() => updateQuantity(item._id, item.quantity + 1)}
-                                className="px-3 py-2 hover:bg-gray-100 transition-colors"
-                              >
-                                +
-                              </button>
-                            </div>
-                            <div className="text-sm font-bold text-brand-dark-brown">
-                              ${(item.price * item.quantity).toFixed(2)}
-                            </div>
-                          </div>
+                        <div className="flex items-center gap-2 bg-white/10 rounded-lg px-2 py-1 text-[10px] font-bold">
+                          <button onClick={() => updateQuantity(item._id, item.quantity - 1)} className="hover:text-brand-gold">−</button>
+                          <span>{item.quantity}</span>
+                          <button onClick={() => updateQuantity(item._id, item.quantity + 1)} className="hover:text-brand-gold">+</button>
                         </div>
                       </div>
-                    ))}
-
-                    <div className="pt-4 border-t border-gray-100">
-                      <div className="flex justify-between text-sm text-gray-600 mb-1">
-                        <span>Items</span>
-                        <span>{totalItems}</span>
-                      </div>
-                      <div className="flex justify-between text-sm text-gray-600">
-                        <span>Subtotal</span>
-                        <span>${subtotal.toFixed(2)}</span>
-                      </div>
-                      <p className="text-xs text-gray-400 mt-3">
-                        Shipping and taxes calculated at checkout
-                      </p>
+                    </div>
+                    <div className="text-sm font-bold text-right pt-1 flex-shrink-0">
+                      ${(item.price * item.quantity).toFixed(2)}
                     </div>
                   </div>
-                )}
-              </section>
+                ))}
+              </div>
 
-              <section className="bg-white rounded-2xl border border-gray-100 p-6">
-                <h2 className="text-lg font-bold text-brand-dark-brown mb-4">2. Address</h2>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="md:col-span-2">
-                    <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">Street</label>
-                    <input value={street} onChange={(e) => setStreet(e.target.value)} required className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none" />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">City</label>
-                    <input value={city} onChange={(e) => setCity(e.target.value)} required className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none" />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">State</label>
-                    <input value={state} onChange={(e) => setState(e.target.value)} required className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none" />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">Postal Code</label>
-                    <input value={postalCode} onChange={(e) => setPostalCode(e.target.value)} required className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none" />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">Country</label>
-                    <input value={country} onChange={(e) => setCountry(e.target.value)} required className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none" />
-                  </div>
+              <div className="space-y-4 pt-6 border-t border-white/10">
+                <div className="flex justify-between text-sm text-white/60">
+                  <span>Subtotal</span>
+                  <span className="font-bold text-white">${subtotal.toFixed(2)}</span>
                 </div>
-              </section>
-
-              <section className="bg-white rounded-2xl border border-gray-100 p-6">
-                <h2 className="text-lg font-bold text-brand-dark-brown mb-4">3. Select Payment Method</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  <label className={`flex items-center gap-3 border rounded-xl px-4 py-3 cursor-pointer ${paymentMethod === 'COD' ? 'border-brand-gold bg-brand-gold/10' : 'border-gray-200 bg-white'}`}>
-                    <input
-                      type="radio"
-                      name="payment"
-                      value="COD"
-                      checked={paymentMethod === 'COD'}
-                      onChange={() => setPaymentMethod('COD')}
-                    />
-                    <span className="text-sm font-semibold text-brand-dark-brown">Cash on Delivery</span>
-                  </label>
-
-                  <label className={`flex items-center gap-3 border rounded-xl px-4 py-3 cursor-pointer ${paymentMethod === 'ONLINE' ? 'border-brand-gold bg-brand-gold/10' : 'border-gray-200 bg-white'}`}>
-                    <input
-                      type="radio"
-                      name="payment"
-                      value="ONLINE"
-                      checked={paymentMethod === 'ONLINE'}
-                      onChange={() => setPaymentMethod('ONLINE')}
-                    />
-                    <span className="text-sm font-semibold text-brand-dark-brown">Online Payment</span>
-                  </label>
+                <div className="flex justify-between text-sm text-white/60">
+                  <span>Shipping</span>
+                  <span className="font-bold text-brand-gold">FREE</span>
                 </div>
-                <p className="text-xs text-gray-400 mt-2">
-                  Online payment is currently a mock flow that marks the order as paid using the backend pay endpoint.
-                </p>
-              </section>
-
-              <section className="bg-white rounded-2xl border border-gray-100 p-6">
-                <h2 className="text-lg font-bold text-brand-dark-brown mb-4">4. Proceed to Pay</h2>
-                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                  <div className="text-sm text-gray-600">
-                    <div className="flex justify-between md:justify-start md:gap-6">
-                      <span>Items</span>
-                      <span className="font-semibold text-brand-dark-brown">{totalItems}</span>
-                    </div>
-                    <div className="flex justify-between md:justify-start md:gap-6 mt-1">
-                      <span>Subtotal</span>
-                      <span className="font-semibold text-brand-dark-brown">${subtotal.toFixed(2)}</span>
-                    </div>
-                  </div>
-                  <button
-                    type="submit"
-                    disabled={submitting}
-                    className="w-full md:w-auto px-8 py-4 bg-brand-dark-brown text-white font-bold uppercase tracking-widest text-sm hover:bg-brand-gold hover:text-brand-dark-brown transition-all disabled:opacity-60"
-                  >
-                    {submitting ? 'Processing...' : paymentMethod === 'ONLINE' ? 'Proceed to Pay' : 'Place Order'}
-                  </button>
+                <div className="flex justify-between text-lg pt-4 border-t border-white/5 mt-4">
+                  <span className="font-bold uppercase tracking-widest text-xs">Total Pay</span>
+                  <span className="font-bold text-2xl text-brand-gold">${subtotal.toFixed(2)}</span>
                 </div>
-              </section>
-            </form>
-          </main>
+              </div>
 
+              <button
+                onClick={placeOrder}
+                disabled={submitting || !cart.items?.length}
+                className="w-full mt-10 py-5 bg-brand-gold text-brand-dark-brown font-bold uppercase tracking-[0.2em] text-xs rounded-2xl hover:bg-white transition-all transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-brand-gold/20"
+              >
+                {submitting ? 'Processing...' : paymentMethod === 'ONLINE' ? 'Proceed to Payment' : 'Place Order'}
+              </button>
+            </div>
+          </aside>
         </div>
       </div>
+
+      {activeOrder && (
+        <StripePayment
+          order={activeOrder}
+          onClose={() => setActiveOrder(null)}
+          onSuccess={() => {
+            setActiveOrder(null);
+            refreshCart();
+            toast.success('Payment successful');
+            navigate(`/order-confirmation/${activeOrder._id}`);
+          }}
+        />
+      )}
     </div>
   );
 }
