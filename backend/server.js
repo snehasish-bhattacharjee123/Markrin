@@ -4,6 +4,9 @@ const cors = require('cors');
 const compression = require('compression');
 const rateLimit = require('express-rate-limit');
 const connectDB = require('./config/db');
+const { connectRedis } = require('./config/redis');
+const morgan = require('morgan');
+const logger = require('./utils/logger');
 
 // Import routes
 const authRoutes = require('./routes/authRoutes');
@@ -13,9 +16,17 @@ const orderRoutes = require('./routes/orderRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 const wishlistRoutes = require('./routes/wishlistRoutes');
 
+// Connect to Databases
 connectDB();
+connectRedis();
+
+// Initialize Workers
+require('./workers/emailWorker');
 
 const app = express();
+
+// Request Logging
+app.use(morgan('dev'));
 
 // Rate Limiting
 const limiter = rateLimit({
@@ -70,7 +81,7 @@ app.use((req, res, next) => {
 
 // Error Handler
 app.use((err, req, res, next) => {
-    console.error(err.stack);
+    logger.error(err.stack);
     const statusCode = res.statusCode === 200 ? 500 : res.statusCode;
     res.status(statusCode).json({
         message: err.message,
@@ -81,5 +92,5 @@ app.use((err, req, res, next) => {
 const PORT = process.env.PORT || 9000;
 
 app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
+    logger.info(`Server is running on port ${PORT}`);
 });

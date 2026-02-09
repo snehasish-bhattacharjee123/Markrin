@@ -36,6 +36,12 @@ const userSchema = new mongoose.Schema(
             postalCode: String,
             country: String,
         },
+        refreshTokens: [
+            {
+                token: { type: String, required: true },
+                createdAt: { type: Date, default: Date.now },
+            },
+        ],
     },
     {
         timestamps: true,

@@ -1,5 +1,6 @@
 const Product = require('../models/Product');
 const mongoose = require('mongoose');
+const { clearCache } = require('../middleware/cache');
 
 // @desc    Get all products with filters
 // @route   GET /api/products
@@ -232,6 +233,11 @@ const createProduct = async (req, res) => {
         });
 
         const createdProduct = await product.save();
+
+        // Invalidate cache
+        await clearCache('products_*')();
+        await clearCache('product_detail:*')();
+
         res.status(201).json(createdProduct);
     } catch (error) {
         console.error(error);
@@ -249,6 +255,11 @@ const updateProduct = async (req, res) => {
         if (product) {
             Object.assign(product, req.body);
             const updatedProduct = await product.save();
+
+            // Invalidate cache
+            await clearCache('products_*')();
+            await clearCache('product_detail:*')();
+
             res.json(updatedProduct);
         } else {
             res.status(404).json({ message: 'Product not found' });
@@ -268,6 +279,11 @@ const deleteProduct = async (req, res) => {
 
         if (product) {
             await Product.deleteOne({ _id: req.params.id });
+
+            // Invalidate cache
+            await clearCache('products_*')();
+            await clearCache('product_detail:*')();
+
             res.json({ message: 'Product removed' });
         } else {
             res.status(404).json({ message: 'Product not found' });

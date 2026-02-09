@@ -1,12 +1,6 @@
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
-
-// Generate JWT Token
-const generateToken = (id) => {
-    return jwt.sign({ id }, process.env.JWT_SECRET, {
-        expiresIn: '30d',
-    });
-};
+const { generateAccessToken, generateRefreshToken } = require('../utils/generateToken');
 
 // @desc    Register a new user
 // @route   POST /api/auth/register
@@ -29,12 +23,20 @@ const registerUser = async (req, res) => {
         });
 
         if (user) {
+            const accessToken = generateAccessToken(user._id);
+            const refreshToken = generateRefreshToken(user._id);
+
+            // Store refresh token
+            user.refreshTokens.push({ token: refreshToken });
+            await user.save();
+
             res.status(201).json({
                 _id: user._id,
                 name: user.name,
                 email: user.email,
                 role: user.role,
-                token: generateToken(user._id),
+                token: accessToken,
+                refreshToken: refreshToken,
             });
         } else {
             res.status(400).json({ message: 'Invalid user data' });
@@ -56,13 +58,24 @@ const loginUser = async (req, res) => {
         const user = await User.findOne({ email }).select('+password');
 
         if (user && (await user.matchPassword(password))) {
+            const accessToken = generateAccessToken(user._id);
+            const refreshToken = generateRefreshToken(user._id);
+
+            // Add to session list (limit to 5 sessions)
+            if (user.refreshTokens.length >= 5) {
+                user.refreshTokens.shift();
+            }
+            user.refreshTokens.push({ token: refreshToken });
+            await user.save();
+
             res.json({
                 _id: user._id,
                 name: user.name,
                 email: user.email,
                 role: user.role,
                 address: user.address,
-                token: generateToken(user._id),
+                token: accessToken,
+                refreshToken: refreshToken,
             });
         } else {
             res.status(401).json({ message: 'Invalid email or password' });
@@ -119,14 +132,72 @@ const updateUserProfile = async (req, res) => {
 
             const updatedUser = await user.save();
 
+            const accessToken = generateAccessToken(updatedUser._id);
             res.json({
                 _id: updatedUser._id,
                 name: updatedUser.name,
                 email: updatedUser.email,
                 role: updatedUser.role,
                 address: updatedUser.address,
-                token: generateToken(updatedUser._id),
+                token: accessToken,
             });
+        } else {
+            res.status(404).json({ message: 'User not found' });
+        }
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error', error: error.message });
+    }
+};
+
+// @desc    Refresh access token
+// @route   POST /api/auth/refresh
+// @access  Public
+const refreshAccessToken = async (req, res) => {
+    try {
+        const { refreshToken } = req.body;
+        if (!refreshToken) {
+            return res.status(401).json({ message: 'Refresh token required' });
+        }
+
+        // Find user by refresh token
+        const user = await User.findOne({ 'refreshTokens.token': refreshToken });
+        if (!user) {
+            return res.status(403).json({ message: 'Invalid refresh token' });
+        }
+
+        // Verify token (checks expiry)
+        jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET || 'refresh_secret_keys_123', (err, decoded) => {
+            if (err) {
+                // Remove invalid token from list
+                user.refreshTokens = user.refreshTokens.filter(t => t.token !== refreshToken);
+                user.save();
+                return res.status(403).json({ message: 'Invalid or expired refresh token' });
+            }
+
+            // Generate new access token
+            const accessToken = generateAccessToken(user._id);
+            res.json({ token: accessToken });
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error', error: error.message });
+    }
+};
+
+// @desc    Logout user & clear tokens
+// @route   POST /api/auth/logout
+// @access  Private
+const logoutUser = async (req, res) => {
+    try {
+        const { refreshToken } = req.body;
+        const user = await User.findById(req.user._id);
+
+        if (user) {
+            // Remove the specific refresh token
+            user.refreshTokens = user.refreshTokens.filter(t => t.token !== refreshToken);
+            await user.save();
+            res.json({ message: 'Logged out successfully' });
         } else {
             res.status(404).json({ message: 'User not found' });
         }
@@ -141,4 +212,6 @@ module.exports = {
     loginUser,
     getUserProfile,
     updateUserProfile,
+    refreshAccessToken,
+    logoutUser,
 };
