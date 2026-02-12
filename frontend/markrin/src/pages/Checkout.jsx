@@ -6,6 +6,8 @@ import { useCart } from '../context/CartContext';
 import { toast } from 'sonner';
 import StripePayment from '../components/Checkout/StripePayment';
 import { RiDeleteBinLine } from 'react-icons/ri';
+import { HiCheckCircle, HiXCircle, HiSearch } from 'react-icons/hi2';
+import { validatePincode, getAddressFromPincode } from '../utils/pincodeService';
 
 function Checkout() {
   const navigate = useNavigate();
@@ -27,6 +29,9 @@ function Checkout() {
   const [paymentMethod, setPaymentMethod] = useState('COD');
   const [submitting, setSubmitting] = useState(false);
   const [activeOrder, setActiveOrder] = useState(null);
+  const [pincodeValidating, setPincodeValidating] = useState(false);
+  const [pincodeError, setPincodeError] = useState('');
+  const [pincodeSuccess, setPincodeSuccess] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -85,6 +90,68 @@ function Checkout() {
     await updateItem(itemId, { size });
   };
 
+  const handlePincodeChange = async (e) => {
+    const value = e.target.value;
+    setPostalCode(value);
+    setPincodeError('');
+    setPincodeSuccess(false);
+
+    if (value.length === 6) {
+      if (!validatePincode(value)) {
+        setPincodeError('Please enter a valid 6-digit pincode');
+        return;
+      }
+
+      setPincodeValidating(true);
+      try {
+        const result = await getAddressFromPincode(value);
+        if (result.success) {
+          setCity(result.data.city);
+          setState(result.data.state);
+          setCountry(result.data.country || 'India');
+          setPincodeSuccess(true);
+          toast.success(`Address found: ${result.data.city}, ${result.data.state}`);
+        } else {
+          setPincodeError(result.error || 'Invalid pincode');
+          toast.error('Could not validate pincode');
+        }
+      } catch (err) {
+        setPincodeError('Failed to validate pincode');
+      } finally {
+        setPincodeValidating(false);
+      }
+    }
+  };
+
+  const validatePincodeManually = async () => {
+    if (!postalCode || postalCode.length !== 6) {
+      setPincodeError('Please enter a valid 6-digit pincode');
+      return;
+    }
+
+    setPincodeValidating(true);
+    setPincodeError('');
+    setPincodeSuccess(false);
+
+    try {
+      const result = await getAddressFromPincode(postalCode);
+      if (result.success) {
+        setCity(result.data.city);
+        setState(result.data.state);
+        setCountry(result.data.country || 'India');
+        setPincodeSuccess(true);
+        toast.success(`Address found: ${result.data.city}, ${result.data.state}`);
+      } else {
+        setPincodeError(result.error || 'Invalid pincode');
+        toast.error('Could not validate pincode');
+      }
+    } catch (err) {
+      setPincodeError('Failed to validate pincode');
+    } finally {
+      setPincodeValidating(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-brand-cream py-12">
       <div className="max-w-7xl mx-auto px-6">
@@ -112,17 +179,64 @@ function Checkout() {
 
                 <div>
                   <label className="block text-xs font-bold uppercase tracking-widest text-gray-400 mb-2">City</label>
-                  <input value={city} onChange={(e) => setCity(e.target.value)} required placeholder="New York" className="w-full px-5 py-4 bg-gray-50 border border-gray-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-brand-gold/20 focus:bg-white transition-all" />
+                  <input 
+                    value={city} 
+                    onChange={(e) => setCity(e.target.value)} 
+                    required 
+                    placeholder="New Delhi" 
+                    className={`w-full px-5 py-4 bg-gray-50 border border-gray-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-brand-gold/20 focus:bg-white transition-all ${city ? 'text-brand-dark-brown' : ''}`}
+                    readOnly={pincodeSuccess}
+                  />
                 </div>
 
                 <div>
                   <label className="block text-xs font-bold uppercase tracking-widest text-gray-400 mb-2">State / Province</label>
-                  <input value={state} onChange={(e) => setState(e.target.value)} required placeholder="NY" className="w-full px-5 py-4 bg-gray-50 border border-gray-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-brand-gold/20 focus:bg-white transition-all" />
+                  <input 
+                    value={state} 
+                    onChange={(e) => setState(e.target.value)} 
+                    required 
+                    placeholder="Delhi" 
+                    className={`w-full px-5 py-4 bg-gray-50 border border-gray-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-brand-gold/20 focus:bg-white transition-all ${state ? 'text-brand-dark-brown' : ''}`}
+                    readOnly={pincodeSuccess}
+                  />
                 </div>
 
                 <div>
                   <label className="block text-xs font-bold uppercase tracking-widest text-gray-400 mb-2">Postal Code</label>
-                  <input value={postalCode} onChange={(e) => setPostalCode(e.target.value)} required placeholder="10001" className="w-full px-5 py-4 bg-gray-50 border border-gray-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-brand-gold/20 focus:bg-white transition-all" />
+                  <div className="relative">
+                    <input 
+                      value={postalCode} 
+                      onChange={handlePincodeChange} 
+                      required 
+                      maxLength={6}
+                      placeholder="110001" 
+                      className={`w-full px-5 py-4 bg-gray-50 border rounded-2xl focus:outline-none focus:ring-2 focus:ring-brand-gold/20 focus:bg-white transition-all pr-12 ${
+                        pincodeError ? 'border-red-300' : pincodeSuccess ? 'border-green-300' : 'border-gray-100'
+                      }`} 
+                    />
+                    <button
+                      type="button"
+                      onClick={validatePincodeManually}
+                      disabled={pincodeValidating || postalCode.length !== 6}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-brand-gold hover:text-brand-dark-brown disabled:opacity-50 transition-colors"
+                    >
+                      {pincodeValidating ? (
+                        <div className="animate-spin h-5 w-5 border-b-2 border-current rounded-full" />
+                      ) : pincodeSuccess ? (
+                        <HiCheckCircle className="w-5 h-5 text-green-500" />
+                      ) : pincodeError ? (
+                        <HiXCircle className="w-5 h-5 text-red-500" />
+                      ) : (
+                        <HiSearch className="w-5 h-5" />
+                      )}
+                    </button>
+                  </div>
+                  {pincodeError && (
+                    <p className="text-xs text-red-500 mt-1">{pincodeError}</p>
+                  )}
+                  {pincodeSuccess && (
+                    <p className="text-xs text-green-600 mt-1">Pincode validated successfully</p>
+                  )}
                 </div>
 
                 <div>

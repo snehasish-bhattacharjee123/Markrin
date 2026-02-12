@@ -14,7 +14,8 @@ import { authAPI, ordersAPI, wishlistAPI } from "../api";
 import { useCart } from "../context/CartContext";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
-import { HiOutlineShoppingBag, HiOutlineTrash } from "react-icons/hi2";
+import { HiOutlineShoppingBag, HiOutlineTrash, HiCheckCircle, HiXCircle, HiSearch } from "react-icons/hi2";
+import { validatePincode, getAddressFromPincode } from "../utils/pincodeService";
 
 function Profile() {
   const { user, isAuthenticated, logout, updateUser } = useAuth();
@@ -48,6 +49,9 @@ function Profile() {
     },
   });
   const [profileLoading, setProfileLoading] = useState(false);
+  const [pincodeValidating, setPincodeValidating] = useState(false);
+  const [pincodeError, setPincodeError] = useState('');
+  const [pincodeSuccess, setPincodeSuccess] = useState(false);
 
   // Orders State
   const [orders, setOrders] = useState([]);
@@ -386,17 +390,73 @@ function Profile() {
                             <label className="block text-xs font-bold uppercase tracking-wider text-brand-dark-brown mb-2">
                               Postal Code
                             </label>
-                            <input
-                              type="text"
-                              value={profileData.address?.postalCode || ""}
-                              onChange={(e) =>
-                                setProfileData({
-                                  ...profileData,
-                                  address: { ...profileData.address, postalCode: e.target.value },
-                                })
-                              }
-                              className="w-full p-4 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-gold/20 focus:border-brand-gold transition-all"
-                            />
+                            <div className="relative">
+                              <input
+                                type="text"
+                                maxLength={6}
+                                value={profileData.address?.postalCode || ""}
+                                onChange={(e) => {
+                                  const value = e.target.value;
+                                  setProfileData({
+                                    ...profileData,
+                                    address: { ...profileData.address, postalCode: value },
+                                  });
+                                  setPincodeError('');
+                                  setPincodeSuccess(false);
+
+                                  if (value.length === 6) {
+                                    if (!validatePincode(value)) {
+                                      setPincodeError('Please enter a valid 6-digit pincode');
+                                      return;
+                                    }
+
+                                    setPincodeValidating(true);
+                                    getAddressFromPincode(value).then((result) => {
+                                      if (result.success) {
+                                        setProfileData({
+                                          ...profileData,
+                                          address: {
+                                            ...profileData.address,
+                                            postalCode: value,
+                                            city: result.data.city,
+                                            state: result.data.state,
+                                            country: result.data.country || 'India',
+                                          },
+                                        });
+                                        setPincodeSuccess(true);
+                                        toast.success(`Address found: ${result.data.city}, ${result.data.state}`);
+                                      } else {
+                                        setPincodeError(result.error || 'Invalid pincode');
+                                      }
+                                      setPincodeValidating(false);
+                                    }).catch(() => {
+                                      setPincodeError('Failed to validate pincode');
+                                      setPincodeValidating(false);
+                                    });
+                                  }
+                                }}
+                                className={`w-full p-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-gold/20 focus:border-brand-gold transition-all pr-12 ${
+                                  pincodeError ? 'border-red-300' : pincodeSuccess ? 'border-green-300' : 'border-gray-200'
+                                }`}
+                              />
+                              <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                                {pincodeValidating ? (
+                                  <div className="animate-spin h-5 w-5 border-b-2 border-brand-gold rounded-full" />
+                                ) : pincodeSuccess ? (
+                                  <HiCheckCircle className="w-5 h-5 text-green-500" />
+                                ) : pincodeError ? (
+                                  <HiXCircle className="w-5 h-5 text-red-500" />
+                                ) : (
+                                  <HiSearch className="w-5 h-5 text-gray-400" />
+                                )}
+                              </div>
+                            </div>
+                            {pincodeError && (
+                              <p className="text-xs text-red-500 mt-1">{pincodeError}</p>
+                            )}
+                            {pincodeSuccess && (
+                              <p className="text-xs text-green-600 mt-1">Pincode validated successfully</p>
+                            )}
                           </div>
                           <div>
                             <label className="block text-xs font-bold uppercase tracking-wider text-brand-dark-brown mb-2">
