@@ -33,25 +33,18 @@ const CollectionPage = () => {
       try {
         const filters = {};
 
-        const categorySlugToEnum = {
-          'graphic-tees': 'Graphic Tees',
-          't-shirts': 'T-Shirts',
-          'jeans': 'Jeans',
-          'jackets': 'Jackets',
-          'shoes': 'Shoes',
-          'accessories': 'Accessories',
-          'hoodies': 'Hoodies',
-          'pants': 'Pants',
-        };
-
         // Map route to backend filters
         // Backend schema expects gender values: Men/Women/Unisex
         if (collection === 'men') filters.gender = 'Men';
         if (collection === 'women') filters.gender = 'Women';
+        if (collection === 'unisex') filters.gender = 'Unisex';
 
-        // Allow category based collections (e.g., graphic-tees)
-        if (collection && !['all', 'men', 'women', 'new-arrivals', 'featured'].includes(collection)) {
-          filters.category = categorySlugToEnum[collection] || collection;
+        // Support category-based collections (oversized, sweat-shirt, hoodie, normal-tshirt)
+        const validCategories = ['oversized', 'sweat-shirt', 'hoodie', 'normal-tshirt'];
+        if (collection && !['all', 'men', 'women', 'unisex', 'new-arrivals', 'featured'].includes(collection)) {
+          if (validCategories.includes(collection)) {
+            filters.category = collection;
+          }
         }
 
         let data;

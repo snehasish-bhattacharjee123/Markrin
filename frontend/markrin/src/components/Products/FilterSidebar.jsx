@@ -23,8 +23,10 @@ const FilterSidebar = () => {
 
   // Categories matching the Product model
   const categories = [
-    "Topwear",
-    "Bottomwear",
+    "oversized",
+    "sweat-shirt",
+    "hoodie",
+    "normal-tshirt",
   ];
 
   // Genders matching the Product model

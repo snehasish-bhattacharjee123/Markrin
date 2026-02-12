@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { productsAPI, wishlistAPI } from '../api';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { toast } from 'sonner';
-import { HiOutlineHeart, HiHeart } from 'react-icons/hi2';
+import { HiOutlineHeart, HiHeart, HiStar, HiChevronLeft, HiChevronRight } from 'react-icons/hi2';
 
 function ProductDetailsPage() {
   const { slug } = useParams();
@@ -144,9 +144,41 @@ function ProductDetailsPage() {
                 />
               ))}
             </div>
+
+            {/* PRODUCT HIGHLIGHTS */}
+            <div className="mt-8 grid grid-cols-3 gap-4">
+              <div className="relative overflow-hidden rounded-xl aspect-square">
+                <img
+                  src={product.images?.[0]?.url || activeImage}
+                  alt="Feature 1"
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex items-end p-3">
+                  <span className="text-white text-xs font-bold">Reflective Foil Print</span>
+                </div>
+              </div>
+              <div className="relative overflow-hidden rounded-xl aspect-square">
+                <img
+                  src={product.images?.[0]?.url || activeImage}
+                  alt="Feature 2"
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex items-end p-3">
+                  <span className="text-white text-xs font-bold">Seamless Stitch</span>
+                </div>
+              </div>
+              <div className="relative overflow-hidden rounded-xl aspect-square">
+                <img
+                  src={product.images?.[0]?.url || activeImage}
+                  alt="Feature 3"
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex items-end p-3">
+                  <span className="text-white text-xs font-bold">Heavy Gauge Cotton</span>
+                </div>
+              </div>
+            </div>
           </div>
-
-
 
           {/* ================= RIGHT: PRODUCT INFO ================= */}
           <div className="md:ml-6">
@@ -283,8 +315,138 @@ function ProductDetailsPage() {
                 </div>
               ))}
             </div>
+
+            {/* ================= REVIEWS SECTION ================= */}
+            <div className="mt-8 pt-6 border-t border-gray-200">
+              <h3 className="text-lg font-bold text-brand-dark-brown mb-4">Customer Reviews</h3>
+              
+              {/* Rating Summary */}
+              <div className="flex items-center gap-4 mb-6">
+                <div className="flex items-center gap-2">
+                  <span className="text-3xl font-bold text-brand-dark-brown">{product.rating?.toFixed(1) || '0.0'}</span>
+                  <div className="flex text-yellow-400">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <HiStar
+                        key={star}
+                        className={`w-5 h-5 ${star <= Math.round(product.rating || 0) ? 'text-yellow-400' : 'text-gray-300'}`}
+                      />
+                    ))}
+                  </div>
+                </div>
+                <span className="text-gray-500 text-sm">Based on {product.numReviews || 0} reviews</span>
+              </div>
+
+              {/* Sample Reviews */}
+              <div className="space-y-4">
+                {[
+                  { name: 'Rahul M.', rating: 5, date: '2 weeks ago', comment: 'Amazing quality! The fabric is so soft and the fit is perfect. Will definitely buy again.' },
+                  { name: 'Priya S.', rating: 4, date: '1 month ago', comment: 'Great design and comfortable. Shipping was fast too.' },
+                  { name: 'Amit K.', rating: 5, date: '2 months ago', comment: 'Best purchase ever! The reflective print looks awesome at night.' }
+                ].map((review, idx) => (
+                  <div key={idx} className="bg-gray-50 rounded-xl p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-full bg-brand-gold text-white flex items-center justify-center font-bold text-sm">
+                          {review.name.charAt(0)}
+                        </div>
+                        <span className="font-semibold text-brand-dark-brown">{review.name}</span>
+                      </div>
+                      <span className="text-gray-400 text-xs">{review.date}</span>
+                    </div>
+                    <div className="flex text-yellow-400 mb-2">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <HiStar
+                          key={star}
+                          className={`w-4 h-4 ${star <= review.rating ? 'text-yellow-400' : 'text-gray-300'}`}
+                        />
+                      ))}
+                    </div>
+                    <p className="text-gray-600 text-sm">{review.comment}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
+
+        {/* ================= SIMILAR PRODUCTS ================= */}
+        <SimilarProducts currentProduct={product} />
+      </div>
+    </div>
+  );
+}
+
+// Similar Products Component
+function SimilarProducts({ currentProduct }) {
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchSimilar = async () => {
+      try {
+        setLoading(true);
+        const data = await productsAPI.getAll({ 
+          category: currentProduct.category,
+          limit: 4
+        });
+        const filtered = (data.products || []).filter(p => p._id !== currentProduct._id).slice(0, 4);
+        setProducts(filtered);
+      } catch (err) {
+        console.error('Error fetching similar products:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchSimilar();
+  }, [currentProduct.category, currentProduct._id]);
+
+  if (loading) {
+    return (
+      <div className="mt-16">
+        <h3 className="text-2xl font-bold text-brand-dark-brown mb-6">You Might Also Like</h3>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="animate-pulse">
+              <div className="bg-gray-200 aspect-3/4 rounded-2xl" />
+              <div className="bg-gray-200 h-4 w-3/4 rounded mt-2" />
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (products.length === 0) return null;
+
+  return (
+    <div className="mt-16">
+      <h3 className="text-2xl font-bold text-brand-dark-brown mb-6">You Might Also Like</h3>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {products.map((product) => (
+          <Link
+            key={product._id}
+            to={`/product/${product.slug || product._id}`}
+            className="group"
+          >
+            <div className="relative rounded-2xl overflow-hidden bg-white shadow-sm">
+              <div className="relative aspect-3/4 overflow-hidden">
+                <img
+                  src={product.images?.[0]?.url}
+                  alt={product.name}
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                />
+              </div>
+              <div className="p-4">
+                <h4 className="font-semibold text-brand-dark-brown text-sm mb-1 line-clamp-1 group-hover:text-brand-gold transition-colors">
+                  {product.name}
+                </h4>
+                <span className="font-bold text-brand-dark-brown">
+                  ₹{product.price?.toFixed(2)}
+                </span>
+              </div>
+            </div>
+          </Link>
+        ))}
       </div>
     </div>
   );

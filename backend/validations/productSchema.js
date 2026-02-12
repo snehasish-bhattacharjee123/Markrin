@@ -8,7 +8,7 @@ const productSchema = z.object({
         discountPrice: z.number().min(0).optional().default(0),
         countInStock: z.number().min(0).default(0),
         sku: z.string().min(1, 'SKU is required').trim(),
-        category: z.enum(['Topwear', 'Bottomwear']),
+        category: z.enum(['oversized', 'sweat-shirt', 'hoodie', 'normal-tshirt']),
         brand: z.string().trim().optional(),
         sizes: z.array(z.enum(['XS', 'S', 'M', 'L', 'XL', 'XXL'])).optional().default([]),
         colors: z.array(z.string()).optional().default([]),
