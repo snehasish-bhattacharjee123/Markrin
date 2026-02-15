@@ -1,135 +1,195 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React from "react";
+import { Link } from "react-router-dom";
 import {
   RiFacebookFill,
   RiInstagramLine,
   RiTwitterXLine,
   RiMapPinLine,
   RiPhoneLine,
-  RiMailLine
+  RiMailLine,
 } from "react-icons/ri";
 
 function Footer() {
   return (
-    <footer className="py-16 border-t bg-brand-dark-brown text-brand-cream font-inter">
-      <div className="container grid grid-cols-1 gap-12 px-6 mx-auto md:grid-cols-4 lg:px-0">
+    <footer className="bg-brand-dark-brown text-brand-cream font-inter relative overflow-hidden">
+      {/* Subtle decorative gradient */}
+      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-brand-gold/40 to-transparent" />
 
-        {/* 1. Brand Info */}
-        <div className="flex flex-col">
-          <Link to="/" className="text-2xl font-bold tracking-tighter uppercase text-white mb-4">
-            Markrin<span className="text-brand-gold">.</span>
-          </Link>
-          <p className="text-sm leading-relaxed text-gray-300 mb-4">
-            <em>"Feel the Soul of Art"</em>
+      <div className="container mx-auto px-6 lg:px-8">
+        {/* Main Footer Content */}
+        <div className="grid grid-cols-1 gap-12 md:grid-cols-2 lg:grid-cols-4 py-16">
+          {/* 1. Brand Info */}
+          <div className="flex flex-col lg:col-span-1">
+            <Link
+              to="/"
+              className="text-2xl font-bold tracking-tight uppercase text-white mb-4 inline-block"
+            >
+              Markrin<span className="text-brand-gold">.</span>
+            </Link>
+            <p className="text-sm leading-relaxed text-brand-gold/80 italic mb-3">
+              "Feel the Soul of Art"
+            </p>
+            <p className="text-sm leading-relaxed text-gray-400 mb-6 max-w-xs">
+              Premium streetwear for the modern, confident individual. Express
+              yourself through art you can wear.
+            </p>
+
+            {/* Contact Info */}
+            <div className="space-y-3.5 text-sm">
+              <div className="flex items-start gap-3 text-gray-300 group">
+                <RiMapPinLine className="w-4 h-4 text-brand-gold flex-shrink-0 mt-0.5 group-hover:scale-110 transition-transform" />
+                <span className="leading-snug">
+                  64/3 Nabin Senapati Lane,
+                  <br />
+                  Howrah - 711101
+                </span>
+              </div>
+              <div className="flex items-center gap-3 text-gray-300">
+                <RiPhoneLine className="w-4 h-4 text-brand-gold flex-shrink-0" />
+                <a
+                  href="tel:+919875540545"
+                  className="hover:text-brand-gold transition-colors duration-200"
+                >
+                  +91 98755 40545
+                </a>
+              </div>
+              <div className="flex items-center gap-3 text-gray-300">
+                <RiMailLine className="w-4 h-4 text-brand-gold flex-shrink-0" />
+                <a
+                  href="mailto:support@markrin.com"
+                  className="hover:text-brand-gold transition-colors duration-200"
+                >
+                  support@markrin.com
+                </a>
+              </div>
+            </div>
+          </div>
+
+          {/* 2. Shop Links */}
+          <div>
+            <h3 className="mb-6 text-xs font-bold tracking-[0.2em] uppercase text-brand-gold">
+              Shop
+            </h3>
+            <ul className="space-y-3 text-sm">
+              {[
+                { label: "All Products", path: "/shop" },
+                { label: "New Arrivals", path: "/collection/new-arrivals" },
+                { label: "Graphic Tees", path: "/collection/graphic-tees" },
+                { label: "Men's Collection", path: "/collection/men" },
+                { label: "Women's Collection", path: "/collection/women" },
+              ].map((item) => (
+                <li key={item.path}>
+                  <Link
+                    to={item.path}
+                    className="text-gray-400 hover:text-brand-gold hover:pl-1 transition-all duration-200"
+                  >
+                    {item.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* 3. Support Links */}
+          <div>
+            <h3 className="mb-6 text-xs font-bold tracking-[0.2em] uppercase text-brand-gold">
+              Support
+            </h3>
+            <ul className="space-y-3 text-sm">
+              {[
+                { label: "Contact Us", path: "/contact" },
+                { label: "About Us", path: "/about" },
+                { label: "FAQs", path: "/faq" },
+                { label: "Shipping Policy", path: "/shipping" },
+                { label: "Returns & Refunds", path: "/returns" },
+                { label: "Privacy Policy", path: "/privacy" },
+                { label: "Terms of Service", path: "/terms" },
+              ].map((item) => (
+                <li key={item.path}>
+                  <Link
+                    to={item.path}
+                    className="text-gray-400 hover:text-brand-gold hover:pl-1 transition-all duration-200"
+                  >
+                    {item.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* 4. Connect */}
+          <div>
+            <h3 className="mb-6 text-xs font-bold tracking-[0.2em] uppercase text-brand-gold">
+              Connect
+            </h3>
+            <p className="mb-5 text-sm text-gray-400 leading-relaxed">
+              Follow us for style inspiration, new drops, and exclusive offers.
+            </p>
+
+            {/* Social Icons */}
+            <div className="flex items-center gap-3 mb-8">
+              {[
+                {
+                  Icon: RiFacebookFill,
+                  href: "https://www.facebook.com/profile.php?id=61581277903401",
+                  label: "Facebook",
+                },
+                {
+                  Icon: RiInstagramLine,
+                  href: "https://instagram.com/markrin1015/",
+                  label: "Instagram",
+                },
+                {
+                  Icon: RiTwitterXLine,
+                  href: "https://twitter.com",
+                  label: "Twitter",
+                },
+              ].map(({ Icon, href, label }) => (
+                <a
+                  key={label}
+                  href={href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={label}
+                  className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center transition-all duration-300 hover:bg-brand-gold hover:text-brand-dark-brown hover:border-brand-gold hover:scale-110"
+                >
+                  <Icon className="w-4 h-4" />
+                </a>
+              ))}
+            </div>
+
+            {/* Newsletter Mini */}
+            <div>
+              <h4 className="text-xs font-bold uppercase tracking-wider mb-3 text-white/80">
+                Newsletter
+              </h4>
+              <form className="flex gap-2">
+                <input
+                  type="email"
+                  placeholder="Your email"
+                  className="flex-grow px-4 py-3 text-sm bg-white/5 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-gold/30 focus:border-brand-gold/50 text-white placeholder:text-gray-500 transition-all"
+                  required
+                />
+                <button
+                  type="submit"
+                  className="px-4 py-3 text-xs font-bold uppercase bg-brand-gold text-brand-dark-brown rounded-xl hover:bg-white transition-colors duration-300"
+                >
+                  Join
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+
+        {/* Bottom Bar */}
+        <div className="border-t border-white/10 py-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <p className="text-[11px] tracking-widest text-gray-500 uppercase">
+            © 2026 Markrin. All rights reserved.
           </p>
-          <p className="text-sm leading-relaxed text-gray-400 mb-6">
-            Premium streetwear for the modern, confident individual. Express yourself through art you can wear.
+          <p className="text-[11px] tracking-wider text-gray-600 italic">
+            Feel the Soul of Art.
           </p>
-
-          {/* Contact Info */}
-          <div className="space-y-3 text-sm">
-            <div className="flex items-center gap-3 text-gray-300">
-              <RiMapPinLine className="w-4 h-4 text-brand-gold flex-shrink-0" />
-              <span>64/3 Nabin Senapati Lane, Howrah - 711101</span>
-            </div>
-            <div className="flex items-center gap-3 text-gray-300">
-              <RiPhoneLine className="w-4 h-4 text-brand-gold flex-shrink-0" />
-              <a href="tel:+919875540545" className="hover:text-brand-gold transition-colors">
-                +91 98755 40545
-              </a>
-            </div>
-            <div className="flex items-center gap-3 text-gray-300">
-              <RiMailLine className="w-4 h-4 text-brand-gold flex-shrink-0" />
-              <a href="mailto:support@markrin.com" className="hover:text-brand-gold transition-colors">
-                support@markrin.com
-              </a>
-            </div>
-          </div>
         </div>
-
-        {/* 2. Shop Links */}
-        <div>
-          <h3 className="mb-6 text-lg font-bold tracking-wider uppercase text-brand-white">Shop</h3>
-          <ul className="space-y-3 text-sm">
-            <li><Link to="/shop" className="transition-colors hover:text-brand-gold">All Products</Link></li>
-            <li><Link to="/collection/new-arrivals" className="transition-colors hover:text-brand-gold">New Arrivals</Link></li>
-            <li><Link to="/collection/graphic-tees" className="transition-colors hover:text-brand-gold">Graphic Tees</Link></li>
-            <li><Link to="/collection/men" className="transition-colors hover:text-brand-gold">Men's Collection</Link></li>
-            <li><Link to="/collection/women" className="transition-colors hover:text-brand-gold">Women's Collection</Link></li>
-          </ul>
-        </div>
-
-        {/* 3. Support Links */}
-        <div>
-          <h3 className="mb-6 text-lg font-bold tracking-wider uppercase text-brand-white">Support</h3>
-          <ul className="space-y-3 text-sm">
-            <li><Link to="/contact" className="transition-colors hover:text-brand-gold">Contact Us</Link></li>
-            <li><Link to="/about" className="transition-colors hover:text-brand-gold">About Us</Link></li>
-            <li><Link to="/faq" className="transition-colors hover:text-brand-gold">FAQs</Link></li>
-            <li><Link to="/shipping" className="transition-colors hover:text-brand-gold">Shipping Policy</Link></li>
-            <li><Link to="/returns" className="transition-colors hover:text-brand-gold">Returns & Refunds</Link></li>
-            <li><Link to="/privacy" className="transition-colors hover:text-brand-gold">Privacy Policy</Link></li>
-            <li><Link to="/terms" className="transition-colors hover:text-brand-gold">Terms of Service</Link></li>
-          </ul>
-        </div>
-
-        {/* 4. Follow Us & Social Icons */}
-        <div>
-          <h3 className="mb-6 text-lg font-bold tracking-wider uppercase text-brand-white">Follow Us</h3>
-          <p className="mb-6 text-sm text-gray-300">Join our community and share your style!</p>
-          <div className="flex items-center space-x-4">
-            <a
-              href="https://www.facebook.com/profile.php?id=61581277903401"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center transition-all hover:bg-brand-gold hover:text-brand-dark-brown"
-            >
-              <RiFacebookFill className="w-5 h-5" />
-            </a>
-            <a
-              href="https://instagram.com/markrin1015/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center transition-all hover:bg-brand-gold hover:text-brand-dark-brown"
-            >
-              <RiInstagramLine className="w-5 h-5" />
-            </a>
-            <a
-              href="https://twitter.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center transition-all hover:bg-brand-gold hover:text-brand-dark-brown"
-            >
-              <RiTwitterXLine className="w-5 h-5" />
-            </a>
-          </div>
-
-          {/* Newsletter */}
-          <div className="mt-8">
-            <h4 className="text-sm font-bold uppercase tracking-wider mb-3">Newsletter</h4>
-            <form className="flex gap-2">
-              <input
-                type="email"
-                placeholder="Your email"
-                className="flex-grow p-3 text-sm bg-transparent border border-gray-600 rounded-md focus:outline-none focus:ring-1 focus:ring-brand-gold focus:border-brand-gold"
-                required
-              />
-              <button
-                type="submit"
-                className="px-4 py-3 text-xs font-bold uppercase bg-brand-gold text-brand-dark-brown rounded-md hover:bg-white transition-colors"
-              >
-                Join
-              </button>
-            </form>
-          </div>
-        </div>
-      </div>
-
-      {/* Bottom Copyright Section */}
-      <div className="container px-6 pt-12 mx-auto mt-12 text-center border-t border-gray-700 lg:px-0">
-        <p className="text-xs tracking-widest text-gray-400 uppercase">
-          © 2026 Markrin. All rights reserved. | Feel the Soul of Art.
-        </p>
       </div>
     </footer>
   );

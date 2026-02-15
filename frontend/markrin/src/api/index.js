@@ -5,32 +5,49 @@ const fetchWithTimeout = async (url, options = {}, timeoutMs = 15000) => {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
     try {
-        const response = await fetch(url, { ...options, signal: controller.signal });
+        const response = await customFetch(url, { ...options, signal: controller.signal });
         return response;
     } finally {
         clearTimeout(timeoutId);
     }
 };
 
-// Helper function to get auth headers
+// Helper function to get auth headers (no needed for token anymore, just content-type)
 const getAuthHeaders = () => {
-    const userInfo = localStorage.getItem('userInfo');
-    if (userInfo) {
-        const { token } = JSON.parse(userInfo);
-        return {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-        };
-    }
     return {
         'Content-Type': 'application/json',
     };
 };
 
+// Global Fetch Wrapper to handle 401s
+const customFetch = async (url, options = {}) => {
+    const defaultOptions = {
+        credentials: 'include', // Important for cookies
+        ...options,
+        headers: {
+            ...options.headers,
+        }
+    };
+
+    const response = await fetch(url, defaultOptions);
+
+    if (response.status === 401) {
+        // Session expired or unauthorized
+        // We can dispatch a custom event or let the calling component handle it
+        // For strict session handling, we might clean up local state here
+        try {
+            // If we have a logout function exposed globally or event:
+            window.dispatchEvent(new Event('auth:unauthorized'));
+        } catch (e) { }
+    }
+
+    return response;
+};
+
 // Auth API
 export const authAPI = {
     register: async (userData) => {
-        const response = await fetch(`${API_BASE_URL}/auth/register`, {
+        const response = await customFetch(`${API_BASE_URL}/auth/register`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(userData),
@@ -43,7 +60,7 @@ export const authAPI = {
     },
 
     login: async (credentials) => {
-        const response = await fetch(`${API_BASE_URL}/auth/login`, {
+        const response = await customFetch(`${API_BASE_URL}/auth/login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(credentials),
@@ -56,7 +73,7 @@ export const authAPI = {
     },
 
     getProfile: async () => {
-        const response = await fetch(`${API_BASE_URL}/auth/profile`, {
+        const response = await customFetch(`${API_BASE_URL}/auth/profile`, {
             method: 'GET',
             headers: getAuthHeaders(),
         });
@@ -68,7 +85,7 @@ export const authAPI = {
     },
 
     updateProfile: async (userData) => {
-        const response = await fetch(`${API_BASE_URL}/auth/profile`, {
+        const response = await customFetch(`${API_BASE_URL}/auth/profile`, {
             method: 'PUT',
             headers: getAuthHeaders(),
             body: JSON.stringify(userData),
@@ -124,7 +141,7 @@ export const productsAPI = {
 // Cart API
 export const cartAPI = {
     get: async () => {
-        const response = await fetch(`${API_BASE_URL}/cart`, {
+        const response = await customFetch(`${API_BASE_URL}/cart`, {
             headers: getAuthHeaders(),
         });
         const data = await response.json();
@@ -135,7 +152,7 @@ export const cartAPI = {
     },
 
     addItem: async (productId, quantity, size, color) => {
-        const response = await fetch(`${API_BASE_URL}/cart`, {
+        const response = await customFetch(`${API_BASE_URL}/cart`, {
             method: 'POST',
             headers: getAuthHeaders(),
             body: JSON.stringify({ productId, quantity, size, color }),
@@ -148,7 +165,7 @@ export const cartAPI = {
     },
 
     updateItem: async (itemId, updates) => {
-        const response = await fetch(`${API_BASE_URL}/cart/${itemId}`, {
+        const response = await customFetch(`${API_BASE_URL}/cart/${itemId}`, {
             method: 'PUT',
             headers: getAuthHeaders(),
             body: JSON.stringify(updates),
@@ -161,7 +178,7 @@ export const cartAPI = {
     },
 
     removeItem: async (itemId) => {
-        const response = await fetch(`${API_BASE_URL}/cart/${itemId}`, {
+        const response = await customFetch(`${API_BASE_URL}/cart/${itemId}`, {
             method: 'DELETE',
             headers: getAuthHeaders(),
         });
@@ -173,7 +190,7 @@ export const cartAPI = {
     },
 
     clear: async () => {
-        const response = await fetch(`${API_BASE_URL}/cart`, {
+        const response = await customFetch(`${API_BASE_URL}/cart`, {
             method: 'DELETE',
             headers: getAuthHeaders(),
         });
@@ -188,7 +205,7 @@ export const cartAPI = {
 // Orders API
 export const ordersAPI = {
     create: async (shippingAddress, paymentMethod = 'COD') => {
-        const response = await fetch(`${API_BASE_URL}/orders`, {
+        const response = await customFetch(`${API_BASE_URL}/orders`, {
             method: 'POST',
             headers: getAuthHeaders(),
             body: JSON.stringify({ shippingAddress, paymentMethod }),
@@ -201,7 +218,7 @@ export const ordersAPI = {
     },
 
     pay: async (id, paymentResult) => {
-        const response = await fetch(`${API_BASE_URL}/orders/${id}/pay`, {
+        const response = await customFetch(`${API_BASE_URL}/orders/${id}/pay`, {
             method: 'PUT',
             headers: getAuthHeaders(),
             body: JSON.stringify(paymentResult),
@@ -214,7 +231,7 @@ export const ordersAPI = {
     },
 
     getMyOrders: async () => {
-        const response = await fetch(`${API_BASE_URL}/orders/my-orders`, {
+        const response = await customFetch(`${API_BASE_URL}/orders/my-orders`, {
             headers: getAuthHeaders(),
         });
         const data = await response.json();
@@ -225,7 +242,7 @@ export const ordersAPI = {
     },
 
     getById: async (id) => {
-        const response = await fetch(`${API_BASE_URL}/orders/${id}`, {
+        const response = await customFetch(`${API_BASE_URL}/orders/${id}`, {
             headers: getAuthHeaders(),
         });
         const data = await response.json();
@@ -239,7 +256,7 @@ export const ordersAPI = {
 // Wishlist API
 export const wishlistAPI = {
     get: async (page = 1, limit = 8) => {
-        const response = await fetch(`${API_BASE_URL}/wishlist?page=${page}&limit=${limit}`, {
+        const response = await customFetch(`${API_BASE_URL}/wishlist?page=${page}&limit=${limit}`, {
             headers: getAuthHeaders(),
         });
         const data = await response.json();
@@ -250,7 +267,7 @@ export const wishlistAPI = {
     },
 
     add: async (productId) => {
-        const response = await fetch(`${API_BASE_URL}/wishlist/${productId}`, {
+        const response = await customFetch(`${API_BASE_URL}/wishlist/${productId}`, {
             method: 'POST',
             headers: getAuthHeaders(),
         });
@@ -262,7 +279,7 @@ export const wishlistAPI = {
     },
 
     remove: async (productId) => {
-        const response = await fetch(`${API_BASE_URL}/wishlist/${productId}`, {
+        const response = await customFetch(`${API_BASE_URL}/wishlist/${productId}`, {
             method: 'DELETE',
             headers: getAuthHeaders(),
         });
@@ -274,7 +291,7 @@ export const wishlistAPI = {
     },
 
     check: async (productId) => {
-        const response = await fetch(`${API_BASE_URL}/wishlist/check/${productId}`, {
+        const response = await customFetch(`${API_BASE_URL}/wishlist/check/${productId}`, {
             headers: getAuthHeaders(),
         });
         const data = await response.json();
@@ -285,7 +302,7 @@ export const wishlistAPI = {
     },
 
     clear: async () => {
-        const response = await fetch(`${API_BASE_URL}/wishlist`, {
+        const response = await customFetch(`${API_BASE_URL}/wishlist`, {
             method: 'DELETE',
             headers: getAuthHeaders(),
         });
@@ -297,10 +314,74 @@ export const wishlistAPI = {
     },
 };
 
+// Upload API (Cloudinary)
+export const uploadAPI = {
+    uploadSingle: async (file) => {
+        const formData = new FormData();
+        formData.append('image', file);
+
+        const userInfo = localStorage.getItem('userInfo');
+        const headers = {};
+        if (userInfo) {
+            const { token } = JSON.parse(userInfo);
+            headers['Authorization'] = `Bearer ${token}`;
+        }
+
+        const response = await customFetch(`${API_BASE_URL}/upload`, {
+            method: 'POST',
+            headers,
+            body: formData,
+        });
+        const data = await response.json();
+        if (!response.ok) {
+            throw new Error(data.message || 'Failed to upload image');
+        }
+        return data;
+    },
+
+    uploadMultiple: async (files) => {
+        const formData = new FormData();
+        for (const file of files) {
+            formData.append('images', file);
+        }
+
+        const userInfo = localStorage.getItem('userInfo');
+        const headers = {};
+        if (userInfo) {
+            const { token } = JSON.parse(userInfo);
+            headers['Authorization'] = `Bearer ${token}`;
+        }
+
+        const response = await customFetch(`${API_BASE_URL}/upload/multiple`, {
+            method: 'POST',
+            headers,
+            body: formData,
+        });
+        const data = await response.json();
+        if (!response.ok) {
+            throw new Error(data.message || 'Failed to upload images');
+        }
+        return data;
+    },
+
+    deleteImage: async (publicId) => {
+        const response = await customFetch(`${API_BASE_URL}/upload/delete`, {
+            method: 'DELETE',
+            headers: getAuthHeaders(),
+            body: JSON.stringify({ publicId }),
+        });
+        const data = await response.json();
+        if (!response.ok) {
+            throw new Error(data.message || 'Failed to delete image');
+        }
+        return data;
+    },
+};
+
 // Admin API
 export const adminAPI = {
     getStats: async () => {
-        const response = await fetch(`${API_BASE_URL}/admin/stats`, {
+        const response = await customFetch(`${API_BASE_URL}/admin/stats`, {
             headers: getAuthHeaders(),
         });
         const data = await response.json();
@@ -310,8 +391,8 @@ export const adminAPI = {
         return data;
     },
 
-    getUsers: async () => {
-        const response = await fetch(`${API_BASE_URL}/admin/users`, {
+    getUsers: async (page = 1, limit = 10) => {
+        const response = await customFetch(`${API_BASE_URL}/admin/users?page=${page}&limit=${limit}`, {
             headers: getAuthHeaders(),
         });
         const data = await response.json();
@@ -322,7 +403,7 @@ export const adminAPI = {
     },
 
     createUser: async (userData) => {
-        const response = await fetch(`${API_BASE_URL}/admin/users`, {
+        const response = await customFetch(`${API_BASE_URL}/admin/users`, {
             method: 'POST',
             headers: getAuthHeaders(),
             body: JSON.stringify(userData),
@@ -335,7 +416,7 @@ export const adminAPI = {
     },
 
     updateUser: async (id, userData) => {
-        const response = await fetch(`${API_BASE_URL}/admin/users/${id}`, {
+        const response = await customFetch(`${API_BASE_URL}/admin/users/${id}`, {
             method: 'PUT',
             headers: getAuthHeaders(),
             body: JSON.stringify(userData),
@@ -348,7 +429,7 @@ export const adminAPI = {
     },
 
     deleteUser: async (id) => {
-        const response = await fetch(`${API_BASE_URL}/admin/users/${id}`, {
+        const response = await customFetch(`${API_BASE_URL}/admin/users/${id}`, {
             method: 'DELETE',
             headers: getAuthHeaders(),
         });
@@ -359,8 +440,8 @@ export const adminAPI = {
         return data;
     },
 
-    getAllOrders: async () => {
-        const response = await fetch(`${API_BASE_URL}/admin/orders`, {
+    getAllOrders: async (page = 1, limit = 10) => {
+        const response = await customFetch(`${API_BASE_URL}/admin/orders?page=${page}&limit=${limit}`, {
             headers: getAuthHeaders(),
         });
         const data = await response.json();
@@ -371,7 +452,7 @@ export const adminAPI = {
     },
 
     updateOrderStatus: async (id, status) => {
-        const response = await fetch(`${API_BASE_URL}/admin/orders/${id}/status`, {
+        const response = await customFetch(`${API_BASE_URL}/admin/orders/${id}/status`, {
             method: 'PUT',
             headers: getAuthHeaders(),
             body: JSON.stringify({ status }),
@@ -385,7 +466,7 @@ export const adminAPI = {
 
     // Product Management
     createProduct: async (productData) => {
-        const response = await fetch(`${API_BASE_URL}/products`, {
+        const response = await customFetch(`${API_BASE_URL}/products`, {
             method: 'POST',
             headers: getAuthHeaders(),
             body: JSON.stringify(productData),
@@ -398,7 +479,7 @@ export const adminAPI = {
     },
 
     updateProduct: async (id, productData) => {
-        const response = await fetch(`${API_BASE_URL}/products/${id}`, {
+        const response = await customFetch(`${API_BASE_URL}/products/${id}`, {
             method: 'PUT',
             headers: getAuthHeaders(),
             body: JSON.stringify(productData),
@@ -411,7 +492,7 @@ export const adminAPI = {
     },
 
     deleteProduct: async (id) => {
-        const response = await fetch(`${API_BASE_URL}/products/${id}`, {
+        const response = await customFetch(`${API_BASE_URL}/products/${id}`, {
             method: 'DELETE',
             headers: getAuthHeaders(),
         });
@@ -426,7 +507,7 @@ export const adminAPI = {
 // Payment API
 export const paymentAPI = {
     createPaymentIntent: async (orderId) => {
-        const response = await fetch(`${API_BASE_URL}/payment/create-payment-intent`, {
+        const response = await customFetch(`${API_BASE_URL}/payment/create-payment-intent`, {
             method: 'POST',
             headers: getAuthHeaders(),
             body: JSON.stringify({ orderId }),
@@ -454,6 +535,7 @@ export default {
     cart: cartAPI,
     orders: ordersAPI,
     wishlist: wishlistAPI,
+    upload: uploadAPI,
     admin: adminAPI,
     payment: paymentAPI,
 };

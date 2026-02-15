@@ -8,6 +8,11 @@ const userSchema = new mongoose.Schema(
             required: [true, 'Please add a name'],
             trim: true,
         },
+        lastName: {
+            type: String,
+            trim: true,
+            default: '',
+        },
         email: {
             type: String,
             required: [true, 'Please add an email'],
@@ -28,6 +33,20 @@ const userSchema = new mongoose.Schema(
             type: String,
             enum: ['customer', 'admin'],
             default: 'customer',
+        },
+        phone: {
+            type: String,
+            trim: true,
+            default: '',
+        },
+        dob: {
+            type: Date,
+            default: null,
+        },
+        gender: {
+            type: String,
+            enum: ['Male', 'Female', 'Other', ''],
+            default: '',
         },
         address: {
             street: String,

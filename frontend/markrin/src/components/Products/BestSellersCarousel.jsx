@@ -1,104 +1,98 @@
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { HiChevronLeft, HiChevronRight, HiHeart, HiOutlineHeart } from 'react-icons/hi2';
-import { productsAPI, wishlistAPI } from '../../api';
-import { useAuth } from '../../context/AuthContext';
-import { toast } from 'sonner';
+import React, { useEffect, useState, useRef } from "react";
+import { Link } from "react-router-dom";
+import {
+  HiOutlineHeart,
+  HiHeart,
+  HiChevronLeft,
+  HiChevronRight,
+  HiOutlineShoppingBag,
+  HiStar,
+} from "react-icons/hi2";
+import { productsAPI, wishlistAPI } from "../../api";
+import { useAuth } from "../../context/AuthContext";
+import { toast } from "sonner";
+import { getCardUrl } from "../../utils/cloudinaryHelper";
 
 function BestSellersCarousel() {
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [wishlistItems, setWishlistItems] = useState(new Set());
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [wishlist, setWishlist] = useState(new Set());
+  const scrollRef = useRef(null);
   const { isAuthenticated } = useAuth();
 
-  const itemsPerView = {
-    mobile: 2,
-    tablet: 3,
-    desktop: 4
-  };
-
-  const maxIndex = Math.max(0, products.length - itemsPerView.desktop);
-
   useEffect(() => {
-    const fetchBestSellers = async () => {
+    const fetchProducts = async () => {
       try {
         setLoading(true);
-        const data = await productsAPI.getFeatured();
-        setProducts(data || []);
+        const data = await productsAPI.getAll({
+          sortBy: "popularity",
+          limit: 12,
+        });
+        setProducts(data.products || []);
       } catch (err) {
-        console.error('Error fetching best sellers:', err);
-        setProducts([]);
+        console.error("Failed to fetch best sellers:", err);
       } finally {
         setLoading(false);
       }
     };
-    fetchBestSellers();
+    fetchProducts();
   }, []);
 
-  const handlePrev = () => {
-    setCurrentIndex((prev) => Math.max(0, prev - 1));
-  };
-
-  const handleNext = () => {
-    setCurrentIndex((prev) => Math.min(maxIndex, prev + 1));
-  };
-
-  const toggleWishlist = async (e, product) => {
+  const toggleWishlist = async (e, productId) => {
     e.preventDefault();
     e.stopPropagation();
 
     if (!isAuthenticated) {
-      toast.error('Please login to add items to wishlist');
+      toast.error("Please login to add to wishlist");
       return;
     }
 
     try {
-      if (wishlistItems.has(product._id)) {
-        await wishlistAPI.remove(product._id);
-        setWishlistItems((prev) => {
-          const newSet = new Set(prev);
-          newSet.delete(product._id);
-          return newSet;
+      if (wishlist.has(productId)) {
+        await wishlistAPI.remove(productId);
+        setWishlist((prev) => {
+          const next = new Set(prev);
+          next.delete(productId);
+          return next;
         });
-        toast.success('Removed from wishlist');
+        toast.success("Removed from wishlist");
       } else {
-        await wishlistAPI.add(product._id);
-        setWishlistItems((prev) => new Set([...prev, product._id]));
-        toast.success('Added to wishlist');
+        await wishlistAPI.add(productId);
+        setWishlist((prev) => new Set(prev).add(productId));
+        toast.success("Added to wishlist");
       }
     } catch (err) {
       toast.error(err.message);
     }
   };
 
-  useEffect(() => {
-    const fetchWishlist = async () => {
-      if (!isAuthenticated) return;
-      try {
-        const data = await wishlistAPI.get(1, 100);
-        const ids = new Set(data.products?.map((p) => p._id) || []);
-        setWishlistItems(ids);
-      } catch (err) {
-        // ignore
-      }
-    };
-    fetchWishlist();
-  }, [isAuthenticated]);
+  const scroll = (direction) => {
+    if (scrollRef.current) {
+      const amount = scrollRef.current.clientWidth * 0.7;
+      scrollRef.current.scrollBy({
+        left: direction === "left" ? -amount : amount,
+        behavior: "smooth",
+      });
+    }
+  };
 
   if (loading) {
     return (
-      <section className="py-8 bg-brand-cream">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-8">
-            <h2 className="text-3xl font-bold text-brand-dark-brown">Best Sellers</h2>
+      <section className="py-12 lg:py-16 px-4 lg:px-8 bg-brand-cream">
+        <div className="container mx-auto">
+          <div className="mb-8">
+            <div className="w-48 h-8 bg-gray-200 rounded-lg skeleton-shimmer" />
+            <div className="w-64 h-4 bg-gray-200 rounded-lg mt-2 skeleton-shimmer" />
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="animate-pulse">
-                <div className="bg-gray-200 aspect-3/4 rounded-2xl" />
-                <div className="bg-gray-200 h-4 w-3/4 rounded mt-2" />
-                <div className="bg-gray-200 h-4 w-1/2 rounded mt-1" />
+              <div key={i} className="rounded-2xl overflow-hidden bg-white">
+                <div className="aspect-[3/4] skeleton-shimmer" />
+                <div className="p-4 space-y-2">
+                  <div className="h-3 w-16 skeleton-shimmer rounded" />
+                  <div className="h-4 w-3/4 skeleton-shimmer rounded" />
+                  <div className="h-4 w-1/3 skeleton-shimmer rounded" />
+                </div>
               </div>
             ))}
           </div>
@@ -107,135 +101,159 @@ function BestSellersCarousel() {
     );
   }
 
-  if (products.length === 0) {
-    return null;
-  }
+  if (!products.length) return null;
 
   return (
-    <section className="py-8 bg-brand-cream">
-      <div className="container mx-auto px-4">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <h2 className="text-3xl font-bold text-brand-dark-brown">Best Sellers</h2>
-        </div>
-
-        {/* Carousel Container */}
-        <div className="relative">
-          {/* Navigation Buttons */}
-          <button
-            onClick={handlePrev}
-            disabled={currentIndex === 0}
-            className="absolute -left-4 top-1/2 -translate-y-1/2 z-10 p-2 rounded-full bg-white shadow-lg disabled:opacity-0 hover:bg-brand-gold hover:text-white transition-all hidden lg:block"
-          >
-            <HiChevronLeft className="w-6 h-6" />
-          </button>
-
-          <button
-            onClick={handleNext}
-            disabled={currentIndex >= maxIndex}
-            className="absolute -right-4 top-1/2 -translate-y-1/2 z-10 p-2 rounded-full bg-white shadow-lg disabled:opacity-0 hover:bg-brand-gold hover:text-white transition-all hidden lg:block"
-          >
-            <HiChevronRight className="w-6 h-6" />
-          </button>
-
-          {/* Products Grid */}
-          <div className="overflow-hidden">
-            <div
-              className="flex transition-transform duration-500 ease-out gap-4"
-              style={{ transform: `translateX(-${currentIndex * (100 / itemsPerView.desktop)}%)` }}
-            >
-              {products.map((product) => (
-                <div
-                  key={product._id}
-                  className="flex-shrink-0 w-1/2 md:w-1/3 lg:w-1/4 group"
-                >
-                  <Link to={`/product/${product.slug || product._id}`} className="block">
-                    <div className="relative rounded-2xl overflow-hidden bg-white shadow-sm">
-                      {/* Image Container */}
-                      <div className="relative aspect-3/4 overflow-hidden">
-                        <img
-                          src={product.images?.[0]?.url}
-                          alt={product.name}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                        />
-
-                        {/* Wishlist Button */}
-                        <button
-                          onClick={(e) => toggleWishlist(e, product)}
-                          className="absolute top-3 right-3 p-2 rounded-full bg-white/90 shadow-sm hover:bg-white transition-colors"
-                        >
-                          {wishlistItems.has(product._id) ? (
-                            <HiHeart className="w-5 h-5 text-red-500" />
-                          ) : (
-                            <HiOutlineHeart className="w-5 h-5 text-gray-600" />
-                          )}
-                        </button>
-
-                        {/* Sale Badge */}
-                        {product.discountPrice > 0 && product.discountPrice < product.price && (
-                          <span className="absolute top-3 left-3 px-2 py-1 bg-red-500 text-white text-xs font-bold rounded-full">
-                            Sale
-                          </span>
-                        )}
-
-                        {/* New Badge */}
-                        {product.isNewArrival && (
-                          <span className="absolute bottom-3 left-3 px-2 py-1 bg-green-500 text-white text-xs font-bold rounded-full">
-                            New
-                          </span>
-                        )}
-                      </div>
-
-                      {/* Product Info */}
-                      <div className="p-4">
-                        <h3 className="font-semibold text-brand-dark-brown text-sm mb-1 line-clamp-1 group-hover:text-brand-gold transition-colors">
-                          {product.name}
-                        </h3>
-
-                        {/* Rating */}
-                        {product.rating > 0 && (
-                          <div className="flex items-center gap-1 mb-1">
-                            <span className="text-yellow-400 text-xs">{'★'.repeat(Math.round(product.rating))}</span>
-                            <span className="text-gray-400 text-xs">({product.numReviews})</span>
-                          </div>
-                        )}
-
-                        {/* Price */}
-                        <div className="flex items-center gap-2">
-                          <span className="font-bold text-brand-dark-brown">
-                            ₹{product.price?.toFixed(2)}
-                          </span>
-                          {product.discountPrice > 0 && product.discountPrice < product.price && (
-                            <span className="text-sm text-gray-400 line-through">
-                              ₹{product.price?.toFixed(2)}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </Link>
-                </div>
-              ))}
-            </div>
+    <section className="py-12 lg:py-16 px-4 lg:px-8 bg-brand-cream">
+      <div className="container mx-auto">
+        {/* Section Header */}
+        <div className="flex items-end justify-between mb-8">
+          <div>
+            <p className="text-[10px] uppercase tracking-[0.3em] text-brand-gold font-bold mb-2">
+              Top Picks
+            </p>
+            <h2 className="text-2xl lg:text-3xl font-bold text-brand-dark-brown tracking-tight">
+              Best Sellers
+            </h2>
           </div>
-
-          {/* Mobile Navigation */}
-          <div className="flex justify-center gap-2 mt-6 lg:hidden">
+          <div className="hidden md:flex items-center gap-2">
             <button
-              onClick={handlePrev}
-              disabled={currentIndex === 0}
-              className="p-2 rounded-full bg-white shadow-md disabled:opacity-50"
+              onClick={() => scroll("left")}
+              className="w-10 h-10 rounded-full border-2 border-gray-200 flex items-center justify-center text-gray-400 hover:border-brand-gold hover:text-brand-gold transition-all duration-200"
             >
               <HiChevronLeft className="w-5 h-5" />
             </button>
             <button
-              onClick={handleNext}
-              disabled={currentIndex >= maxIndex}
-              className="p-2 rounded-full bg-white shadow-md disabled:opacity-50"
+              onClick={() => scroll("right")}
+              className="w-10 h-10 rounded-full border-2 border-gray-200 flex items-center justify-center text-gray-400 hover:border-brand-gold hover:text-brand-gold transition-all duration-200"
             >
               <HiChevronRight className="w-5 h-5" />
             </button>
           </div>
+        </div>
+
+        {/* Products Carousel */}
+        <div
+          ref={scrollRef}
+          className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide scroll-smooth snap-x snap-mandatory"
+        >
+          {products.map((product) => {
+            const discountPercentage =
+              product.discountPrice &&
+                product.discountPrice < product.price
+                ? Math.round(
+                  ((product.price - product.discountPrice) / product.price) *
+                  100
+                )
+                : 0;
+            const displayPrice =
+              product.discountPrice && product.discountPrice < product.price
+                ? product.discountPrice
+                : product.price;
+
+            return (
+              <Link
+                key={product._id}
+                to={`/product/${product.slug || product._id}`}
+                className="group flex-shrink-0 w-[calc(50%-8px)] sm:w-[calc(33.33%-11px)] lg:w-[calc(25%-12px)] snap-start"
+              >
+                <div className="rounded-2xl overflow-hidden bg-white shadow-sm hover:shadow-xl transition-shadow duration-400">
+                  {/* Image Container */}
+                  <div className="relative aspect-[3/4] overflow-hidden bg-gray-50">
+                    <img
+                      src={getCardUrl(product.images?.[0]?.url)}
+                      alt={product.name}
+                      className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+                      loading="lazy"
+                    />
+
+                    {/* Badges */}
+                    <div className="absolute top-3 left-3 flex flex-col gap-1.5">
+                      {product.isNewArrival && (
+                        <span className="px-2.5 py-1 bg-emerald-500 text-white text-[9px] font-bold uppercase tracking-wider rounded-lg">
+                          New
+                        </span>
+                      )}
+                      {discountPercentage > 0 && (
+                        <span className="px-2.5 py-1 bg-brand-maroon-accent text-white text-[9px] font-bold uppercase tracking-wider rounded-lg">
+                          -{discountPercentage}%
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Wishlist Button */}
+                    <button
+                      onClick={(e) => toggleWishlist(e, product._id)}
+                      className={`absolute top-3 right-3 w-9 h-9 rounded-full flex items-center justify-center transition-all duration-200 ${wishlist.has(product._id)
+                          ? "bg-red-50 text-red-500"
+                          : "bg-white/80 backdrop-blur-sm text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100"
+                        }`}
+                    >
+                      {wishlist.has(product._id) ? (
+                        <HiHeart className="w-4.5 h-4.5" />
+                      ) : (
+                        <HiOutlineHeart className="w-4.5 h-4.5" />
+                      )}
+                    </button>
+
+                    {/* Quick Add Overlay */}
+                    <div className="absolute bottom-0 inset-x-0 p-3 transform translate-y-full group-hover:translate-y-0 transition-transform duration-300">
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                        }}
+                        className="w-full py-2.5 bg-brand-dark-brown/95 backdrop-blur-sm text-white text-xs font-bold uppercase tracking-wider rounded-xl hover:bg-brand-gold hover:text-brand-dark-brown transition-colors duration-200 flex items-center justify-center gap-2"
+                      >
+                        <HiOutlineShoppingBag className="w-4 h-4" />
+                        Quick Add
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Product Info */}
+                  <div className="p-4">
+                    <p className="text-[9px] text-brand-gold font-bold uppercase tracking-[0.2em] mb-1">
+                      {product.brand || "Markrin"}
+                    </p>
+                    <h3 className="font-semibold text-brand-dark-brown text-sm mb-2 line-clamp-1 group-hover:text-brand-gold transition-colors duration-200">
+                      {product.name}
+                    </h3>
+                    <div className="flex items-center gap-2">
+                      <span className="font-bold text-brand-dark-brown text-base">
+                        ₹{displayPrice?.toFixed(0)}
+                      </span>
+                      {discountPercentage > 0 && (
+                        <span className="text-xs text-gray-400 line-through">
+                          ₹{product.price?.toFixed(0)}
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Rating */}
+                    {product.rating > 0 && (
+                      <div className="flex items-center gap-1 mt-2">
+                        <HiStar className="w-3.5 h-3.5 text-amber-400" />
+                        <span className="text-xs text-gray-400 font-medium">
+                          {product.rating?.toFixed(1)}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </Link>
+            );
+          })}
+        </div>
+
+        {/* View All */}
+        <div className="flex justify-center mt-10">
+          <Link
+            to="/shop"
+            className="px-8 py-3.5 border-2 border-brand-dark-brown text-brand-dark-brown font-bold uppercase tracking-[0.15em] text-sm rounded-xl hover:bg-brand-dark-brown hover:text-white transition-all duration-300 transform hover:scale-[1.02]"
+          >
+            View All Products
+          </Link>
         </div>
       </div>
     </section>

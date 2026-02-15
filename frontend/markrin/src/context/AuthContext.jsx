@@ -1,4 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { toast } from 'sonner';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { authAPI } from '../api';
 
 const AuthContext = createContext(null);
@@ -14,22 +16,45 @@ export const useAuth = () => {
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
+    const navigate = useNavigate();
+    const location = useLocation();
 
-    // Check for existing user on mount
+    // Check for existing user on mount via API (Cookie Validation)
     useEffect(() => {
-        const userInfo = localStorage.getItem('userInfo');
-        if (userInfo) {
-            const parsedUser = JSON.parse(userInfo);
-            setUser(parsedUser);
-        }
-        setLoading(false);
-    }, []);
+        const checkSession = async () => {
+            try {
+                // Clean up legacy localStorage if exists
+                localStorage.removeItem('userInfo');
+
+                // Fetch profile to validate cookie
+                const data = await authAPI.getProfile();
+                setUser(data);
+            } catch (err) {
+                // Not logged in or session expired
+                setUser(null);
+            } finally {
+                setLoading(false);
+            }
+        };
+        checkSession();
+
+        // Listen for 401 events from api/index.js
+        const handleUnauthorized = () => {
+            if (user) { // Only notify if we thought we were logged in
+                toast.error('Session expired, please login again');
+                setUser(null);
+                navigate('/login');
+            }
+        };
+
+        window.addEventListener('auth:unauthorized', handleUnauthorized);
+        return () => window.removeEventListener('auth:unauthorized', handleUnauthorized);
+    }, [navigate]);
 
     // Register user
     const register = async (name, email, password) => {
         try {
             const data = await authAPI.register({ name, email, password });
-            localStorage.setItem('userInfo', JSON.stringify(data));
             setUser(data);
             return { success: true, data };
         } catch (error) {
@@ -41,7 +66,6 @@ export const AuthProvider = ({ children }) => {
     const login = async (email, password) => {
         try {
             const data = await authAPI.login({ email, password });
-            localStorage.setItem('userInfo', JSON.stringify(data));
             setUser(data);
             return { success: true, data };
         } catch (error) {
@@ -50,9 +74,19 @@ export const AuthProvider = ({ children }) => {
     };
 
     // Logout user
-    const logout = () => {
-        localStorage.removeItem('userInfo');
+    const logout = async () => {
+        try {
+            // Call backend to clear cookie
+            await fetch('http://localhost:9000/api/auth/logout', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include'
+            });
+        } catch (e) {
+            console.error("Logout failed", e);
+        }
         setUser(null);
+        navigate('/login');
     };
 
     // Get user profile
@@ -69,10 +103,7 @@ export const AuthProvider = ({ children }) => {
     const updateProfile = async (userData) => {
         try {
             const data = await authAPI.updateProfile(userData);
-            // Update local storage with new data
-            const currentUser = JSON.parse(localStorage.getItem('userInfo'));
-            const updatedUser = { ...currentUser, ...data };
-            localStorage.setItem('userInfo', JSON.stringify(updatedUser));
+            const updatedUser = { ...user, ...data };
             setUser(updatedUser);
             return { success: true, data };
         } catch (error) {

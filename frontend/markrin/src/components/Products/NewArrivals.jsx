@@ -1,73 +1,38 @@
-import React, { useRef, useState, useEffect } from "react";
-import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
+import React, { useEffect, useState, useRef } from "react";
 import { Link } from "react-router-dom";
+import {
+  HiChevronLeft,
+  HiChevronRight,
+  HiArrowRight,
+} from "react-icons/hi2";
 import { productsAPI } from "../../api";
+import { getCardUrl } from "../../utils/cloudinaryHelper";
 
 function NewArrivals() {
-  const scrollRef = useRef(null);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const scrollRef = useRef(null);
 
   useEffect(() => {
     const fetchNewArrivals = async () => {
       try {
+        setLoading(true);
         const data = await productsAPI.getNewArrivals();
-        setProducts(data);
+        setProducts(data || []);
       } catch (err) {
         console.error("Error fetching new arrivals:", err);
-        // Fallback mock data
-        setProducts([
-          {
-            _id: null,
-            name: "Classic White T-Shirt",
-            price: 29.99,
-            images: [{ url: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=500", altText: "White T-shirt" }],
-          },
-          {
-            _id: null,
-            name: "Black Graphic Tee",
-            price: 34.99,
-            images: [{ url: "https://images.unsplash.com/photo-1512436991641-6745cdb1723f?w=500", altText: "Black graphic t-shirt" }],
-          },
-          {
-            _id: null,
-            name: "Casual Blue T-Shirt",
-            price: 19.99,
-            images: [{ url: "https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?w=500", altText: "Blue casual t-shirt" }],
-          },
-          {
-            _id: null,
-            name: "Oversized Streetwear Tee",
-            price: 49.99,
-            images: [{ url: "https://images.unsplash.com/photo-1618354691438-25bc04584c23?w=500", altText: "Oversized streetwear" }],
-          },
-          {
-            _id: null,
-            name: "Minimal Grey T-Shirt",
-            price: 24.99,
-            images: [{ url: "https://images.unsplash.com/photo-1585386959984-a41552231693?w=500", altText: "Grey minimal" }],
-          },
-          {
-            _id: null,
-            name: "Printed Fashion Tee",
-            price: 59.99,
-            images: [{ url: "https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?w=500", altText: "Printed fashion" }],
-          },
-        ]);
       } finally {
         setLoading(false);
       }
     };
-
     fetchNewArrivals();
   }, []);
 
   const scroll = (direction) => {
-    const { current } = scrollRef;
-    if (current) {
-      const scrollAmount = 300;
-      current.scrollBy({
-        left: direction === "left" ? -scrollAmount : scrollAmount,
+    if (scrollRef.current) {
+      const amount = scrollRef.current.clientWidth * 0.7;
+      scrollRef.current.scrollBy({
+        left: direction === "left" ? -amount : amount,
         behavior: "smooth",
       });
     }
@@ -75,14 +40,23 @@ function NewArrivals() {
 
   if (loading) {
     return (
-      <section className="py-16 px-4 lg:px-0">
+      <section className="py-12 lg:py-16 px-4 lg:px-8 bg-white">
         <div className="container mx-auto">
-          <div className="animate-pulse flex gap-6 overflow-hidden">
+          <div className="mb-8">
+            <div className="w-36 h-3 bg-gray-200 rounded skeleton-shimmer mb-2" />
+            <div className="w-48 h-7 bg-gray-200 rounded skeleton-shimmer" />
+          </div>
+          <div className="flex gap-4">
             {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="flex-shrink-0 w-[280px]">
-                <div className="bg-gray-200 h-80 rounded-xl mb-4" />
-                <div className="bg-gray-200 h-4 w-3/4 rounded mb-2" />
-                <div className="bg-gray-200 h-4 w-1/4 rounded" />
+              <div key={i} className="flex-shrink-0 w-[calc(50%-8px)] md:w-[calc(25%-12px)]">
+                <div className="rounded-2xl overflow-hidden bg-gray-50">
+                  <div className="aspect-[3/4] skeleton-shimmer" />
+                  <div className="p-4 space-y-2">
+                    <div className="h-3 w-16 skeleton-shimmer rounded" />
+                    <div className="h-4 w-3/4 skeleton-shimmer rounded" />
+                    <div className="h-4 w-1/3 skeleton-shimmer rounded" />
+                  </div>
+                </div>
               </div>
             ))}
           </div>
@@ -91,111 +65,112 @@ function NewArrivals() {
     );
   }
 
-  return (
-    <section className="py-16 px-4 lg:px-0 bg-white">
-      <div className="container mx-auto relative mb-10">
-        <div className="flex items-center justify-between">
-          <div>
-            <span className="inline-block px-4 py-1 bg-green-100 text-green-600 text-xs font-bold uppercase tracking-[0.2em] rounded-full mb-3">
-              Just Dropped
-            </span>
-            <h2 className="text-3xl lg:text-4xl font-bold text-brand-dark-brown">New Arrivals</h2>
-            <p className="text-gray-600 mt-2">
-              Explore the latest additions to our collection.
-            </p>
-          </div>
+  if (!products.length) return null;
 
-          {/* Navigation Buttons */}
-          <div className="flex space-x-2">
-            <button
-              onClick={() => scroll("left")}
-              className="p-3 border border-gray-200 rounded-full bg-white hover:bg-brand-dark-brown hover:text-white hover:border-brand-dark-brown transition-all shadow-sm"
-            >
-              <FiChevronLeft className="w-5 h-5" />
-            </button>
-            <button
-              onClick={() => scroll("right")}
-              className="p-3 border border-gray-200 rounded-full bg-white hover:bg-brand-dark-brown hover:text-white hover:border-brand-dark-brown transition-all shadow-sm"
-            >
-              <FiChevronRight className="w-5 h-5" />
-            </button>
+  return (
+    <section className="py-12 lg:py-16 px-4 lg:px-8 bg-white">
+      <div className="container mx-auto">
+        {/* Section Header */}
+        <div className="flex items-end justify-between mb-8">
+          <div>
+            <p className="text-[10px] uppercase tracking-[0.3em] text-brand-gold font-bold mb-2">
+              Just Dropped
+            </p>
+            <h2 className="text-2xl lg:text-3xl font-bold text-brand-dark-brown tracking-tight">
+              New Arrivals
+            </h2>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="hidden md:flex gap-2">
+              <button
+                onClick={() => scroll("left")}
+                className="w-10 h-10 rounded-full border-2 border-gray-200 flex items-center justify-center text-gray-400 hover:border-brand-gold hover:text-brand-gold transition-all duration-200"
+              >
+                <HiChevronLeft className="w-5 h-5" />
+              </button>
+              <button
+                onClick={() => scroll("right")}
+                className="w-10 h-10 rounded-full border-2 border-gray-200 flex items-center justify-center text-gray-400 hover:border-brand-gold hover:text-brand-gold transition-all duration-200"
+              >
+                <HiChevronRight className="w-5 h-5" />
+              </button>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Scrollable Content Container */}
-      <div
-        ref={scrollRef}
-        className="container mx-auto flex space-x-6 overflow-x-auto scroll-smooth pb-4"
-        style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
-      >
-        {products.map((product, index) => (
-          <div key={product._id || `${product.name}-${index}`} className="flex-shrink-0 w-[280px] group">
-            {product._id ? (
-              <Link to={`/product/${product.slug || product._id}`}>
-                <div className="relative overflow-hidden rounded-2xl bg-gray-100">
-                  <img
-                    src={product.images?.[0]?.url || "https://via.placeholder.com/280x320"}
-                    alt={product.images?.[0]?.altText || product.name}
-                    className="w-full h-80 object-cover transition-transform duration-500 group-hover:scale-105"
-                  />
-                  {/* New Badge */}
-                  <span className="absolute top-4 left-4 px-3 py-1 bg-green-500 text-white text-xs font-bold uppercase rounded-full">
-                    New
-                  </span>
-                </div>
-                <div className="mt-4">
-                  <h3 className="text-lg font-semibold text-brand-dark-brown group-hover:text-brand-gold transition-colors">
-                    {product.name}
-                  </h3>
-                  <p className="text-brand-gold font-bold mt-1">
-                    ${product.price?.toFixed(2)}
-                  </p>
+        {/* Products Carousel */}
+        <div
+          ref={scrollRef}
+          className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide scroll-smooth snap-x snap-mandatory"
+        >
+          {products.map((product) => {
+            const displayPrice =
+              product.discountPrice && product.discountPrice < product.price
+                ? product.discountPrice
+                : product.price;
+
+            return (
+              <Link
+                key={product._id}
+                to={`/product/${product.slug || product._id}`}
+                className="group flex-shrink-0 w-[calc(50%-8px)] sm:w-[calc(33.33%-11px)] lg:w-[calc(25%-12px)] snap-start"
+              >
+                <div className="rounded-2xl overflow-hidden bg-gray-50 hover:shadow-lg transition-shadow duration-400">
+                  {/* Image Container */}
+                  <div className="relative aspect-[3/4] overflow-hidden">
+                    <img
+                      src={getCardUrl(product.images?.[0]?.url)}
+                      alt={product.name}
+                      className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+                      loading="lazy"
+                    />
+
+                    {/* New Badge */}
+                    <span className="absolute top-3 left-3 px-2.5 py-1 bg-emerald-500 text-white text-[9px] font-bold uppercase tracking-wider rounded-lg shadow-sm">
+                      New
+                    </span>
+
+                    {/* View Product overlay on hover */}
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300" />
+                  </div>
+
+                  {/* Product Info */}
+                  <div className="p-4">
+                    <p className="text-[9px] text-brand-gold font-bold uppercase tracking-[0.2em] mb-1">
+                      {product.brand || "Markrin"}
+                    </p>
+                    <h3 className="font-semibold text-brand-dark-brown text-sm mb-2 line-clamp-1 group-hover:text-brand-gold transition-colors duration-200">
+                      {product.name}
+                    </h3>
+                    <div className="flex items-center gap-2">
+                      <span className="font-bold text-brand-dark-brown text-base">
+                        ₹{displayPrice?.toFixed(0)}
+                      </span>
+                      {product.discountPrice &&
+                        product.discountPrice < product.price && (
+                          <span className="text-xs text-gray-400 line-through">
+                            ₹{product.price?.toFixed(0)}
+                          </span>
+                        )}
+                    </div>
+                  </div>
                 </div>
               </Link>
-            ) : (
-              <>
-                <div className="relative overflow-hidden rounded-2xl bg-gray-100">
-                  <img
-                    src={product.images?.[0]?.url || "https://via.placeholder.com/280x320"}
-                    alt={product.images?.[0]?.altText || product.name}
-                    className="w-full h-80 object-cover transition-transform duration-500 group-hover:scale-105"
-                  />
-                  {/* New Badge */}
-                  <span className="absolute top-4 left-4 px-3 py-1 bg-green-500 text-white text-xs font-bold uppercase rounded-full">
-                    New
-                  </span>
-                </div>
-                <div className="mt-4">
-                  <h3 className="text-lg font-semibold text-brand-dark-brown group-hover:text-brand-gold transition-colors">
-                    {product.name}
-                  </h3>
-                  <p className="text-brand-gold font-bold mt-1">
-                    ${product.price?.toFixed(2)}
-                  </p>
-                </div>
-              </>
-            )}
-          </div>
-        ))}
-      </div>
+            );
+          })}
+        </div>
 
-      {/* View All Link */}
-      <div className="container mx-auto mt-8 text-center">
-        <Link
-          to="/collection/new-arrivals"
-          className="inline-block px-8 py-3 border-2 border-brand-dark-brown text-brand-dark-brown font-bold uppercase tracking-wider text-sm hover:bg-brand-dark-brown hover:text-white transition-all duration-300"
-        >
-          View All New Arrivals
-        </Link>
+        {/* View All */}
+        <div className="flex justify-center mt-10">
+          <Link
+            to="/collection/new-arrivals"
+            className="group flex items-center gap-2 text-brand-gold text-sm font-bold uppercase tracking-wider hover:text-brand-dark-brown transition-colors"
+          >
+            View All New Arrivals
+            <HiArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+          </Link>
+        </div>
       </div>
-
-      {/* CSS to hide scrollbar */}
-      <style jsx>{`
-        .scrollbar-hide::-webkit-scrollbar {
-          display: none;
-        }
-      `}</style>
     </section>
   );
 }

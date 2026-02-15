@@ -13,10 +13,12 @@ import About from "./pages/About";
 import Contact from "./pages/Contact";
 import CollectionPage from "./pages/CollectionPage";
 import Checkout from "./pages/Checkout";
+import CartPage from "./pages/CartPage";
 import ProductDetailsPage from "./pages/ProductDetailsPage";
 import Wishlist from "./pages/Wishlist";
 import FAQ from "./pages/FAQ";
 import OrderConfirmation from "./pages/OrderConfirmation";
+import NotFound from "./pages/NotFound";
 
 // Admin imports
 import AdminLayout from "./components/Admin/AdminLayout";
@@ -32,13 +34,25 @@ import { Toaster } from "sonner";
 
 function App() {
   return (
-    <AuthProvider>
-      <CartProvider>
-        <WishlistProvider>
-          <BrowserRouter
-            future={{ v7_startTransition: true, v7_relativeSplaPath: true }}
-          >
-            <Toaster position="top-right" reverseOrder={false} />
+    <BrowserRouter
+      future={{ v7_startTransition: true, v7_relativeSplaPath: true }}
+    >
+      <AuthProvider>
+        <CartProvider>
+          <WishlistProvider>
+            <Toaster
+              position="top-right"
+              reverseOrder={false}
+              offset={76}
+              toastOptions={{
+                style: {
+                  borderRadius: '12px',
+                  fontFamily: 'Inter, sans-serif',
+                  fontSize: '13px',
+                  padding: '12px 16px',
+                },
+              }}
+            />
             <Routes>
               {/* UserLayout acts as the wrapper for all children routes */}
               <Route path="/" element={<UserLayout />}>
@@ -66,6 +80,14 @@ function App() {
                   element={
                     <ProtectedRoute>
                       <Profile />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="cart"
+                  element={
+                    <ProtectedRoute>
+                      <CartPage />
                     </ProtectedRoute>
                   }
                 />
@@ -100,6 +122,11 @@ function App() {
                 />
                 <Route path="collections" element={<Shop />} />
                 <Route path="collection/:collection" element={<CollectionPage />} />
+                {/* Direct category routes */}
+                <Route path="hoodie" element={<CollectionPage />} />
+                <Route path="oversized" element={<CollectionPage />} />
+                <Route path="sweat-shirt" element={<CollectionPage />} />
+                <Route path="normal-tshirt" element={<CollectionPage />} />
               </Route>
 
 
@@ -117,11 +144,16 @@ function App() {
                 <Route path="orders" element={<OrderManagement />} />
                 <Route path="users" element={<UserManagement />} />
               </Route>
+
+              {/* 404 Catch-all */}
+              <Route path="*" element={<UserLayout />}>
+                <Route path="*" element={<NotFound />} />
+              </Route>
             </Routes>
-          </BrowserRouter>
-        </WishlistProvider>
-      </CartProvider>
-    </AuthProvider>
+          </WishlistProvider>
+        </CartProvider>
+      </AuthProvider>
+    </BrowserRouter>
   );
 }
 

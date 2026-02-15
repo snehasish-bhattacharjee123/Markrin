@@ -10,6 +10,12 @@ const OrderManagement = () => {
     const [loading, setLoading] = useState(true);
     const [selectedOrder, setSelectedOrder] = useState(null);
     const [showModal, setShowModal] = useState(false);
+    const [stats, setStats] = useState(null);
+
+    // Pagination
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
+    const [totalOrders, setTotalOrders] = useState(0);
 
     const { isAdmin, isAuthenticated } = useAuth();
     const navigate = useNavigate();
@@ -18,12 +24,28 @@ const OrderManagement = () => {
 
     useEffect(() => {
         fetchOrders();
+    }, [currentPage]);
+
+    // Fetch stats separately for accurate counts
+    useEffect(() => {
+        const fetchStats = async () => {
+            try {
+                const data = await adminAPI.getStats();
+                setStats(data);
+            } catch (err) {
+                console.error("Failed to fetch stats");
+            }
+        };
+        fetchStats();
     }, []);
 
     const fetchOrders = async () => {
         try {
-            const data = await adminAPI.getAllOrders();
-            setOrders(data);
+            setLoading(true);
+            const data = await adminAPI.getAllOrders(currentPage, 10);
+            setOrders(data.orders);
+            setTotalPages(data.pages);
+            setTotalOrders(data.total);
         } catch (err) {
             toast.error(err.message);
         } finally {
@@ -76,25 +98,25 @@ const OrderManagement = () => {
                 <div className="bg-white p-4 rounded-xl shadow-sm border">
                     <p className="text-sm text-gray-500">Processing</p>
                     <p className="text-2xl font-bold text-yellow-600">
-                        {orders.filter(o => o.status === 'Processing').length}
+                        {stats?.ordersByStatus?.find(s => s._id === 'Processing')?.count || 0}
                     </p>
                 </div>
                 <div className="bg-white p-4 rounded-xl shadow-sm border">
                     <p className="text-sm text-gray-500">Shipped</p>
                     <p className="text-2xl font-bold text-blue-600">
-                        {orders.filter(o => o.status === 'Shipped').length}
+                        {stats?.ordersByStatus?.find(s => s._id === 'Shipped')?.count || 0}
                     </p>
                 </div>
                 <div className="bg-white p-4 rounded-xl shadow-sm border">
                     <p className="text-sm text-gray-500">Delivered</p>
                     <p className="text-2xl font-bold text-green-600">
-                        {orders.filter(o => o.status === 'Delivered').length}
+                        {stats?.ordersByStatus?.find(s => s._id === 'Delivered')?.count || 0}
                     </p>
                 </div>
                 <div className="bg-white p-4 rounded-xl shadow-sm border">
                     <p className="text-sm text-gray-500">Cancelled</p>
                     <p className="text-2xl font-bold text-red-600">
-                        {orders.filter(o => o.status === 'Cancelled').length}
+                        {stats?.ordersByStatus?.find(s => s._id === 'Cancelled')?.count || 0}
                     </p>
                 </div>
             </div>
@@ -189,6 +211,27 @@ const OrderManagement = () => {
                         <p className="text-gray-400">Orders will appear here when customers make purchases</p>
                     </div>
                 )}
+
+                {/* Pagination Controls */}
+                <div className="px-6 py-4 flex items-center justify-between border-t border-gray-100">
+                    <button
+                        onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                        disabled={currentPage === 1}
+                        className="px-4 py-2 border border-gray-200 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        Previous
+                    </button>
+                    <span className="text-sm text-gray-600">
+                        Page {currentPage} of {totalPages}
+                    </span>
+                    <button
+                        onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                        disabled={currentPage === totalPages}
+                        className="px-4 py-2 border border-gray-200 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        Next
+                    </button>
+                </div>
             </div>
 
             {/* Order Details Modal */}

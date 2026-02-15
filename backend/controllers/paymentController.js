@@ -48,7 +48,12 @@ const createPaymentIntent = async (req, res) => {
 // @route   GET /api/payment/config
 // @access  Public
 const getStripeKey = (req, res) => {
-    res.send({ publishableKey: process.env.STRIPE_PUBLISHABLE_KEY });
+    try {
+        res.send({ publishableKey: process.env.STRIPE_PUBLISHABLE_KEY || '' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error', error: error.message });
+    }
 };
 
 module.exports = {

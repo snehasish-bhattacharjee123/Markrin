@@ -190,11 +190,11 @@ function CartDrawer({ drawerOpen, toggleCartDrawer }) {
               Shipping and taxes calculated at checkout
             </p>
             <Link
-              to="/checkout"
+              to="/cart"
               onClick={toggleCartDrawer}
               className="block w-full py-4 bg-brand-dark-brown text-white text-center font-bold uppercase tracking-widest text-sm hover:bg-brand-gold hover:text-brand-dark-brown transition-all duration-300"
             >
-              Proceed to Checkout
+              View Cart
             </Link>
             <button
               onClick={toggleCartDrawer}

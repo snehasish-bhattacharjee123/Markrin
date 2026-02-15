@@ -204,6 +204,8 @@ const createProduct = async (req, res) => {
             metaTitle,
             metaDescription,
             metaKeywords,
+            bestFit,
+            sizeChart,
         } = req.body;
 
         const product = new Product({
@@ -230,6 +232,8 @@ const createProduct = async (req, res) => {
             metaTitle,
             metaDescription,
             metaKeywords,
+            bestFit,
+            sizeChart,
         });
 
         const createdProduct = await product.save();

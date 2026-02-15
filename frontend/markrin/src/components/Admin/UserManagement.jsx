@@ -12,14 +12,22 @@ const UserManagement = () => {
         role: "customer"
     });
 
+    // Pagination
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
+    const [totalUsers, setTotalUsers] = useState(0);
+
     useEffect(() => {
         fetchUsers();
-    }, []);
+    }, [currentPage]);
 
     const fetchUsers = async () => {
         try {
-            const data = await adminAPI.getUsers();
-            setUsers(data);
+            setLoading(true);
+            const data = await adminAPI.getUsers(currentPage, 10);
+            setUsers(data.users);
+            setTotalPages(data.pages);
+            setTotalUsers(data.total);
         } catch (err) {
             toast.error(err.message);
         } finally {
@@ -183,6 +191,32 @@ const UserManagement = () => {
                         )}
                     </tbody>
                 </table>
+            </div>
+
+            {/* Pagination Controls */}
+            <div className="mt-4 flex items-center justify-between">
+                <p className="text-sm text-gray-500">
+                    Showing {users.length} of {totalUsers} users
+                </p>
+                <div className="flex gap-2">
+                    <button
+                        onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                        disabled={currentPage === 1}
+                        className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        Previous
+                    </button>
+                    <span className="flex items-center px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-gray-50">
+                        Page {currentPage} of {totalPages}
+                    </span>
+                    <button
+                        onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                        disabled={currentPage === totalPages}
+                        className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        Next
+                    </button>
+                </div>
             </div>
         </div>
     );

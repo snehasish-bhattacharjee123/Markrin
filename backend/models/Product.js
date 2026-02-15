@@ -36,7 +36,7 @@ const productSchema = new mongoose.Schema(
         category: {
             type: String,
             required: true,
-            enum: ['oversized', 'sweat-shirt', 'hoodie', 'normal-tshirt'],
+            enum: ['Topwear', 'Bottomwear', 'oversized', 'sweat-shirt', 'hoodie', 'normal-tshirt'],
         },
         brand: {
             type: String,
@@ -108,6 +108,12 @@ const productSchema = new mongoose.Schema(
         metaTitle: String,
         metaDescription: String,
         metaKeywords: String,
+        sizeChart: {
+            type: String,
+        },
+        bestFit: {
+            type: String,
+        },
         dimensions: {
             length: Number,
             width: Number,

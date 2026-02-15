@@ -6,23 +6,23 @@ import Footer from "../Common/Footer";
 import { Outlet } from "react-router-dom";
 import { Suspense } from "react";
 
+import Loader from "../Common/Loader";
+
 function UserLayout() {
   return (
     <>
-      {/* Header */}
-      <header className="border-b ">
+      <header className="border-b sticky top-0 z-50 bg-white">
         <Topbar />
         <Navbar />
       </header>
-      {/* Body Section */}
       <main>
-         <Suspense fallback={<div className="p-10 text-center">Loading...</div>}>
+        <Suspense fallback={<Loader />}>
           <Outlet />
         </Suspense>
       </main>
-      
+
       {/* Footer Section */}
-      <Footer/>
+      <Footer />
     </>
   );
 }

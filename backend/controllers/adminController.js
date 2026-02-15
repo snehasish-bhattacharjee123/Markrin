@@ -7,8 +7,24 @@ const Product = require('../models/Product');
 // @access  Private/Admin
 const getUsers = async (req, res) => {
     try {
-        const users = await User.find({}).select('-password').sort({ createdAt: -1 });
-        res.json(users);
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const skip = (page - 1) * limit;
+
+        const users = await User.find({})
+            .select('-password')
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limit);
+
+        const total = await User.countDocuments();
+
+        res.json({
+            users,
+            page,
+            pages: Math.ceil(total / limit),
+            total,
+        });
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Server error', error: error.message });
@@ -103,11 +119,24 @@ const deleteUser = async (req, res) => {
 // @access  Private/Admin
 const getAllOrders = async (req, res) => {
     try {
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const skip = (page - 1) * limit;
+
         const orders = await Order.find({})
             .populate('user', 'name email')
-            .sort({ createdAt: -1 });
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limit);
 
-        res.json(orders);
+        const total = await Order.countDocuments();
+
+        res.json({
+            orders,
+            page,
+            pages: Math.ceil(total / limit),
+            total,
+        });
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Server error', error: error.message });

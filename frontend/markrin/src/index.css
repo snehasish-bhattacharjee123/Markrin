@@ -1,5 +1,5 @@
 /* 1. External imports MUST be at the very top */
-@import url('https://fonts.googleapis.com');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 
 /* 2. Primary Tailwind v4 import */
 @import "tailwindcss";
@@ -10,6 +10,9 @@
   --color-brand-text: #d27b06;
   --color-brand-white: #ffffff;
   --color-brand-dark-brown: #3f1700;
+  --color-brand-gold: #C9A76E;
+  --color-brand-green-accent: #5A9690;
+  --color-brand-maroon-accent: #641B2E;
 
   --font-inter: "Inter", sans-serif;
 }
@@ -29,4 +32,154 @@ body {
 
 .bg-footer {
   @apply bg-brand-dark-brown;
+}
+
+/* ================================================
+   6. Premium Scrollbar Styles
+   ================================================ */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #C9A76E40;
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #C9A76E80;
+}
+
+/* Hide horizontal scrollbar on product carousels */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* ================================================
+   7. Smooth Page Transitions
+   ================================================ */
+.page-enter {
+  opacity: 0;
+  transform: translateY(8px);
+}
+.page-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 300ms ease-out, transform 300ms ease-out;
+}
+
+/* ================================================
+   8. Premium Selection & Focus Styles
+   ================================================ */
+::selection {
+  background: #C9A76E40;
+  color: #3f1700;
+}
+
+/* Focus visible ring for keyboard accessibility */
+*:focus-visible {
+  outline: 2px solid #C9A76E;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ================================================
+   9. Premium Badge Pulse Animation
+   ================================================ */
+@keyframes badge-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+.badge-pulse {
+  animation: badge-pulse 2s ease-in-out infinite;
+}
+
+/* ================================================
+   10. Skeleton Shimmer Animation
+   ================================================ */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.skeleton-shimmer {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+
+/* ================================================
+   11. Improved Range Input
+   ================================================ */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 4px;
+  border-radius: 999px;
+  background: #e5e7eb;
+  outline: none;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #C9A76E;
+  cursor: pointer;
+  border: 3px solid white;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+  transition: transform 0.15s ease;
+}
+
+input[type="range"]::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
+}
+
+input[type="range"]::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #C9A76E;
+  cursor: pointer;
+  border: 3px solid white;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+}
+
+/* ================================================
+   12. Checkbox / Radio Premium Override
+   ================================================ */
+input[type="checkbox"] {
+  accent-color: #C9A76E;
+}
+
+input[type="radio"] {
+  accent-color: #C9A76E;
+}
+
+/* ================================================
+   13. Button Micro-Interaction
+   ================================================ */
+.btn-hover-lift {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.btn-hover-lift:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.btn-hover-lift:active {
+  transform: translateY(0);
 }

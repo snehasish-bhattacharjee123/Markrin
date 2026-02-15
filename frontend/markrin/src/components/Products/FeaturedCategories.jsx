@@ -11,44 +11,44 @@ const categories = [
     {
         id: 1,
         name: "Oversized",
-        description: "6 unique designs",
+        description: "Bold streetwear fits",
         icon: HiOutlineSquaresPlus,
         image: "https://images.unsplash.com/photo-1618354691438-25bc04584c23?w=600",
-        path: "/shop?category=oversized",
+        path: "/collection/oversized",
         color: "from-purple-500 to-pink-500",
     },
     {
         id: 2,
         name: "Sweat Shirt",
-        description: "6 unique designs",
+        description: "Cozy & stylish",
         icon: HiOutlineFire,
         image: "https://images.unsplash.com/photo-1556821840-3a63f95609a7?w=600",
-        path: "/shop?category=sweat-shirt",
+        path: "/collection/sweat-shirt",
         color: "from-orange-500 to-red-500",
     },
     {
         id: 3,
         name: "Hoodie",
-        description: "6 unique designs",
+        description: "Warm & comfortable",
         icon: HiOutlineSparkles,
         image: "https://images.unsplash.com/photo-1556906781-9a412961c28c?w=600",
-        path: "/shop?category=hoodie",
+        path: "/collection/hoodie",
         color: "from-blue-500 to-cyan-500",
     },
     {
         id: 4,
         name: "Normal T-Shirt",
-        description: "1 unique design",
+        description: "Everyday essentials",
         icon: HiOutlineShoppingBag,
         image: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=600",
-        path: "/shop?category=normal-tshirt",
+        path: "/collection/normal-tshirt",
         color: "from-brand-gold to-yellow-500",
     },
 ];
 
 function FeaturedCategories() {
     return (
-        <section className="py-20 px-4 lg:px-8 bg-brand-cream">
+        <section className="py-16 px-4 lg:px-8 bg-brand-cream">
             <div className="container mx-auto">
                 {/* Section Header */}
                 <div className="text-center mb-12">
@@ -76,6 +76,7 @@ function FeaturedCategories() {
                                 src={category.image}
                                 alt={category.name}
                                 className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                                loading="lazy"
                             />
 
                             {/* Gradient Overlay */}

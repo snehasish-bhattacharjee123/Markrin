@@ -30,13 +30,20 @@ const registerUser = async (req, res) => {
             user.refreshTokens.push({ token: refreshToken });
             await user.save();
 
+            // Set cookie
+            res.cookie('jwt', accessToken, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production',
+                sameSite: 'strict',
+                maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
+            });
+
             res.status(201).json({
                 _id: user._id,
                 name: user.name,
                 email: user.email,
                 role: user.role,
-                token: accessToken,
-                refreshToken: refreshToken,
+                // token removed from response body
             });
         } else {
             res.status(400).json({ message: 'Invalid user data' });
@@ -68,14 +75,21 @@ const loginUser = async (req, res) => {
             user.refreshTokens.push({ token: refreshToken });
             await user.save();
 
+            // Set cookie
+            res.cookie('jwt', accessToken, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production',
+                sameSite: 'strict',
+                maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
+            });
+
             res.json({
                 _id: user._id,
                 name: user.name,
                 email: user.email,
                 role: user.role,
                 address: user.address,
-                token: accessToken,
-                refreshToken: refreshToken,
+                // token removed from response body
             });
         } else {
             res.status(401).json({ message: 'Invalid email or password' });
@@ -97,8 +111,12 @@ const getUserProfile = async (req, res) => {
             res.json({
                 _id: user._id,
                 name: user.name,
+                lastName: user.lastName,
                 email: user.email,
                 role: user.role,
+                phone: user.phone,
+                dob: user.dob,
+                gender: user.gender,
                 address: user.address,
                 createdAt: user.createdAt,
             });
@@ -120,7 +138,14 @@ const updateUserProfile = async (req, res) => {
 
         if (user) {
             user.name = req.body.name || user.name;
+            user.lastName = req.body.lastName !== undefined ? req.body.lastName : user.lastName;
             user.email = req.body.email || user.email;
+            user.phone = req.body.phone !== undefined ? req.body.phone : user.phone;
+            user.gender = req.body.gender !== undefined ? req.body.gender : user.gender;
+
+            if (req.body.dob !== undefined) {
+                user.dob = req.body.dob ? new Date(req.body.dob) : null;
+            }
 
             if (req.body.password) {
                 user.password = req.body.password;
@@ -136,8 +161,12 @@ const updateUserProfile = async (req, res) => {
             res.json({
                 _id: updatedUser._id,
                 name: updatedUser.name,
+                lastName: updatedUser.lastName,
                 email: updatedUser.email,
                 role: updatedUser.role,
+                phone: updatedUser.phone,
+                dob: updatedUser.dob,
+                gender: updatedUser.gender,
                 address: updatedUser.address,
                 token: accessToken,
             });
@@ -191,16 +220,24 @@ const refreshAccessToken = async (req, res) => {
 const logoutUser = async (req, res) => {
     try {
         const { refreshToken } = req.body;
-        const user = await User.findById(req.user._id);
 
-        if (user) {
-            // Remove the specific refresh token
-            user.refreshTokens = user.refreshTokens.filter(t => t.token !== refreshToken);
-            await user.save();
-            res.json({ message: 'Logged out successfully' });
-        } else {
-            res.status(404).json({ message: 'User not found' });
+        // Clear cookie
+        res.cookie('jwt', '', {
+            httpOnly: true,
+            expires: new Date(0)
+        });
+
+        // Optional: Also remove refresh token from DB if passed, 
+        // but primarily we rely on clearing the access token cookie.
+        if (req.user) {
+            const user = await User.findById(req.user._id);
+            if (user && refreshToken) {
+                user.refreshTokens = user.refreshTokens.filter(t => t.token !== refreshToken);
+                await user.save();
+            }
         }
+
+        res.json({ message: 'Logged out successfully' });
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Server error', error: error.message });
