@@ -43,7 +43,8 @@ const registerUser = async (req, res) => {
                 name: user.name,
                 email: user.email,
                 role: user.role,
-                // token removed from response body
+                accessToken,
+                refreshToken
             });
         } else {
             res.status(400).json({ message: 'Invalid user data' });
@@ -89,7 +90,8 @@ const loginUser = async (req, res) => {
                 email: user.email,
                 role: user.role,
                 address: user.address,
-                // token removed from response body
+                accessToken,
+                refreshToken
             });
         } else {
             res.status(401).json({ message: 'Invalid email or password' });
@@ -196,17 +198,35 @@ const refreshAccessToken = async (req, res) => {
         }
 
         // Verify token (checks expiry)
-        jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET || 'refresh_secret_keys_123', (err, decoded) => {
+        jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET || 'refresh_secret_keys_123', async (err, decoded) => {
             if (err) {
                 // Remove invalid token from list
                 user.refreshTokens = user.refreshTokens.filter(t => t.token !== refreshToken);
-                user.save();
+                await user.save();
                 return res.status(403).json({ message: 'Invalid or expired refresh token' });
             }
 
-            // Generate new access token
-            const accessToken = generateAccessToken(user._id);
-            res.json({ token: accessToken });
+            // Generate new tokens
+            const newAccessToken = generateAccessToken(user._id);
+            const newRefreshToken = generateRefreshToken(user._id);
+
+            // Replace old refresh token with new one (token rotation)
+            user.refreshTokens = user.refreshTokens.filter(t => t.token !== refreshToken);
+            user.refreshTokens.push({ token: newRefreshToken });
+            await user.save();
+
+            // Set cookie with new access token
+            res.cookie('jwt', newAccessToken, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production',
+                sameSite: 'strict',
+                maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
+            });
+
+            res.json({
+                accessToken: newAccessToken,
+                refreshToken: newRefreshToken
+            });
         });
     } catch (error) {
         console.error(error);

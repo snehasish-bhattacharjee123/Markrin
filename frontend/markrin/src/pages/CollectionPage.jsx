@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import { FiFilter, FiX } from "react-icons/fi";
 import { useParams, Link, useSearchParams, useLocation } from "react-router-dom";
 import { HiOutlineShoppingBag, HiOutlineHeart, HiHeart, HiChevronRight } from "react-icons/hi2";
-import { productsAPI, wishlistAPI } from "../api";
+import { productsAPI } from "../api";
 import { useCart } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
 import { useWishlist } from "../context/WishlistContext";
@@ -34,7 +34,6 @@ const CollectionPage = () => {
   const [totalProducts, setTotalProducts] = useState(0);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [sortBy, setSortBy] = useState("newest");
-  const [wishlistItems, setWishlistItems] = useState(new Set());
   const [wishlistLoading, setWishlistLoading] = useState({});
   const sidebarRef = useRef(null);
   const loadMoreRef = useRef(null);
@@ -43,6 +42,7 @@ const CollectionPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const { addItem } = useCart();
   const { isAuthenticated } = useAuth();
+  const { wishlist, toggleWishlist, isInWishlist } = useWishlist();
 
   // Derive collection from URL params or pathname (for direct routes like /hoodie)
   const collection = paramCollection || location.pathname.replace(/^\//, '').split('/')[0] || 'all';
@@ -64,17 +64,7 @@ const CollectionPage = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [isSidebarOpen]);
 
-  // Fetch wishlist items
-  useEffect(() => {
-    const fetchWishlist = async () => {
-      if (!isAuthenticated) { setWishlistItems(new Set()); return; }
-      try {
-        const data = await wishlistAPI.get(1, 100);
-        setWishlistItems(new Set(data.products?.map(p => p._id) || []));
-      } catch (err) { /* ignore */ }
-    };
-    fetchWishlist();
-  }, [isAuthenticated]);
+
 
   // Fetch products
   const fetchProducts = useCallback(async (pageNum = 1, append = false) => {
@@ -182,24 +172,18 @@ const CollectionPage = () => {
     return () => observer.disconnect();
   }, [hasMore, loading, loadingMore, fetchProducts]);
 
-  const toggleWishlist = async (e, product) => {
+  const handleToggleWishlist = async (e, product) => {
     e.preventDefault();
     e.stopPropagation();
-    if (!isAuthenticated) { toast.error("Please login to add items to wishlist"); return; }
     const productId = product._id;
     setWishlistLoading(prev => ({ ...prev, [productId]: true }));
     try {
-      if (wishlistItems.has(productId)) {
-        await wishlistAPI.remove(productId);
-        setWishlistItems(prev => { const s = new Set(prev); s.delete(productId); return s; });
-        toast.success("Removed from wishlist");
-      } else {
-        await wishlistAPI.add(productId);
-        setWishlistItems(prev => new Set([...prev, productId]));
-        toast.success("Added to wishlist");
-      }
-    } catch (err) { toast.error(err.message); }
-    finally { setWishlistLoading(prev => ({ ...prev, [productId]: false })); }
+      await toggleWishlist(productId);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setWishlistLoading(prev => ({ ...prev, [productId]: false }));
+    }
   };
 
   const handleAddToCart = async (e, product) => {
@@ -343,13 +327,13 @@ const CollectionPage = () => {
 
                         {/* Wishlist Button */}
                         <button
-                          onClick={(e) => toggleWishlist(e, product)}
+                          onClick={(e) => handleToggleWishlist(e, product)}
                           disabled={wishlistLoading[product._id]}
                           className="absolute top-3 right-3 p-2 rounded-full bg-white/90 shadow-sm hover:bg-white transition-all hover:scale-110"
                         >
                           {wishlistLoading[product._id] ? (
                             <div className="w-4 h-4 animate-spin border-2 border-gray-300 border-t-brand-gold rounded-full" />
-                          ) : wishlistItems.has(product._id) ? (
+                          ) : isInWishlist(product._id) ? (
                             <HiHeart className="w-4 h-4 text-red-500" />
                           ) : (
                             <HiOutlineHeart className="w-4 h-4 text-gray-500" />

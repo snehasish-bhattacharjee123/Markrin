@@ -8,10 +8,11 @@ import {
     HiXMark,
     HiStar,
 } from "react-icons/hi2";
-import { productsAPI, wishlistAPI } from "../api";
+import { productsAPI } from "../api";
 import FilterSidebar from "../components/Products/FilterSidebar";
 import { useCart } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
+import { useWishlist } from "../context/WishlistContext";
 import { getCardUrl } from "../utils/cloudinaryHelper";
 import { toast } from "sonner";
 
@@ -27,7 +28,7 @@ function Shop() {
     const [searchParams, setSearchParams] = useSearchParams();
     const { addItem } = useCart();
     const { isAuthenticated } = useAuth();
-    const [wishlistItems, setWishlistItems] = useState(new Set());
+    const { wishlist, toggleWishlist, isInWishlist } = useWishlist();
     const [wishlistLoading, setWishlistLoading] = useState({});
     const [totalProducts, setTotalProducts] = useState(0);
     const [sortBy, setSortBy] = useState(searchParams.get("sort") || "newest");
@@ -117,22 +118,7 @@ function Shop() {
         return () => observer.disconnect();
     }, [hasMore, loading, loadingMore, fetchProducts]);
 
-    // Fetch wishlist items
-    useEffect(() => {
-        const fetchWishlist = async () => {
-            if (!isAuthenticated) {
-                setWishlistItems(new Set());
-                return;
-            }
-            try {
-                const data = await wishlistAPI.get(1, 100);
-                setWishlistItems(new Set(data.products?.map((p) => p._id) || []));
-            } catch (err) {
-                /* ignore */
-            }
-        };
-        fetchWishlist();
-    }, [isAuthenticated]);
+
 
     // Close sidebar on outside click
     useEffect(() => {
@@ -154,31 +140,15 @@ function Shop() {
         setSearchParams(newParams);
     };
 
-    const toggleWishlist = async (e, product) => {
+    const handleToggleWishlist = async (e, product) => {
         e.preventDefault();
         e.stopPropagation();
-        if (!isAuthenticated) {
-            toast.error("Please login to add items to wishlist");
-            return;
-        }
         const productId = product._id;
         setWishlistLoading((prev) => ({ ...prev, [productId]: true }));
         try {
-            if (wishlistItems.has(productId)) {
-                await wishlistAPI.remove(productId);
-                setWishlistItems((prev) => {
-                    const s = new Set(prev);
-                    s.delete(productId);
-                    return s;
-                });
-                toast.success("Removed from wishlist");
-            } else {
-                await wishlistAPI.add(productId);
-                setWishlistItems((prev) => new Set([...prev, productId]));
-                toast.success("Added to wishlist");
-            }
+            await toggleWishlist(productId);
         } catch (err) {
-            toast.error(err.message);
+            console.error(err);
         } finally {
             setWishlistLoading((prev) => ({ ...prev, [productId]: false }));
         }
@@ -424,16 +394,16 @@ function Shop() {
 
                                                             {/* Wishlist */}
                                                             <button
-                                                                onClick={(e) => toggleWishlist(e, product)}
+                                                                onClick={(e) => handleToggleWishlist(e, product)}
                                                                 disabled={wishlistLoading[product._id]}
-                                                                className={`absolute top-3 right-3 w-9 h-9 rounded-full flex items-center justify-center transition-all duration-200 ${wishlistItems.has(product._id)
+                                                                className={`absolute top-3 right-3 w-9 h-9 rounded-full flex items-center justify-center transition-all duration-200 ${isInWishlist(product._id)
                                                                     ? "bg-red-50 text-red-500 shadow-sm"
                                                                     : "bg-white/80 backdrop-blur-sm text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100"
                                                                     }`}
                                                             >
                                                                 {wishlistLoading[product._id] ? (
                                                                     <div className="w-4 h-4 animate-spin border-2 border-gray-300 border-t-brand-gold rounded-full" />
-                                                                ) : wishlistItems.has(product._id) ? (
+                                                                ) : isInWishlist(product._id) ? (
                                                                     <HiHeart className="w-4 h-4" />
                                                                 ) : (
                                                                     <HiOutlineHeart className="w-4 h-4" />

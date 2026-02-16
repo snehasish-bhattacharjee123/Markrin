@@ -43,7 +43,7 @@ function App() {
             <Toaster
               position="top-right"
               reverseOrder={false}
-              offset={76}
+              offset={100}
               toastOptions={{
                 style: {
                   borderRadius: '12px',

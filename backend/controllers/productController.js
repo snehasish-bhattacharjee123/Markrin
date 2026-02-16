@@ -161,8 +161,12 @@ const getProductById = async (req, res) => {
 
         if (mongoose.Types.ObjectId.isValid(id)) {
             product = await Product.findById(id);
-        } else {
+        } else if (id.includes('-') || id.length > 20) {
             product = await Product.findOne({ slug: id.toLowerCase() });
+        } else {
+            product = await Product.findOne({ 
+                name: { $regex: id, $options: 'i' } 
+            });
         }
 
         if (product) {

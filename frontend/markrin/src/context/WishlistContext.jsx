@@ -55,8 +55,9 @@ export const WishlistProvider = ({ children }) => {
 
         setLoading(true);
         try {
-            await wishlistAPI.add(productId);
-            await fetchWishlist(); // Refresh wishlist
+            const response = await wishlistAPI.add(productId);
+            setWishlist(response.products || []);
+            setWishlistCount(response.total || 0);
             toast.success('Added to wishlist');
             return true;
         } catch (err) {
@@ -65,7 +66,7 @@ export const WishlistProvider = ({ children }) => {
         } finally {
             setLoading(false);
         }
-    }, [isAuthenticated, fetchWishlist]);
+    }, [isAuthenticated]);
 
     // Remove from wishlist
     const removeFromWishlist = useCallback(async (productId) => {
@@ -73,8 +74,9 @@ export const WishlistProvider = ({ children }) => {
 
         setLoading(true);
         try {
-            await wishlistAPI.remove(productId);
-            await fetchWishlist(); // Refresh wishlist
+            const response = await wishlistAPI.remove(productId);
+            setWishlist(response.products || []);
+            setWishlistCount(response.total || 0);
             toast.success('Removed from wishlist');
             return true;
         } catch (err) {
@@ -83,7 +85,7 @@ export const WishlistProvider = ({ children }) => {
         } finally {
             setLoading(false);
         }
-    }, [isAuthenticated, fetchWishlist]);
+    }, [isAuthenticated]);
 
     // Toggle wishlist
     const toggleWishlist = useCallback(async (productId) => {
@@ -100,6 +102,25 @@ export const WishlistProvider = ({ children }) => {
         return wishlist.some(item => item._id === productId);
     }, [wishlist]);
 
+    // Clear wishlist
+    const clearWishlist = useCallback(async () => {
+        if (!isAuthenticated) return false;
+
+        setLoading(true);
+        try {
+            await wishlistAPI.clear();
+            setWishlist([]);
+            setWishlistCount(0);
+            toast.success('Wishlist cleared');
+            return true;
+        } catch (err) {
+            toast.error(err.message || 'Failed to clear wishlist');
+            return false;
+        } finally {
+            setLoading(false);
+        }
+    }, [isAuthenticated]);
+
     const value = {
         wishlist,
         loading,
@@ -107,6 +128,7 @@ export const WishlistProvider = ({ children }) => {
         fetchWishlist,
         addToWishlist,
         removeFromWishlist,
+        clearWishlist,
         toggleWishlist,
         isInWishlist,
     };

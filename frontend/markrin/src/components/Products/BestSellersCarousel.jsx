@@ -8,17 +8,18 @@ import {
   HiOutlineShoppingBag,
   HiStar,
 } from "react-icons/hi2";
-import { productsAPI, wishlistAPI } from "../../api";
+import { productsAPI } from "../../api";
 import { useAuth } from "../../context/AuthContext";
+import { useWishlist } from "../../context/WishlistContext";
 import { toast } from "sonner";
 import { getCardUrl } from "../../utils/cloudinaryHelper";
 
 function BestSellersCarousel() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [wishlist, setWishlist] = useState(new Set());
   const scrollRef = useRef(null);
   const { isAuthenticated } = useAuth();
+  const { wishlist, toggleWishlist, isInWishlist } = useWishlist();
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -38,31 +39,14 @@ function BestSellersCarousel() {
     fetchProducts();
   }, []);
 
-  const toggleWishlist = async (e, productId) => {
+  const handleToggleWishlist = async (e, productId) => {
     e.preventDefault();
     e.stopPropagation();
 
-    if (!isAuthenticated) {
-      toast.error("Please login to add to wishlist");
-      return;
-    }
-
     try {
-      if (wishlist.has(productId)) {
-        await wishlistAPI.remove(productId);
-        setWishlist((prev) => {
-          const next = new Set(prev);
-          next.delete(productId);
-          return next;
-        });
-        toast.success("Removed from wishlist");
-      } else {
-        await wishlistAPI.add(productId);
-        setWishlist((prev) => new Set(prev).add(productId));
-        toast.success("Added to wishlist");
-      }
+      await toggleWishlist(productId);
     } catch (err) {
-      toast.error(err.message);
+      console.error(err);
     }
   };
 
@@ -183,13 +167,13 @@ function BestSellersCarousel() {
 
                     {/* Wishlist Button */}
                     <button
-                      onClick={(e) => toggleWishlist(e, product._id)}
-                      className={`absolute top-3 right-3 w-9 h-9 rounded-full flex items-center justify-center transition-all duration-200 ${wishlist.has(product._id)
+                      onClick={(e) => handleToggleWishlist(e, product._id)}
+                      className={`absolute top-3 right-3 w-9 h-9 rounded-full flex items-center justify-center transition-all duration-200 ${isInWishlist(product._id)
                           ? "bg-red-50 text-red-500"
                           : "bg-white/80 backdrop-blur-sm text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100"
                         }`}
                     >
-                      {wishlist.has(product._id) ? (
+                      {isInWishlist(product._id) ? (
                         <HiHeart className="w-4.5 h-4.5" />
                       ) : (
                         <HiOutlineHeart className="w-4.5 h-4.5" />

@@ -25,14 +25,16 @@ import {
   HiMagnifyingGlass,
 } from "react-icons/hi2";
 import { useAuth } from "../context/AuthContext";
-import { authAPI, ordersAPI, wishlistAPI } from "../api";
+import { authAPI, ordersAPI } from "../api";
 import { useCart } from "../context/CartContext";
+import { useWishlist } from "../context/WishlistContext";
 import { toast } from "sonner";
 import { validatePincode, getAddressFromPincode } from "../utils/pincodeService";
 
 function Profile() {
   const { user, isAuthenticated, logout, updateUser } = useAuth();
   const { addItem } = useCart();
+  const { wishlist, removeFromWishlist } = useWishlist();
   const navigate = useNavigate();
   const { tab } = useParams();
   const location = useLocation();
@@ -73,12 +75,7 @@ function Profile() {
   const [orders, setOrders] = useState([]);
   const [ordersLoading, setOrdersLoading] = useState(true);
 
-  // Wishlist State
-  const [wishlist, setWishlist] = useState([]);
-  const [wishlistLoading, setWishlistLoading] = useState(true);
-  const [wishlistPage, setWishlistPage] = useState(1);
-  const [wishlistPages, setWishlistPages] = useState(1);
-  const [wishlistTotal, setWishlistTotal] = useState(0);
+
 
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -117,12 +114,7 @@ function Profile() {
     }
   }, [activeTab, isAuthenticated]);
 
-  // Fetch wishlist when wishlist tab is active
-  useEffect(() => {
-    if (activeTab === "wishlist" && isAuthenticated) {
-      fetchWishlist(wishlistPage);
-    }
-  }, [activeTab, isAuthenticated, wishlistPage]);
+
 
   // Sync activeTab with URL changes
   useEffect(() => {
@@ -144,19 +136,7 @@ function Profile() {
     }
   };
 
-  const fetchWishlist = async (page = 1) => {
-    setWishlistLoading(true);
-    try {
-      const data = await wishlistAPI.get(page, 6);
-      setWishlist(data.products || []);
-      setWishlistPages(data.pages || 1);
-      setWishlistTotal(data.total || 0);
-    } catch (err) {
-      toast.error("Failed to load wishlist");
-    } finally {
-      setWishlistLoading(false);
-    }
-  };
+
 
   const handleLogout = () => {
     logout();
@@ -220,11 +200,9 @@ function Profile() {
 
   const handleRemoveFromWishlist = async (productId) => {
     try {
-      await wishlistAPI.remove(productId);
-      toast.success("Removed from wishlist");
-      fetchWishlist(wishlistPage);
+      await removeFromWishlist(productId);
     } catch (err) {
-      toast.error(err.message);
+      console.error(err);
     }
   };
 
@@ -777,35 +755,31 @@ function Profile() {
                 <div className="p-6 sm:p-8 border-b border-gray-50">
                   <h2 className="text-lg font-bold text-brand-dark-brown">
                     My Wishlist
-                    {wishlistTotal > 0 && (
+                    {wishlist.length > 0 && (
                       <span className="ml-2 text-sm font-normal text-gray-500 normal-case">
-                        ({wishlistTotal} item{wishlistTotal !== 1 ? "s" : ""})
+                        ({wishlist.length} item{wishlist.length !== 1 ? "s" : ""})
                       </span>
                     )}
                   </h2>
                 </div>
-                <div className="p-6 sm:p-8">
-                  {wishlistLoading ? (
-                    <div className="flex items-center justify-center py-20">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-gold" />
-                    </div>
-                  ) : wishlist.length === 0 ? (
-                    <div className="text-center py-20">
-                      <RiHeartLine className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                      <p className="text-gray-500 mb-4">
-                        Your wishlist is empty
-                      </p>
-                      <Link
-                        to="/shop"
-                        className="inline-block px-6 py-3 bg-brand-dark-brown text-white font-bold uppercase tracking-wider text-sm rounded-xl hover:bg-brand-gold hover:text-brand-dark-brown transition-all"
-                      >
-                        Browse Products
-                      </Link>
-                    </div>
-                  ) : (
-                    <>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {wishlist.map((product) => (
+                 <div className="p-6 sm:p-8">
+                    {wishlist.length === 0 ? (
+                      <div className="text-center py-20">
+                        <RiHeartLine className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                        <p className="text-gray-500 mb-4">
+                          Your wishlist is empty
+                        </p>
+                        <Link
+                          to="/shop"
+                          className="inline-block px-6 py-3 bg-brand-dark-brown text-white font-bold uppercase tracking-wider text-sm rounded-xl hover:bg-brand-gold hover:text-brand-dark-brown transition-all"
+                        >
+                          Browse Products
+                        </Link>
+                      </div>
+                    ) : (
+                      <>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                          {wishlist.map((product) => (
                           <div
                             key={product._id}
                             className="group bg-gray-50 rounded-xl overflow-hidden hover:shadow-md transition-all"
@@ -859,34 +833,7 @@ function Profile() {
                         ))}
                       </div>
 
-                      {/* Pagination */}
-                      {wishlistPages > 1 && (
-                        <div className="flex justify-center items-center gap-2 mt-8">
-                          <button
-                            onClick={() =>
-                              setWishlistPage((p) => Math.max(1, p - 1))
-                            }
-                            disabled={wishlistPage === 1}
-                            className="px-4 py-2 border border-gray-200 rounded-lg text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
-                          >
-                            Previous
-                          </button>
-                          <span className="px-4 py-2 text-sm text-gray-600">
-                            Page {wishlistPage} of {wishlistPages}
-                          </span>
-                          <button
-                            onClick={() =>
-                              setWishlistPage((p) =>
-                                Math.min(wishlistPages, p + 1)
-                              )
-                            }
-                            disabled={wishlistPage === wishlistPages}
-                            className="px-4 py-2 border border-gray-200 rounded-lg text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
-                          >
-                            Next
-                          </button>
-                        </div>
-                      )}
+
                     </>
                   )}
                 </div>

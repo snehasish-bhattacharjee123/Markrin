@@ -2,7 +2,7 @@ import React, { useState, useMemo, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useCart } from "../context/CartContext";
-import { wishlistAPI } from "../api";
+import { useWishlist } from "../context/WishlistContext";
 import { toast } from "sonner";
 import {
     HiOutlineShoppingBag,
@@ -41,6 +41,7 @@ function CartPage() {
         updateItem,
         removeItem,
     } = useCart();
+    const { toggleWishlist } = useWishlist();
 
     // Selection state
     const [selectedItems, setSelectedItems] = useState(new Set());
@@ -115,16 +116,15 @@ function CartPage() {
 
     const handleMoveToWishlist = async (item) => {
         try {
-            await wishlistAPI.add(item.product?._id);
+            await toggleWishlist(item.product?._id);
             await removeItem(item._id);
             setSelectedItems((prev) => {
                 const next = new Set(prev);
                 next.delete(item._id);
                 return next;
             });
-            toast.success("Moved to wishlist");
         } catch (err) {
-            toast.error(err.message || "Failed to move to wishlist");
+            console.error(err);
         }
     };
 

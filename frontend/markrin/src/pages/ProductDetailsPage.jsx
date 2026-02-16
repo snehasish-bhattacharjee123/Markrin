@@ -1,8 +1,9 @@
 import React, { useEffect, useState, useRef, useMemo } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { productsAPI, wishlistAPI } from '../api';
+import { productsAPI } from '../api';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
+import { useWishlist } from '../context/WishlistContext';
 import { toast } from 'sonner';
 import {
   HiOutlineHeart, HiHeart, HiStar,
@@ -30,6 +31,7 @@ function ProductDetailsPage() {
   const navigate = useNavigate();
   const { addItem } = useCart();
   const { isAuthenticated } = useAuth();
+  const { wishlist, toggleWishlist, isInWishlist: checkWishlist } = useWishlist();
 
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -65,10 +67,7 @@ function ProductDetailsPage() {
         setActiveImageIndex(0);
 
         if (isAuthenticated && data._id) {
-          try {
-            const wishlistCheck = await wishlistAPI.check(data._id);
-            setIsInWishlist(wishlistCheck.isInWishlist);
-          } catch (err) { }
+          setIsInWishlist(checkWishlist(data._id));
         }
 
         // Fetch related products
@@ -119,24 +118,13 @@ function ProductDetailsPage() {
     }
   };
 
-  const toggleWishlist = async () => {
-    if (!isAuthenticated) {
-      toast.error('Please login to add items to wishlist');
-      return;
-    }
+  const handleToggleWishlist = async () => {
     setWishlistLoading(true);
     try {
-      if (isInWishlist) {
-        await wishlistAPI.remove(product._id);
-        setIsInWishlist(false);
-        toast.success('Removed from wishlist');
-      } else {
-        await wishlistAPI.add(product._id);
-        setIsInWishlist(true);
-        toast.success('Added to wishlist');
-      }
+      await toggleWishlist(product._id);
+      setIsInWishlist(!isInWishlist);
     } catch (err) {
-      toast.error(err.message);
+      console.error(err);
     } finally {
       setWishlistLoading(false);
     }
@@ -475,7 +463,7 @@ function ProductDetailsPage() {
                 </button>
 
                 <button
-                  onClick={toggleWishlist}
+                  onClick={handleToggleWishlist}
                   disabled={wishlistLoading}
                   className={`w-14 h-14 rounded-xl border-2 flex items-center justify-center transition-all duration-300 ${isInWishlist
                     ? 'border-red-300 bg-red-50 text-red-500'

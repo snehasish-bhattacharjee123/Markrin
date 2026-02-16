@@ -96,6 +96,19 @@ export const authAPI = {
         }
         return data;
     },
+
+    refreshToken: async (refreshToken) => {
+        const response = await customFetch(`${API_BASE_URL}/auth/refresh`, {
+            method: 'POST',
+            headers: getAuthHeaders(),
+            body: JSON.stringify({ refreshToken }),
+        });
+        const data = await response.json();
+        if (!response.ok) {
+            throw new Error(data.message || 'Failed to refresh token');
+        }
+        return data;
+    },
 };
 
 // Products API

@@ -6,16 +6,17 @@ import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/free-mode";
 import { HiOutlineHeart, HiHeart, HiStar, HiChevronRight, HiChevronLeft } from "react-icons/hi2";
-import { productsAPI, wishlistAPI } from "../../api";
+import { productsAPI } from "../../api";
 import { useAuth } from "../../context/AuthContext";
+import { useWishlist } from "../../context/WishlistContext";
 import { toast } from "sonner";
 import { getCardUrl } from "../../utils/cloudinaryHelper";
 
 function JeansEditScroll() {
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [wishlist, setWishlist] = useState(new Set());
     const { isAuthenticated } = useAuth();
+    const { wishlist, toggleWishlist, isInWishlist } = useWishlist();
 
     useEffect(() => {
         const fetchProducts = async () => {
@@ -46,31 +47,14 @@ function JeansEditScroll() {
         fetchProducts();
     }, []);
 
-    const toggleWishlist = async (e, productId) => {
+    const handleToggleWishlist = async (e, productId) => {
         e.preventDefault();
         e.stopPropagation();
 
-        if (!isAuthenticated) {
-            toast.error("Please login to add to wishlist");
-            return;
-        }
-
         try {
-            if (wishlist.has(productId)) {
-                await wishlistAPI.remove(productId);
-                setWishlist((prev) => {
-                    const next = new Set(prev);
-                    next.delete(productId);
-                    return next;
-                });
-                toast.success("Removed from wishlist");
-            } else {
-                await wishlistAPI.add(productId);
-                setWishlist((prev) => new Set(prev).add(productId));
-                toast.success("Added to wishlist");
-            }
+            await toggleWishlist(productId);
         } catch (err) {
-            toast.error(err.message);
+            console.error(err);
         }
     };
 
@@ -159,10 +143,10 @@ function JeansEditScroll() {
 
                                             {/* Wishlist Icon */}
                                             <button
-                                                onClick={(e) => toggleWishlist(e, product._id)}
+                                                onClick={(e) => handleToggleWishlist(e, product._id)}
                                                 className="absolute top-2 right-2 p-1.5 rounded-full bg-white/80 hover:bg-white text-gray-500 hover:text-red-500 transition-colors z-20"
                                             >
-                                                {wishlist.has(product._id) ? (
+                                                {isInWishlist(product._id) ? (
                                                     <HiHeart className="w-5 h-5 text-red-500" />
                                                 ) : (
                                                     <HiOutlineHeart className="w-5 h-5" />

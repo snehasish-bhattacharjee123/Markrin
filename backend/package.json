@@ -19,7 +19,7 @@
   "dependencies": {
     "bcryptjs": "^2.4.3",
     "bullmq": "^5.67.3",
-    "cloudinary": "^2.9.0",
+    "cloudinary": "^1.41.3",
     "compression": "^1.8.1",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",

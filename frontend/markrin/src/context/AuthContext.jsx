@@ -16,6 +16,7 @@ export const useAuth = () => {
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [refreshToken, setRefreshToken] = useState(null);
     const navigate = useNavigate();
     const location = useLocation();
 
@@ -32,6 +33,7 @@ export const AuthProvider = ({ children }) => {
             } catch (err) {
                 // Not logged in or session expired
                 setUser(null);
+                setRefreshToken(null);
             } finally {
                 setLoading(false);
             }
@@ -39,12 +41,26 @@ export const AuthProvider = ({ children }) => {
         checkSession();
 
         // Listen for 401 events from api/index.js
-        const handleUnauthorized = () => {
-            if (user) { // Only notify if we thought we were logged in
-                toast.error('Session expired, please login again');
-                setUser(null);
-                navigate('/login');
+        const handleUnauthorized = async () => {
+            if (user && refreshToken) { // Only try to refresh if we have refresh token
+                try {
+                    const response = await authAPI.refreshToken(refreshToken);
+                    setRefreshToken(response.refreshToken);
+                    // Re-fetch user profile with new access token
+                    const userData = await authAPI.getProfile();
+                    setUser(userData);
+                    toast.success('Session refreshed');
+                    return; // Exit if refresh succeeded
+                } catch (refreshError) {
+                    console.error('Token refresh failed:', refreshError);
+                }
             }
+            
+            // If no refresh token or refresh failed
+            toast.error('Session expired, please login again');
+            setUser(null);
+            setRefreshToken(null);
+            navigate('/login');
         };
 
         window.addEventListener('auth:unauthorized', handleUnauthorized);
@@ -56,6 +72,7 @@ export const AuthProvider = ({ children }) => {
         try {
             const data = await authAPI.register({ name, email, password });
             setUser(data);
+            setRefreshToken(data.refreshToken);
             return { success: true, data };
         } catch (error) {
             return { success: false, error: error.message };
@@ -67,6 +84,7 @@ export const AuthProvider = ({ children }) => {
         try {
             const data = await authAPI.login({ email, password });
             setUser(data);
+            setRefreshToken(data.refreshToken);
             return { success: true, data };
         } catch (error) {
             return { success: false, error: error.message };
@@ -76,16 +94,18 @@ export const AuthProvider = ({ children }) => {
     // Logout user
     const logout = async () => {
         try {
-            // Call backend to clear cookie
+            // Call backend to clear cookie and invalidate refresh token
             await fetch('http://localhost:9000/api/auth/logout', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                credentials: 'include'
+                credentials: 'include',
+                body: JSON.stringify({ refreshToken })
             });
         } catch (e) {
             console.error("Logout failed", e);
         }
         setUser(null);
+        setRefreshToken(null);
         navigate('/login');
     };
 
@@ -119,6 +139,7 @@ export const AuthProvider = ({ children }) => {
     const value = {
         user,
         loading,
+        refreshToken,
         isAuthenticated: !!user,
         isAdmin: user?.role === 'admin',
         register,
