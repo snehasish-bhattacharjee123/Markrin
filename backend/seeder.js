@@ -5,6 +5,7 @@ const connectDB = require('./config/db');
 
 const User = require('./models/User');
 const Product = require('./models/Product');
+const Category = require('./models/Category');
 
 // 6 Oversized T-Shirts
 const oversizedProducts = [
@@ -412,8 +413,30 @@ const importData = async () => {
         await connectDB();
 
         // Clear existing data
+        // Clear existing data
         await User.deleteMany();
         await Product.deleteMany();
+        await Category.deleteMany();
+
+        // Create categories
+        const categories = [
+            { name: 'Oversized T-Shirts', slug: 'oversized', description: 'Comfortable oversized t-shirts' },
+            { name: 'Sweatshirts', slug: 'sweat-shirt', description: 'Cozy sweatshirts for all seasons' },
+            { name: 'Hoodies', slug: 'hoodie', description: 'Stylish and warm hoodies' },
+            { name: 'Normal T-Shirts', slug: 'normal-tshirt', description: 'Classic fit t-shirts' },
+            { name: 'Topwear', slug: 'Topwear', description: 'General topwear' },
+            { name: 'Bottomwear', slug: 'Bottomwear', description: 'General bottomwear' },
+        ];
+
+        const createdCategories = await Category.insertMany(categories);
+
+        // Map slug to ID
+        const categoryMap = {};
+        createdCategories.forEach(cat => {
+            categoryMap[cat.slug] = cat._id;
+        });
+
+        console.log('Categories created:', Object.keys(categoryMap));
 
         // Create users
         const admin = await User.create(adminUser);
@@ -424,10 +447,18 @@ const importData = async () => {
         console.log(`  Customer: ${customer.email} (password: password123)`);
 
         // Create products
-        const sampleProducts = products.map((product, index) => {
+        const allProducts = [
+            ...oversizedProducts,
+            ...sweatShirtProducts,
+            ...hoodieProducts,
+            ...normalTShirtProducts,
+        ];
+
+        const sampleProducts = allProducts.map((product, index) => {
             return {
                 ...product,
                 user: admin._id,
+                category: categoryMap[product.category], // Link to Category ID
                 sku: `MRN-${product.category.toUpperCase()}-${String(index + 1).padStart(3, '0')}`,
                 collections: 'Latest Collection',
                 dimensions: { length: 30, width: 25, height: 5 },
@@ -435,6 +466,11 @@ const importData = async () => {
                 metaTitle: product.name,
                 metaDescription: product.description,
                 metaKeywords: `${product.category}, ${product.brand}, ${product.gender}`,
+                slug: product.name
+                    .toLowerCase()
+                    .split(' ')
+                    .join('-')
+                    .replace(/[^\w-]+/g, ''),
             };
         });
 
@@ -459,6 +495,7 @@ const destroyData = async () => {
 
         await User.deleteMany();
         await Product.deleteMany();
+        await Category.deleteMany();
 
         console.log('Data destroyed!');
         process.exit();

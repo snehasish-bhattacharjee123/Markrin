@@ -35,11 +35,18 @@ function Home() {
       {/* 6. Promotional Banners (Oversized / Hoodies) */}
       <PromoBanners />
 
+
+
       {/* 7. New Arrivals Horizontal Scroll */}
       <NewArrivals />
 
       {/* 8. Deal Grid (Bewakoof Style) */}
       <DealGrid />
+
+      {/* 9. Shoppable Video Carousel */}
+      <ShoppableVideoCarousel />
+
+
 
       {/* 7.5 Jeans Edit Scroll (Bewakoof Style) */}
       {/* <JeansEditScroll /> */}
@@ -47,14 +54,13 @@ function Home() {
       {/* 8. Main Banner */}
       <Banner />
 
-      {/* 9. Shoppable Video Carousel */}
-      <ShoppableVideoCarousel />
+
 
       {/* 10. Featured Products Grid */}
-      <FeaturedProducts />
+      {/* <FeaturedProducts /> */}
 
       {/* 11. Brand Features (Shipping, Quality, etc.) */}
-      <BrandFeatures />
+      {/* <BrandFeatures /> */}
 
       {/* 12. Newsletter */}
       <Newsletter />

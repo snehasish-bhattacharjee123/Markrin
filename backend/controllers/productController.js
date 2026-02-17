@@ -1,4 +1,5 @@
 const Product = require('../models/Product');
+const Category = require('../models/Category');
 const mongoose = require('mongoose');
 const { clearCache } = require('../middleware/cache');
 
@@ -26,8 +27,28 @@ const getProducts = async (req, res) => {
         const query = {};
 
         // Category filter (can be comma-separated)
+        // Category filter (can be comma-separated)
         if (category) {
-            query.category = { $in: category.split(',') };
+            let categoryIds = [];
+            const categoriesToCheck = category.split(',');
+
+            // Check if input is ObjectId or Name/Slug
+            const categoryDocs = await Category.find({
+                $or: [
+                    { _id: { $in: categoriesToCheck.filter(c => mongoose.Types.ObjectId.isValid(c)) } },
+                    { slug: { $in: categoriesToCheck } },
+                    { name: { $in: categoriesToCheck } }
+                ]
+            });
+
+            categoryIds = categoryDocs.map(c => c._id);
+
+            if (categoryIds.length > 0) {
+                query.category = { $in: categoryIds };
+            } else {
+                // If categories provided but none found, return empty
+                if (categoriesToCheck.length > 0) return res.json({ products: [], page: 1, pages: 0, total: 0 });
+            }
         }
 
         // Gender filter
@@ -160,13 +181,13 @@ const getProductById = async (req, res) => {
         let product;
 
         if (mongoose.Types.ObjectId.isValid(id)) {
-            product = await Product.findById(id);
+            product = await Product.findById(id).populate('category');
         } else if (id.includes('-') || id.length > 20) {
-            product = await Product.findOne({ slug: id.toLowerCase() });
+            product = await Product.findOne({ slug: id.toLowerCase() }).populate('category');
         } else {
-            product = await Product.findOne({ 
-                name: { $regex: id, $options: 'i' } 
-            });
+            product = await Product.findOne({
+                name: { $regex: id, $options: 'i' }
+            }).populate('category');
         }
 
         if (product) {
@@ -302,6 +323,44 @@ const deleteProduct = async (req, res) => {
     }
 };
 
+// @desc    Get related products
+// @route   GET /api/products/:id/related
+// @access  Public
+const getRelatedProducts = async (req, res) => {
+    try {
+        const product = await Product.findById(req.params.id);
+
+        if (!product) {
+            return res.status(404).json({ message: 'Product not found' });
+        }
+
+        let relatedProducts = [];
+
+        // 1. Same Category
+        if (product.category) {
+            relatedProducts = await Product.find({
+                category: product.category,
+                _id: { $ne: product._id }
+            }).limit(4).populate('category');
+        }
+
+        // 2. If not enough, try tags or collections (placeholder logic for now)
+        if (relatedProducts.length < 4) {
+            const moreProducts = await Product.find({
+                _id: { $ne: product._id, $nin: relatedProducts.map(p => p._id) },
+                // simple fallback: just other products for now to fill the row
+            }).limit(4 - relatedProducts.length).populate('category');
+            relatedProducts = [...relatedProducts, ...moreProducts];
+        }
+
+        res.json(relatedProducts);
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error', error: error.message });
+    }
+};
+
 module.exports = {
     getProducts,
     getNewArrivals,
@@ -310,4 +369,5 @@ module.exports = {
     createProduct,
     updateProduct,
     deleteProduct,
+    getRelatedProducts,
 };

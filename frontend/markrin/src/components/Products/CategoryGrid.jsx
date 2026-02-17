@@ -28,16 +28,10 @@ const categories = [
         path: "/collection/normal-tshirt",
     },
     {
-        name: "Men",
-        label: "For Him",
-        image: "https://images.unsplash.com/photo-1617137968427-85924c800a22?w=600&q=80",
-        path: "/collection/men",
-    },
-    {
-        name: "Women",
-        label: "For Her",
-        image: "https://images.unsplash.com/photo-1483985988355-763728e1935b?w=600&q=80",
-        path: "/collection/women",
+        name: "Unisex",
+        label: "For Everyone",
+        image: "https://images.unsplash.com/photo-1523381210434-271e8be1f52b?w=600&q=80",
+        path: "/collection/unisex",
     },
 ];
 

@@ -18,6 +18,7 @@ const { productSchema, productQuerySchema } = require('../validations/productSch
 // Public routes
 router.get('/new-arrivals', cache('products_new', 1800), getNewArrivals);
 router.get('/featured', cache('products_featured', 1800), getFeaturedProducts);
+router.get('/:id/related', cache('products_related', 3600), require('../controllers/productController').getRelatedProducts);
 router.get('/', validate(productQuerySchema), cache('products_list', 3600), getProducts);
 router.get('/:id', cache('product_detail', 3600), getProductById);
 

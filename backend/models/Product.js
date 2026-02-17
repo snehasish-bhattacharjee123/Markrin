@@ -34,9 +34,9 @@ const productSchema = new mongoose.Schema(
             trim: true,
         },
         category: {
-            type: String,
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Category',
             required: true,
-            enum: ['Topwear', 'Bottomwear', 'oversized', 'sweat-shirt', 'hoodie', 'normal-tshirt'],
         },
         brand: {
             type: String,

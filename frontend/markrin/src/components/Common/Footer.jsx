@@ -11,7 +11,7 @@ import {
 
 function Footer() {
   return (
-    <footer className="bg-brand-dark-brown text-brand-cream font-inter relative overflow-hidden">
+    <footer className="bg-brand-dark-brown text-white font-inter relative overflow-hidden">
       {/* Subtle decorative gradient */}
       <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-brand-gold/40 to-transparent" />
 
@@ -29,14 +29,14 @@ function Footer() {
             <p className="text-sm leading-relaxed text-brand-gold/80 italic mb-3">
               "Feel the Soul of Art"
             </p>
-            <p className="text-sm leading-relaxed text-gray-400 mb-6 max-w-xs">
+            <p className="text-sm leading-relaxed text-white mb-6 max-w-xs">
               Premium streetwear for the modern, confident individual. Express
               yourself through art you can wear.
             </p>
 
             {/* Contact Info */}
             <div className="space-y-3.5 text-sm">
-              <div className="flex items-start gap-3 text-gray-300 group">
+              <div className="flex items-start gap-3 text-white group">
                 <RiMapPinLine className="w-4 h-4 text-brand-gold flex-shrink-0 mt-0.5 group-hover:scale-110 transition-transform" />
                 <span className="leading-snug">
                   64/3 Nabin Senapati Lane,
@@ -44,7 +44,7 @@ function Footer() {
                   Howrah - 711101
                 </span>
               </div>
-              <div className="flex items-center gap-3 text-gray-300">
+              <div className="flex items-center gap-3 text-white">
                 <RiPhoneLine className="w-4 h-4 text-brand-gold flex-shrink-0" />
                 <a
                   href="tel:+919875540545"
@@ -53,7 +53,7 @@ function Footer() {
                   +91 98755 40545
                 </a>
               </div>
-              <div className="flex items-center gap-3 text-gray-300">
+              <div className="flex items-center gap-3 text-white">
                 <RiMailLine className="w-4 h-4 text-brand-gold flex-shrink-0" />
                 <a
                   href="mailto:support@markrin.com"
@@ -81,7 +81,7 @@ function Footer() {
                 <li key={item.path}>
                   <Link
                     to={item.path}
-                    className="text-gray-400 hover:text-brand-gold hover:pl-1 transition-all duration-200"
+                    className="text-white hover:text-brand-gold hover:pl-1 transition-all duration-200"
                   >
                     {item.label}
                   </Link>
@@ -108,7 +108,7 @@ function Footer() {
                 <li key={item.path}>
                   <Link
                     to={item.path}
-                    className="text-gray-400 hover:text-brand-gold hover:pl-1 transition-all duration-200"
+                    className="text-white hover:text-brand-gold hover:pl-1 transition-all duration-200"
                   >
                     {item.label}
                   </Link>
@@ -122,7 +122,7 @@ function Footer() {
             <h3 className="mb-6 text-xs font-bold tracking-[0.2em] uppercase text-brand-gold">
               Connect
             </h3>
-            <p className="mb-5 text-sm text-gray-400 leading-relaxed">
+            <p className="mb-5 text-sm text-white leading-relaxed">
               Follow us for style inspiration, new drops, and exclusive offers.
             </p>
 
@@ -183,10 +183,10 @@ function Footer() {
 
         {/* Bottom Bar */}
         <div className="border-t border-white/10 py-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p className="text-[11px] tracking-widest text-gray-500 uppercase">
+          <p className="text-[11px] tracking-widest text-white uppercase">
             © 2026 Markrin. All rights reserved.
           </p>
-          <p className="text-[11px] tracking-wider text-gray-600 italic">
+          <p className="text-[11px] tracking-wider text-white italic">
             Feel the Soul of Art.
           </p>
         </div>

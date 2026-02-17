@@ -59,6 +59,7 @@ body {
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }
+
 .scrollbar-hide {
   -ms-overflow-style: none;
   scrollbar-width: none;
@@ -71,6 +72,7 @@ body {
   opacity: 0;
   transform: translateY(8px);
 }
+
 .page-enter-active {
   opacity: 1;
   transform: translateY(0);
@@ -96,8 +98,15 @@ body {
    9. Premium Badge Pulse Animation
    ================================================ */
 @keyframes badge-pulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.05); }
+
+  0%,
+  100% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.05);
+  }
 }
 
 .badge-pulse {
@@ -108,8 +117,13 @@ body {
    10. Skeleton Shimmer Animation
    ================================================ */
 @keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
+  0% {
+    background-position: -200% 0;
+  }
+
+  100% {
+    background-position: 200% 0;
+  }
 }
 
 .skeleton-shimmer {
@@ -139,7 +153,7 @@ input[type="range"]::-webkit-slider-thumb {
   background: #C9A76E;
   cursor: pointer;
   border: 3px solid white;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
   transition: transform 0.15s ease;
 }
 
@@ -154,7 +168,7 @@ input[type="range"]::-moz-range-thumb {
   background: #C9A76E;
   cursor: pointer;
   border: 3px solid white;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
 }
 
 /* ================================================
@@ -177,9 +191,33 @@ input[type="radio"] {
 
 .btn-hover-lift:hover {
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .btn-hover-lift:active {
   transform: translateY(0);
+}
+
+/* ================================================
+   14. Marquee Animation
+   ================================================ */
+@keyframes marquee {
+  0% {
+    transform: translateX(0);
+  }
+
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee {
+  display: flex;
+  width: max-content;
+  white-space: nowrap;
+  animation: marquee 20s linear infinite;
+}
+
+.animate-marquee:hover {
+  animation-play-state: paused;
 }
