@@ -114,7 +114,26 @@ export const authAPI = {
 // Products API
 export const productsAPI = {
     getAll: async (filters = {}) => {
-        const params = new URLSearchParams(filters).toString();
+        const params = new URLSearchParams();
+        Object.entries(filters).forEach(([key, value]) => {
+            if (value !== null && value !== undefined && value !== '') {
+                // Handle nested objects or arrays properly
+                if (typeof value === 'object') {
+                    // For objects: extract string values (e.g., category._id or category.name)
+                    if (value._id) {
+                        params.append(key, value._id);
+                    } else if (value.name) {
+                        params.append(key, value.name);
+                    } else {
+                        // Fallback to string representation if no id or name
+                        params.append(key, String(value));
+                    }
+                } else {
+                    params.append(key, String(value));
+                }
+            }
+        });
+        
         const response = await fetchWithTimeout(`${API_BASE_URL}/products?${params}`);
         const data = await response.json();
         if (!response.ok) {

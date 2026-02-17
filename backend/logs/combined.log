@@ -99,3 +99,4 @@
 {"level":"error","message":"Unhandled Rejection: VersionError: No matching document found for id \"698e2247d38fc2e5c0f92774\" version 16 modifiedPaths \"refreshTokens, dob\"","service":"markrin-backend","timestamp":"2026-02-17 00:57:05"}
 {"level":"error","message":"Unhandled Rejection: VersionError: No matching document found for id \"698e2247d38fc2e5c0f92774\" version 16 modifiedPaths \"refreshTokens, dob\"","service":"markrin-backend","timestamp":"2026-02-17 00:57:05"}
 {"level":"info","message":"Server is running on port 9000","service":"markrin-backend","timestamp":"2026-02-17 08:14:32"}
+{"level":"info","message":"Server is running on port 9000","service":"markrin-backend","timestamp":"2026-02-17 10:44:15"}

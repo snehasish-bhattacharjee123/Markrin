@@ -74,8 +74,13 @@ function ProductDetailsPage() {
         if (data.category) {
           setRelatedLoading(true);
           try {
+            // Extract category string value - handle both object and string formats
+            const categoryValue = typeof data.category === 'object' 
+              ? (data.category._id || data.category.name || '')
+              : data.category;
+            
             const relatedData = await productsAPI.getAll({
-              category: data.category,
+              category: categoryValue,
               limit: 5,
               // Exclude current product if possible, otherwise we filter client side
             });
