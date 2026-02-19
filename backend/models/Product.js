@@ -48,12 +48,7 @@ const productSchema = new mongoose.Schema(
                 enum: ['XS', 'S', 'M', 'L', 'XL', 'XXL'],
             },
         ],
-        colors: [
-            {
-                type: String,
-                enum: ['Black'], // 'Red', 'Blue', 'Green', 'White', 'Yellow', 'Grey', 'Brown', 'Pink', 'Orange'
-            },
-        ],
+        colors: [String],
         collections: {
             type: String,
             required: true,
@@ -62,7 +57,6 @@ const productSchema = new mongoose.Schema(
         },
         material: {
             type: String,
-            enum: ['Cotton', 'Polyester', 'Wool', 'Leather', 'Denim', 'Silk', 'Linen'],
         },
         gender: {
             type: String,
@@ -147,7 +141,7 @@ productSchema.pre('save', function (next) {
 // Index for faster filtering and search
 productSchema.index({ name: 'text', sku: 'text' }); // Text index for full-text search
 productSchema.index({ name: 1 }); // Regular index for starts-with/regex search
-productSchema.index({ sku: 1 }); // Unique index is already handled in schema
+// productSchema.index({ sku: 1 }); // Unique index is already handled in schema
 productSchema.index({ category: 1, gender: 1, brand: 1, price: 1 });
 
 module.exports = mongoose.model('Product', productSchema);

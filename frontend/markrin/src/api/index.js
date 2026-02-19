@@ -31,7 +31,7 @@ const customFetch = async (url, options = {}) => {
 
     const response = await fetch(url, defaultOptions);
 
-    if (response.status === 401) {
+    if (response.status === 401 && !options.skipGlobalErrorHandler) {
         // Session expired or unauthorized
         // We can dispatch a custom event or let the calling component handle it
         // For strict session handling, we might clean up local state here
@@ -72,10 +72,11 @@ export const authAPI = {
         return data;
     },
 
-    getProfile: async () => {
+    getProfile: async (options = {}) => {
         const response = await customFetch(`${API_BASE_URL}/auth/profile`, {
             method: 'GET',
             headers: getAuthHeaders(),
+            ...options
         });
         const data = await response.json();
         if (!response.ok) {
@@ -133,7 +134,7 @@ export const productsAPI = {
                 }
             }
         });
-        
+
         const response = await fetchWithTimeout(`${API_BASE_URL}/products?${params}`);
         const data = await response.json();
         if (!response.ok) {

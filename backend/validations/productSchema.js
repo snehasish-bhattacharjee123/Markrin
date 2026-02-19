@@ -13,7 +13,7 @@ const productSchema = z.object({
         sizes: z.array(z.enum(['XS', 'S', 'M', 'L', 'XL', 'XXL'])).optional().default([]),
         colors: z.array(z.string()).optional().default([]),
         collections: z.string().min(1, 'Collection is required').trim(),
-        material: z.enum(['Cotton', 'Polyester', 'Wool', 'Leather', 'Denim', 'Silk', 'Linen']).optional(),
+        material: z.string().optional(),
         gender: z.enum(['Men', 'Women', 'Unisex']),
         images: z.array(z.object({
             url: z.string().url('Invalid image URL'),

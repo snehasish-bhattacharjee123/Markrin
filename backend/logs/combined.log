@@ -100,3 +100,105 @@
 {"level":"error","message":"Unhandled Rejection: VersionError: No matching document found for id \"698e2247d38fc2e5c0f92774\" version 16 modifiedPaths \"refreshTokens, dob\"","service":"markrin-backend","timestamp":"2026-02-17 00:57:05"}
 {"level":"info","message":"Server is running on port 9000","service":"markrin-backend","timestamp":"2026-02-17 08:14:32"}
 {"level":"info","message":"Server is running on port 9000","service":"markrin-backend","timestamp":"2026-02-17 10:44:15"}
+{"level":"info","message":"Server is running on port 9000","service":"markrin-backend","timestamp":"2026-02-19 11:40:21"}
+{"level":"info","message":"Server is running on port 9000","service":"markrin-backend","timestamp":"2026-02-19 11:44:23"}
+{"level":"info","message":"Server is running on port 9000","service":"markrin-backend","timestamp":"2026-02-19 11:50:21"}
+{"level":"info","message":"Server is running on port 9000","service":"markrin-backend","timestamp":"2026-02-19 11:52:02"}
+{"level":"info","message":"Server is running on port 9000","service":"markrin-backend","timestamp":"2026-02-19 12:01:52"}
+{"level":"info","message":"Server is running on port 9000","service":"markrin-backend","timestamp":"2026-02-19 12:01:54"}
+{"level":"info","message":"Server is running on port 9000","service":"markrin-backend","timestamp":"2026-02-19 13:58:57"}
+{"level":"info","message":"Server is running on port 9000","service":"markrin-backend","timestamp":"2026-02-19 13:58:59"}
+{"level":"info","message":"Server is running on port 9000","service":"markrin-backend","timestamp":"2026-02-19 14:11:35"}
+{"level":"info","message":"Server is running on port 9000","service":"markrin-backend","timestamp":"2026-02-19 14:16:07"}
+{"level":"info","message":"Server is running on port 9000","service":"markrin-backend","timestamp":"2026-02-19 14:19:24"}
+{"level":"info","message":"Server is running on port 9000","service":"markrin-backend","timestamp":"2026-02-19 14:27:47"}
+{"level":"info","message":"Server is running on port 9000","service":"markrin-backend","timestamp":"2026-02-19 14:30:43"}
+{"level":"info","message":"Server is running on port 9000","service":"markrin-backend","timestamp":"2026-02-19 14:30:43"}
+{"level":"info","message":"Server is running on port 9000","service":"markrin-backend","timestamp":"2026-02-19 14:31:22"}
+{"level":"info","message":"Server is running on port 9000","service":"markrin-backend","timestamp":"2026-02-19 14:31:22"}
+{"level":"info","message":"Server is running on port 9000","service":"markrin-backend","timestamp":"2026-02-19 14:33:55"}
+{"level":"info","message":"Server is running on port 9000","service":"markrin-backend","timestamp":"2026-02-19 14:37:10"}
+{"level":"info","message":"Server is running on port 9000","service":"markrin-backend","timestamp":"2026-02-19 14:40:02"}
+{"level":"info","message":"Server is running on port 9000","service":"markrin-backend","timestamp":"2026-02-19 14:44:42"}
+{"level":"info","message":"Server is running on port 9000","service":"markrin-backend","timestamp":"2026-02-19 14:44:43"}
+{"level":"info","message":"MongoDB Connected...","service":"markrin-backend","timestamp":"2026-02-19 14:44:43"}
+{"level":"info","message":"MongoDB Connected...","service":"markrin-backend","timestamp":"2026-02-19 14:44:43"}
+{"level":"info","message":"Redis Connected...","service":"markrin-backend","timestamp":"2026-02-19 14:44:44"}
+{"level":"info","message":"Redis Connected...","service":"markrin-backend","timestamp":"2026-02-19 14:44:44"}
+{"level":"warn","message":"Redis not available, skipping worker initialization.","service":"markrin-backend","timestamp":"2026-02-19 14:44:44"}
+{"level":"warn","message":"Redis not available, skipping worker initialization.","service":"markrin-backend","timestamp":"2026-02-19 14:44:44"}
+{"level":"info","message":"Server is running on port 9000","service":"markrin-backend","timestamp":"2026-02-19 14:46:19"}
+{"level":"info","message":"Server is running on port 9000","service":"markrin-backend","timestamp":"2026-02-19 14:46:19"}
+{"level":"info","message":"MongoDB Connected...","service":"markrin-backend","timestamp":"2026-02-19 14:46:20"}
+{"level":"info","message":"MongoDB Connected...","service":"markrin-backend","timestamp":"2026-02-19 14:46:20"}
+{"level":"warn","message":"Redis not available, skipping worker initialization.","service":"markrin-backend","timestamp":"2026-02-19 14:46:21"}
+{"level":"warn","message":"Redis not available, skipping worker initialization.","service":"markrin-backend","timestamp":"2026-02-19 14:46:21"}
+{"level":"info","message":"Server is running on port 9000","service":"markrin-backend","timestamp":"2026-02-19 15:00:05"}
+{"level":"info","message":"Server is running on port 9000","service":"markrin-backend","timestamp":"2026-02-19 15:00:05"}
+{"level":"info","message":"Server is running on port 9000","service":"markrin-backend","timestamp":"2026-02-19 15:00:08"}
+{"level":"info","message":"Server is running on port 9000","service":"markrin-backend","timestamp":"2026-02-19 15:00:08"}
+{"level":"info","message":"MongoDB Connected...","service":"markrin-backend","timestamp":"2026-02-19 15:00:08"}
+{"level":"info","message":"MongoDB Connected...","service":"markrin-backend","timestamp":"2026-02-19 15:00:08"}
+{"level":"warn","message":"Redis not available, skipping worker initialization.","service":"markrin-backend","timestamp":"2026-02-19 15:00:09"}
+{"level":"warn","message":"Redis not available, skipping worker initialization.","service":"markrin-backend","timestamp":"2026-02-19 15:00:09"}
+{"level":"error","message":"Unhandled Rejection: [object Object]","service":"markrin-backend","timestamp":"2026-02-19 15:16:48"}
+{"level":"error","message":"Unhandled Rejection: [object Object]","service":"markrin-backend","timestamp":"2026-02-19 15:18:26"}
+{"level":"error","message":"Unhandled Rejection: [object Object]","service":"markrin-backend","timestamp":"2026-02-19 15:19:19"}
+{"level":"error","message":"Unhandled Rejection: [object Object]","service":"markrin-backend","timestamp":"2026-02-19 15:20:28"}
+{"level":"error","message":"Unhandled Rejection: [object Object]","service":"markrin-backend","timestamp":"2026-02-19 15:20:38"}
+{"level":"error","message":"Unhandled Rejection: [object Object]","service":"markrin-backend","timestamp":"2026-02-19 15:33:57"}
+{"level":"error","message":"Unhandled Rejection: [object Object]","service":"markrin-backend","timestamp":"2026-02-19 15:47:01"}
+{"level":"info","message":"Server is running on port 9000","service":"markrin-backend","timestamp":"2026-02-19 15:47:49"}
+{"level":"info","message":"MongoDB Connected...","service":"markrin-backend","timestamp":"2026-02-19 15:47:50"}
+{"level":"warn","message":"Redis not available, skipping worker initialization.","service":"markrin-backend","timestamp":"2026-02-19 15:47:51"}
+{"level":"info","message":"Server is running on port 9000","service":"markrin-backend","timestamp":"2026-02-19 15:51:01"}
+{"level":"info","message":"MongoDB Connected...","service":"markrin-backend","timestamp":"2026-02-19 15:51:02"}
+{"level":"warn","message":"Redis not available, skipping worker initialization.","service":"markrin-backend","timestamp":"2026-02-19 15:51:03"}
+{"level":"info","message":"Server is running on port 9000","service":"markrin-backend","timestamp":"2026-02-19 15:51:08"}
+{"level":"info","message":"MongoDB Connected...","service":"markrin-backend","timestamp":"2026-02-19 15:51:09"}
+{"level":"warn","message":"Redis not available, skipping worker initialization.","service":"markrin-backend","timestamp":"2026-02-19 15:51:10"}
+{"level":"info","message":"Server is running on port 9000","service":"markrin-backend","timestamp":"2026-02-19 15:56:52"}
+{"level":"info","message":"MongoDB Connected...","service":"markrin-backend","timestamp":"2026-02-19 15:56:53"}
+{"level":"warn","message":"Redis not available, skipping worker initialization.","service":"markrin-backend","timestamp":"2026-02-19 15:56:54"}
+{"level":"info","message":"Server is running on port 9000","service":"markrin-backend","timestamp":"2026-02-19 15:57:55"}
+{"level":"info","message":"MongoDB Connected...","service":"markrin-backend","timestamp":"2026-02-19 15:57:56"}
+{"level":"warn","message":"Redis not available, skipping worker initialization.","service":"markrin-backend","timestamp":"2026-02-19 15:57:57"}
+{"level":"info","message":"Server is running on port 9000","service":"markrin-backend","timestamp":"2026-02-19 15:58:25"}
+{"level":"info","message":"MongoDB Connected...","service":"markrin-backend","timestamp":"2026-02-19 15:58:26"}
+{"level":"warn","message":"Redis not available, skipping worker initialization.","service":"markrin-backend","timestamp":"2026-02-19 15:58:27"}
+{"level":"info","message":"Server is running on port 9000","service":"markrin-backend","timestamp":"2026-02-19 16:04:18"}
+{"level":"info","message":"Server is running on port 9000","service":"markrin-backend","timestamp":"2026-02-19 16:04:20"}
+{"level":"info","message":"MongoDB Connected...","service":"markrin-backend","timestamp":"2026-02-19 16:04:21"}
+{"level":"warn","message":"Redis not available, skipping worker initialization.","service":"markrin-backend","timestamp":"2026-02-19 16:04:22"}
+{"level":"info","message":"Server is running on port 9000","service":"markrin-backend","timestamp":"2026-02-19 16:04:48"}
+{"level":"info","message":"MongoDB Connected...","service":"markrin-backend","timestamp":"2026-02-19 16:04:48"}
+{"level":"warn","message":"Redis not available, skipping worker initialization.","service":"markrin-backend","timestamp":"2026-02-19 16:04:49"}
+{"level":"info","message":"Server is running on port 9000","service":"markrin-backend","timestamp":"2026-02-19 16:05:19"}
+{"level":"info","message":"MongoDB Connected...","service":"markrin-backend","timestamp":"2026-02-19 16:05:19"}
+{"level":"warn","message":"Redis not available, skipping worker initialization.","service":"markrin-backend","timestamp":"2026-02-19 16:05:20"}
+{"level":"error","message":"Unhandled Rejection: VersionError: No matching document found for id \"6993716aef5283de2ab59c04\" version 4 modifiedPaths \"refreshTokens\"","service":"markrin-backend","timestamp":"2026-02-19 16:10:19"}
+{"level":"info","message":"Server is running on port 9000","service":"markrin-backend","timestamp":"2026-02-19 16:25:06"}
+{"level":"info","message":"MongoDB Connected...","service":"markrin-backend","timestamp":"2026-02-19 16:25:06"}
+{"level":"warn","message":"Redis not available, skipping worker initialization.","service":"markrin-backend","timestamp":"2026-02-19 16:25:07"}
+{"level":"info","message":"Server is running on port 9000","service":"markrin-backend","timestamp":"2026-02-19 16:28:34"}
+{"level":"info","message":"MongoDB Connected...","service":"markrin-backend","timestamp":"2026-02-19 16:28:35"}
+{"level":"warn","message":"Redis not available, skipping worker initialization.","service":"markrin-backend","timestamp":"2026-02-19 16:28:36"}
+{"level":"info","message":"Server is running on port 9000","service":"markrin-backend","timestamp":"2026-02-19 16:30:42"}
+{"level":"info","message":"MongoDB Connected...","service":"markrin-backend","timestamp":"2026-02-19 16:30:42"}
+{"level":"warn","message":"Redis not available, skipping worker initialization.","service":"markrin-backend","timestamp":"2026-02-19 16:30:43"}
+{"level":"info","message":"Server is running on port 9000","service":"markrin-backend","timestamp":"2026-02-19 16:50:55"}
+{"level":"info","message":"MongoDB Connected...","service":"markrin-backend","timestamp":"2026-02-19 16:50:55"}
+{"level":"warn","message":"Redis not available, skipping worker initialization.","service":"markrin-backend","timestamp":"2026-02-19 16:50:56"}
+{"level":"info","message":"Server is running on port 9000","service":"markrin-backend","timestamp":"2026-02-19 16:53:19"}
+{"level":"info","message":"MongoDB Connected...","service":"markrin-backend","timestamp":"2026-02-19 16:53:19"}
+{"level":"warn","message":"Redis not available, skipping worker initialization.","service":"markrin-backend","timestamp":"2026-02-19 16:53:20"}
+{"level":"info","message":"Server is running on port 9000","service":"markrin-backend","timestamp":"2026-02-19 17:00:44"}
+{"level":"info","message":"MongoDB Connected...","service":"markrin-backend","timestamp":"2026-02-19 17:00:45"}
+{"level":"warn","message":"Redis not available, skipping worker initialization.","service":"markrin-backend","timestamp":"2026-02-19 17:00:46"}
+{"level":"info","message":"Server is running on port 9000","service":"markrin-backend","timestamp":"2026-02-19 17:00:52"}
+{"level":"info","message":"MongoDB Connected...","service":"markrin-backend","timestamp":"2026-02-19 17:00:53"}
+{"level":"warn","message":"Redis not available, skipping worker initialization.","service":"markrin-backend","timestamp":"2026-02-19 17:00:54"}
+{"level":"info","message":"Server is running on port 9000","service":"markrin-backend","timestamp":"2026-02-19 17:04:39"}
+{"level":"info","message":"Server is running on port 9000","service":"markrin-backend","timestamp":"2026-02-19 17:04:43"}
+{"level":"info","message":"MongoDB Connected...","service":"markrin-backend","timestamp":"2026-02-19 17:04:44"}
+{"level":"warn","message":"Redis not available, skipping worker initialization.","service":"markrin-backend","timestamp":"2026-02-19 17:04:45"}

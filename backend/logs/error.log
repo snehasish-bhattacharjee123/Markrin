@@ -11,3 +11,11 @@
 {"level":"error","message":"Unhandled Rejection: VersionError: No matching document found for id \"698e2247d38fc2e5c0f92774\" version 11 modifiedPaths \"refreshTokens, dob\"","service":"markrin-backend","timestamp":"2026-02-16 22:11:20"}
 {"level":"error","message":"Unhandled Rejection: VersionError: No matching document found for id \"698e2247d38fc2e5c0f92774\" version 16 modifiedPaths \"refreshTokens, dob\"","service":"markrin-backend","timestamp":"2026-02-17 00:57:05"}
 {"level":"error","message":"Unhandled Rejection: VersionError: No matching document found for id \"698e2247d38fc2e5c0f92774\" version 16 modifiedPaths \"refreshTokens, dob\"","service":"markrin-backend","timestamp":"2026-02-17 00:57:05"}
+{"level":"error","message":"Unhandled Rejection: [object Object]","service":"markrin-backend","timestamp":"2026-02-19 15:16:48"}
+{"level":"error","message":"Unhandled Rejection: [object Object]","service":"markrin-backend","timestamp":"2026-02-19 15:18:26"}
+{"level":"error","message":"Unhandled Rejection: [object Object]","service":"markrin-backend","timestamp":"2026-02-19 15:19:19"}
+{"level":"error","message":"Unhandled Rejection: [object Object]","service":"markrin-backend","timestamp":"2026-02-19 15:20:28"}
+{"level":"error","message":"Unhandled Rejection: [object Object]","service":"markrin-backend","timestamp":"2026-02-19 15:20:38"}
+{"level":"error","message":"Unhandled Rejection: [object Object]","service":"markrin-backend","timestamp":"2026-02-19 15:33:57"}
+{"level":"error","message":"Unhandled Rejection: [object Object]","service":"markrin-backend","timestamp":"2026-02-19 15:47:01"}
+{"level":"error","message":"Unhandled Rejection: VersionError: No matching document found for id \"6993716aef5283de2ab59c04\" version 4 modifiedPaths \"refreshTokens\"","service":"markrin-backend","timestamp":"2026-02-19 16:10:19"}

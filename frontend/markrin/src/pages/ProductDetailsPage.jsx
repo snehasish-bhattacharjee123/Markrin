@@ -75,10 +75,10 @@ function ProductDetailsPage() {
           setRelatedLoading(true);
           try {
             // Extract category string value - handle both object and string formats
-            const categoryValue = typeof data.category === 'object' 
+            const categoryValue = typeof data.category === 'object'
               ? (data.category._id || data.category.name || '')
               : data.category;
-            
+
             const relatedData = await productsAPI.getAll({
               category: categoryValue,
               limit: 5,
@@ -267,8 +267,8 @@ function ProductDetailsPage() {
                 <HiChevronRight className="w-3 h-3 text-gray-300" />
               </>
             )}
-            <Link to={`/collections/${product.category?.toLowerCase()}`} className="hover:text-brand-dark-brown transition-colors font-medium capitalize">
-              {product.category}
+            <Link to={`/collections/${product.category?.name?.toLowerCase() || product.category?.toString().toLowerCase()}`} className="hover:text-brand-dark-brown transition-colors font-medium capitalize">
+              {product.category?.name || product.category}
             </Link>
             <HiChevronRight className="w-3 h-3 text-gray-300" />
             <span className="text-gray-500 truncate max-w-[250px]">{product.name}</span>
@@ -297,7 +297,7 @@ function ProductDetailsPage() {
 
               {/* Brand */}
               <Link
-                to={`/collections/${product.category?.toLowerCase()}`}
+                to={`/collections/${product.category?.name?.toLowerCase() || product.category?.toString().toLowerCase()}`}
                 className="text-sm font-bold text-brand-gold hover:underline"
               >
                 {product.brand || 'Markrin'}
@@ -562,7 +562,7 @@ function ProductDetailsPage() {
                 <div className="grid grid-cols-2 gap-x-6 gap-y-3">
                   {[
                     { label: 'Fabric', value: product.material || 'Cotton' },
-                    { label: 'Category', value: product.category || '—' },
+                    { label: 'Category', value: product.category?.name || product.category || '—' },
                     { label: 'Gender', value: product.gender || 'Unisex' },
                     { label: 'Brand', value: product.brand || 'Markrin' },
                     ...(product.collections ? [{ label: 'Collection', value: product.collections }] : []),

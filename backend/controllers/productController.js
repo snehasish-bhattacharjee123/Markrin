@@ -175,6 +175,9 @@ const getFeaturedProducts = async (req, res) => {
 // @desc    Get single product
 // @route   GET /api/products/:id
 // @access  Public
+// @desc    Get single product
+// @route   GET /api/products/:id
+// @access  Public
 const getProductById = async (req, res) => {
     try {
         const { id } = req.params;
@@ -182,12 +185,16 @@ const getProductById = async (req, res) => {
 
         if (mongoose.Types.ObjectId.isValid(id)) {
             product = await Product.findById(id).populate('category');
-        } else if (id.includes('-') || id.length > 20) {
-            product = await Product.findOne({ slug: id.toLowerCase() }).populate('category');
         } else {
-            product = await Product.findOne({
-                name: { $regex: id, $options: 'i' }
-            }).populate('category');
+            // First try exact slug match
+            product = await Product.findOne({ slug: id.toLowerCase() }).populate('category');
+
+            // Fallback to name search if not found by slug
+            if (!product) {
+                product = await Product.findOne({
+                    name: { $regex: id, $options: 'i' }
+                }).populate('category');
+            }
         }
 
         if (product) {
@@ -233,13 +240,24 @@ const createProduct = async (req, res) => {
             sizeChart,
         } = req.body;
 
+        // Check if category is a string name and not an ObjectId
+        let categoryId = category;
+        if (category && !mongoose.Types.ObjectId.isValid(category)) {
+            let cat = await Category.findOne({ name: category });
+            if (!cat) {
+                // Create new category if it doesn't exist
+                cat = await Category.create({ name: category });
+            }
+            categoryId = cat._id;
+        }
+
         const product = new Product({
             name,
             description,
             price,
             discountPrice,
             countInStock: countInStock || 0,
-            category,
+            category: categoryId,
             brand,
             sizes: sizes || [],
             colors: colors || [],
@@ -282,6 +300,15 @@ const updateProduct = async (req, res) => {
         const product = await Product.findById(req.params.id);
 
         if (product) {
+            // Handle category update if present in body
+            if (req.body.category && typeof req.body.category === 'string' && !mongoose.Types.ObjectId.isValid(req.body.category)) {
+                let cat = await Category.findOne({ name: req.body.category });
+                if (!cat) {
+                    cat = await Category.create({ name: req.body.category });
+                }
+                req.body.category = cat._id;
+            }
+
             Object.assign(product, req.body);
             const updatedProduct = await product.save();
 
