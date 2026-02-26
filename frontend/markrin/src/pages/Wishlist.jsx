@@ -22,18 +22,9 @@ const Wishlist = () => {
     };
 
     const confirmAddToCart = async () => {
-        if (!selectedProduct) return;
-
-        // If product has sizes but none selected
-        if (selectedProduct.sizes?.length > 0 && !selectedSize) {
-            toast.error("Please select a size");
-            return;
-        }
-
         await addItem({
             productId: selectedProduct._id,
-            quantity: 1,
-            size: selectedSize || selectedProduct.sizes?.[0]
+            quantity: 1
         });
 
         setSelectedProduct(null);
@@ -151,24 +142,24 @@ const Wishlist = () => {
                                         </Link>
                                         <p className="text-sm text-gray-500 mb-2">{product.category}</p>
                                         <div className="flex items-center justify-between">
-                                            <span className="text-lg font-bold text-brand-gold">
-                                                ${product.price?.toFixed(2)}
-                                            </span>
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-lg font-bold text-brand-gold">
+                                                    ₹{(product.discountPrice && product.discountPrice < product.basePrice ? product.discountPrice : product.basePrice)?.toFixed(0) || 0}
+                                                </span>
+                                                {product.discountPrice > 0 && product.discountPrice < product.basePrice && (
+                                                    <span className="text-xs text-gray-400 line-through">
+                                                        ₹{product.basePrice?.toFixed(0)}
+                                                    </span>
+                                                )}
+                                            </div>
                                             <button
                                                 onClick={() => handleAddToCart(product)}
-                                                disabled={product.countInStock === 0}
-                                                className={`p-2 rounded-full transition-all ${product.countInStock === 0
-                                                    ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                                                    : "bg-brand-dark-brown text-white hover:bg-brand-gold hover:text-brand-dark-brown"
-                                                    }`}
-                                                title={product.countInStock === 0 ? "Out of Stock" : "Add to Cart"}
+                                                className="p-2 rounded-full transition-all bg-brand-dark-brown text-white hover:bg-brand-gold hover:text-brand-dark-brown"
+                                                title="Add to Cart"
                                             >
                                                 <HiOutlineShoppingBag className="w-5 h-5" />
                                             </button>
                                         </div>
-                                        {product.countInStock === 0 && (
-                                            <p className="text-red-500 text-xs mt-2">Out of Stock</p>
-                                        )}
                                     </div>
                                 </div>
                             ))}
@@ -193,27 +184,7 @@ const Wishlist = () => {
                                 </button>
                             </div>
 
-                            {selectedProduct.sizes?.length > 0 ? (
-                                <div className="mb-6">
-                                    <label className="block text-sm font-bold text-gray-700 mb-2">Select Size</label>
-                                    <div className="flex flex-wrap gap-2">
-                                        {selectedProduct.sizes.map(size => (
-                                            <button
-                                                key={size}
-                                                onClick={() => setSelectedSize(size)}
-                                                className={`px-4 py-2 rounded-lg text-sm font-bold border transition-all ${selectedSize === size
-                                                    ? 'bg-brand-dark-brown text-white border-brand-dark-brown'
-                                                    : 'bg-white text-gray-600 border-gray-200 hover:border-brand-gold'
-                                                    }`}
-                                            >
-                                                {size}
-                                            </button>
-                                        ))}
-                                    </div>
-                                </div>
-                            ) : (
-                                <p className="mb-6 text-gray-500">One size available</p>
-                            )}
+                            <p className="mb-6 text-gray-500">Variants selection coming soon...</p>
 
                             <div className="flex gap-3">
                                 <button

@@ -15,6 +15,13 @@ const validate = require('../middleware/validate');
 const { cache } = require('../middleware/cache');
 const { productSchema, productQuerySchema } = require('../validations/productSchema');
 
+const variantRouter = require('./productVariantRoutes');
+const reviewRouter = require('./reviewRoutes');
+
+// Re-route into other resource routers
+router.use('/:productId/variants', variantRouter);
+router.use('/:productId/reviews', reviewRouter);
+
 // Public routes
 router.get('/new-arrivals', getNewArrivals);
 router.get('/featured', getFeaturedProducts);

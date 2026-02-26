@@ -21,6 +21,7 @@ const ProductManagement = () => {
         category: '',
         brand: '',
         sizes: [],
+        variantStock: {},
         colors: [],
         collections: '',
         material: '',
@@ -45,8 +46,8 @@ const ProductManagement = () => {
     const { isAdmin, isAuthenticated } = useAuth();
     const navigate = useNavigate();
 
-    const categories = ['Topwear', 'Bottomwear'];
-    const genders = ['Men', 'Women', 'Unisex'];
+    const categories = ['Sweatshirt', 'Hoodies', 'Normal Tshirt', 'Oversized'];
+    const genders = ['Unisex'];
     const availableSizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
     const availableColors = ['Black'];
 
@@ -78,11 +79,34 @@ const ProductManagement = () => {
     };
 
     const handleSizeToggle = (size) => {
+        setFormData(prev => {
+            const hasSize = prev.sizes.includes(size);
+            const newSizes = hasSize
+                ? prev.sizes.filter(s => s !== size)
+                : [...prev.sizes, size];
+
+            const newVariantStock = { ...prev.variantStock };
+            if (hasSize) {
+                delete newVariantStock[size];
+            } else {
+                newVariantStock[size] = '';
+            }
+
+            return {
+                ...prev,
+                sizes: newSizes,
+                variantStock: newVariantStock
+            };
+        });
+    };
+
+    const handleVariantStockChange = (size, value) => {
         setFormData(prev => ({
             ...prev,
-            sizes: prev.sizes.includes(size)
-                ? prev.sizes.filter(s => s !== size)
-                : [...prev.sizes, size]
+            variantStock: {
+                ...prev.variantStock,
+                [size]: value
+            }
         }));
     };
 
@@ -205,36 +229,52 @@ const ProductManagement = () => {
     // ============================================================
     // MODAL
     // ============================================================
-    const openModal = (product = null) => {
+    // ============================================================
+    const openModal = async (product = null) => {
         if (product) {
             setEditingProduct(product);
+
+            // Fetch detailed product including variants (backend returns them)
+            let detailedProduct = product;
+            try {
+                detailedProduct = await productsAPI.getById(product.slug || product._id);
+            } catch (e) { console.error('Error fetching variants', e); }
+
+            const vStock = {};
+            if (detailedProduct.variants) {
+                detailedProduct.variants.forEach(v => {
+                    vStock[v.size] = v.countInStock;
+                });
+            }
+
             setFormData({
-                name: product.name || '',
-                description: product.description || '',
-                price: product.price || '',
-                discountPrice: product.discountPrice || '',
-                countInStock: product.countInStock || '',
-                sku: product.sku || '',
-                category: product.category || '',
-                brand: product.brand || '',
-                sizes: product.sizes || [],
-                colors: product.colors || [],
-                collections: product.collections || '',
-                material: product.material || '',
-                gender: product.gender || 'Unisex',
-                images: product.images?.length ? product.images : [],
-                isFeatured: product.isFeatured || false,
-                isNewArrival: product.isNewArrival || false,
-                tags: product.tags ? product.tags.join(', ') : '',
+                name: detailedProduct.name || '',
+                description: detailedProduct.description || '',
+                price: detailedProduct.basePrice || product.price || '',
+                discountPrice: detailedProduct.discountPrice || '',
+                countInStock: detailedProduct.countInStock || '',
+                sku: detailedProduct.sku || '',
+                category: detailedProduct.category || '',
+                brand: detailedProduct.brand || '',
+                sizes: detailedProduct.sizes || detailedProduct.variants?.map(v => v.size) || product.sizes || [],
+                variantStock: vStock,
+                colors: detailedProduct.colors || product.colors || [],
+                collections: detailedProduct.collections || '',
+                material: detailedProduct.material || '',
+                gender: detailedProduct.gender || 'Unisex',
+                images: detailedProduct.images?.length ? detailedProduct.images : (product.images || []),
+                isFeatured: detailedProduct.isFeatured || false,
+                isNewArrival: detailedProduct.isNewArrival || false,
+                tags: detailedProduct.tags ? detailedProduct.tags.join(', ') : '',
                 dimensions: {
-                    length: product.dimensions?.length || '',
-                    width: product.dimensions?.width || '',
-                    height: product.dimensions?.height || '',
+                    length: detailedProduct.dimensions?.length || '',
+                    width: detailedProduct.dimensions?.width || '',
+                    height: detailedProduct.dimensions?.height || '',
                 },
-                weight: product.weight || '',
-                metaTitle: product.metaTitle || '',
-                metaDescription: product.metaDescription || '',
-                metaKeywords: product.metaKeywords || '',
+                weight: detailedProduct.weight || '',
+                metaTitle: detailedProduct.metaTitle || '',
+                metaDescription: detailedProduct.metaDescription || '',
+                metaKeywords: detailedProduct.metaKeywords || '',
             });
         } else {
             setEditingProduct(null);
@@ -248,6 +288,7 @@ const ProductManagement = () => {
                 category: '',
                 brand: '',
                 sizes: [],
+                variantStock: {},
                 colors: [],
                 collections: '',
                 material: '',
@@ -275,11 +316,16 @@ const ProductManagement = () => {
         }
 
         try {
+            let totalStock = parseInt(formData.countInStock) || 0;
+            if (formData.sizes.length > 0 && Object.keys(formData.variantStock).length > 0) {
+                totalStock = Object.values(formData.variantStock).reduce((sum, val) => sum + (parseInt(val) || 0), 0);
+            }
+
             const productData = {
                 ...formData,
                 price: parseFloat(formData.price),
                 discountPrice: parseFloat(formData.discountPrice) || 0,
-                countInStock: parseInt(formData.countInStock) || 0,
+                countInStock: totalStock,
                 weight: parseFloat(formData.weight) || 0,
                 dimensions: {
                     length: parseFloat(formData.dimensions.length) || 0,
@@ -638,15 +684,19 @@ const ProductManagement = () => {
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Count In Stock *</label>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            Overall Stock
+                                            {formData.sizes.length > 0 && <span className="ml-1 text-xs text-gray-500">(Auto-calculated)</span>}
+                                        </label>
                                         <input
                                             type="number"
                                             name="countInStock"
-                                            value={formData.countInStock}
+                                            value={formData.sizes.length > 0 ? Object.values(formData.variantStock).reduce((sum, val) => sum + (parseInt(val) || 0), 0) : formData.countInStock}
                                             onChange={handleChange}
+                                            disabled={formData.sizes.length > 0}
                                             min="0"
-                                            className="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
-                                            required
+                                            className={`w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none ${formData.sizes.length > 0 ? 'bg-gray-100' : ''}`}
+                                            required={formData.sizes.length === 0}
                                         />
                                     </div>
                                 </div>
@@ -760,9 +810,9 @@ const ProductManagement = () => {
                             </div>
 
                             {/* Sizes */}
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Sizes</label>
-                                <div className="flex flex-wrap gap-2">
+                            <div className="bg-gray-50 p-4 rounded-xl border border-gray-200">
+                                <label className="block text-sm font-bold text-gray-800 mb-3">Sizes & Stock</label>
+                                <div className="flex flex-wrap gap-2 mb-4">
                                     {availableSizes.map(size => (
                                         <button
                                             key={size}
@@ -770,13 +820,31 @@ const ProductManagement = () => {
                                             onClick={() => handleSizeToggle(size)}
                                             className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${formData.sizes.includes(size)
                                                 ? 'bg-blue-600 text-white'
-                                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                                : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-100'
                                                 }`}
                                         >
                                             {size}
                                         </button>
                                     ))}
                                 </div>
+                                {formData.sizes.length > 0 && (
+                                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3 pt-3 border-t border-gray-200">
+                                        {formData.sizes.map(size => (
+                                            <div key={size} className="flex items-center gap-2">
+                                                <span className="w-10 text-sm font-bold text-gray-700">{size}:</span>
+                                                <input
+                                                    type="number"
+                                                    min="0"
+                                                    value={formData.variantStock[size] !== undefined ? formData.variantStock[size] : ''}
+                                                    onChange={(e) => handleVariantStockChange(size, e.target.value)}
+                                                    placeholder="Stock qty"
+                                                    className="w-full p-1.5 text-sm border rounded outline-none focus:border-blue-500"
+                                                    required
+                                                />
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
 
                             {/* Colors */}

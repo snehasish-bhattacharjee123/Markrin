@@ -1,9 +1,9 @@
 const mongoose = require('mongoose');
 
 const cartItemSchema = new mongoose.Schema({
-    product: {
+    variant_id: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Product',
+        ref: 'ProductVariant',
         required: true,
     },
     quantity: {
@@ -11,13 +11,6 @@ const cartItemSchema = new mongoose.Schema({
         required: true,
         min: 1,
         default: 1,
-    },
-    size: {
-        type: String,
-        enum: ['XS', 'S', 'M', 'L', 'XL', 'XXL'],
-    },
-    color: {
-        type: String,
     },
     price: {
         type: Number,

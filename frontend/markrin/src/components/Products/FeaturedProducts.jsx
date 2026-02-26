@@ -12,12 +12,14 @@ import { useAuth } from "../../context/AuthContext";
 import { useWishlist } from "../../context/WishlistContext";
 import { toast } from "sonner";
 import { getCardUrl } from "../../utils/cloudinaryHelper";
+import QuickAddModal from "./QuickAddModal";
 
 function FeaturedProducts() {
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
     const { isAuthenticated } = useAuth();
     const { wishlist, toggleWishlist, isInWishlist } = useWishlist();
+    const [quickAddProduct, setQuickAddProduct] = useState(null);
 
     useEffect(() => {
         const fetchProducts = async () => {
@@ -97,18 +99,17 @@ function FeaturedProducts() {
                 {/* Products Grid */}
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 lg:gap-6">
                     {products.map((product) => {
+                        const activeBasePrice = product.basePrice || product.price || 0;
                         const discountPercentage =
-                            product.discountPrice &&
-                                product.discountPrice < product.price
+                            product.discountPrice && product.discountPrice < activeBasePrice
                                 ? Math.round(
-                                    ((product.price - product.discountPrice) / product.price) *
-                                    100
+                                    ((activeBasePrice - product.discountPrice) / activeBasePrice) * 100
                                 )
                                 : 0;
                         const displayPrice =
-                            product.discountPrice && product.discountPrice < product.price
+                            product.discountPrice && product.discountPrice < activeBasePrice
                                 ? product.discountPrice
-                                : product.price;
+                                : activeBasePrice;
 
                         return (
                             <Link
@@ -144,8 +145,8 @@ function FeaturedProducts() {
                                         <button
                                             onClick={(e) => handleToggleWishlist(e, product._id)}
                                             className={`absolute top-3 right-3 w-9 h-9 rounded-full flex items-center justify-center transition-all duration-200 ${isInWishlist(product._id)
-                                                    ? "bg-red-50 text-red-500"
-                                                    : "bg-white/80 backdrop-blur-sm text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100"
+                                                ? "bg-red-50 text-red-500"
+                                                : "bg-white/80 backdrop-blur-sm text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100"
                                                 }`}
                                         >
                                             {isInWishlist(product._id) ? (
@@ -161,6 +162,7 @@ function FeaturedProducts() {
                                                 onClick={(e) => {
                                                     e.preventDefault();
                                                     e.stopPropagation();
+                                                    setQuickAddProduct(product);
                                                 }}
                                                 className="w-full py-2.5 bg-brand-dark-brown/95 backdrop-blur-sm text-white text-xs font-bold uppercase tracking-wider rounded-xl hover:bg-brand-gold hover:text-brand-dark-brown transition-colors duration-200 flex items-center justify-center gap-2"
                                             >
@@ -184,7 +186,7 @@ function FeaturedProducts() {
                                             </span>
                                             {discountPercentage > 0 && (
                                                 <span className="text-xs text-gray-400 line-through">
-                                                    ₹{product.price?.toFixed(0)}
+                                                    ₹{activeBasePrice?.toFixed(0)}
                                                 </span>
                                             )}
                                         </div>
@@ -205,6 +207,12 @@ function FeaturedProducts() {
                     })}
                 </div>
             </div>
+
+            <QuickAddModal
+                isOpen={!!quickAddProduct}
+                onClose={() => setQuickAddProduct(null)}
+                product={quickAddProduct}
+            />
         </section>
     );
 }

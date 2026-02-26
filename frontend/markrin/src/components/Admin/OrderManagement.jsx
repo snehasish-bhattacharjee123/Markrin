@@ -181,9 +181,9 @@ const OrderManagement = () => {
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <select
-                                            value={order.status}
+                                            value={order.order_status || 'Pending'}
                                             onChange={(e) => handleStatusChange(order._id, e.target.value)}
-                                            className={`px-3 py-1 rounded-full text-xs font-bold border-0 cursor-pointer ${getStatusColor(order.status)}`}
+                                            className={`px-3 py-1 rounded-full text-xs font-bold border-0 cursor-pointer ${getStatusColor(order.order_status)}`}
                                         >
                                             {statusOptions.map(status => (
                                                 <option key={status} value={status}>{status}</option>
@@ -337,9 +337,9 @@ const OrderManagement = () => {
                                             key={status}
                                             onClick={() => {
                                                 handleStatusChange(selectedOrder._id, status);
-                                                setSelectedOrder({ ...selectedOrder, status });
+                                                setSelectedOrder({ ...selectedOrder, order_status: status });
                                             }}
-                                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${selectedOrder.status === status
+                                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${selectedOrder.order_status === status
                                                 ? 'bg-blue-600 text-white'
                                                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                                                 }`}

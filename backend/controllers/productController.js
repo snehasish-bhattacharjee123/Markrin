@@ -1,4 +1,5 @@
 const Product = require('../models/Product');
+const ProductVariant = require('../models/ProductVariant');
 const Category = require('../models/Category');
 const mongoose = require('mongoose');
 const { clearCache } = require('../middleware/cache');
@@ -27,43 +28,17 @@ const getProducts = async (req, res) => {
         const query = {};
 
         // Category filter (can be comma-separated)
-        // Category filter (can be comma-separated)
         if (category) {
-            let categoryIds = [];
-            const categoriesToCheck = category.split(',');
-
-            // Check if input is ObjectId or Name/Slug
-            const categoryDocs = await Category.find({
-                $or: [
-                    { _id: { $in: categoriesToCheck.filter(c => mongoose.Types.ObjectId.isValid(c)) } },
-                    { slug: { $in: categoriesToCheck } },
-                    { name: { $in: categoriesToCheck } }
-                ]
-            });
-
-            categoryIds = categoryDocs.map(c => c._id);
-
-            if (categoryIds.length > 0) {
-                query.category = { $in: categoryIds };
-            } else {
-                // If categories provided but none found, return empty
-                if (categoriesToCheck.length > 0) return res.json({ products: [], page: 1, pages: 0, total: 0 });
-            }
+            const categoryArray = category.split(',');
+            // Match exact category OR any category that contains the search term (to handle sub-categories/hierarchy)
+            query.category = {
+                $in: categoryArray.map(cat => new RegExp(cat, 'i'))
+            };
         }
 
         // Gender filter
         if (gender) {
             query.gender = gender;
-        }
-
-        // Color filter (can be comma-separated)
-        if (color) {
-            query.colors = { $in: color.split(',') };
-        }
-
-        // Size filter (can be comma-separated)
-        if (size) {
-            query.sizes = { $in: size.split(',') };
         }
 
         // Material filter
@@ -78,9 +53,34 @@ const getProducts = async (req, res) => {
 
         // Price range filter
         if (minPrice || maxPrice) {
-            query.price = {};
-            if (minPrice) query.price.$gte = Number(minPrice);
-            if (maxPrice) query.price.$lte = Number(maxPrice);
+            query.basePrice = {};
+            if (minPrice) query.basePrice.$gte = Number(minPrice);
+            if (maxPrice) query.basePrice.$lte = Number(maxPrice);
+        }
+
+        // Source variant mapping for size and color
+        if (size || color) {
+            const variantQuery = {};
+            if (color) variantQuery.color = { $regex: new RegExp(`^(${color.split(',').join('|')})$`, 'i') }; // case insensitive
+            if (size) {
+                const sizeArray = size.split(',');
+                // More flexible size matching (handles potential variations better)
+                variantQuery.size = { $in: sizeArray.map(s => new RegExp(`^${s.trim()}$`, 'i')) };
+            }
+
+            // Optional: you can choose whether variant must be in stock or not for filter to match
+            // variantQuery.countInStock = { $gt: 0 };
+
+            const matchingVariants = await ProductVariant.find(variantQuery).select('product_id');
+            const productIdsFromVariants = matchingVariants.map(v => v.product_id);
+
+            if (productIdsFromVariants.length === 0) {
+                // Short circuit if no variants match the size/color filters
+                return res.json({ products: [], page: page, pages: 0, total: 0 });
+            }
+
+            // Assign to query id
+            query._id = { $in: productIdsFromVariants };
         }
 
         // Search by name or SKU
@@ -96,10 +96,10 @@ const getProducts = async (req, res) => {
         if (sort) {
             switch (sort) {
                 case 'price_asc':
-                    sortObj = { price: 1 };
+                    sortObj = { basePrice: 1 };
                     break;
                 case 'price_desc':
-                    sortObj = { price: -1 };
+                    sortObj = { basePrice: -1 };
                     break;
                 case 'name_asc':
                     sortObj = { name: 1 };
@@ -184,21 +184,23 @@ const getProductById = async (req, res) => {
         let product;
 
         if (mongoose.Types.ObjectId.isValid(id)) {
-            product = await Product.findById(id).populate('category');
+            product = await Product.findById(id);
         } else {
             // First try exact slug match
-            product = await Product.findOne({ slug: id.toLowerCase() }).populate('category');
+            product = await Product.findOne({ slug: id.toLowerCase() });
 
             // Fallback to name search if not found by slug
             if (!product) {
                 product = await Product.findOne({
                     name: { $regex: id, $options: 'i' }
-                }).populate('category');
+                });
             }
         }
 
         if (product) {
-            res.json(product);
+            const variants = await ProductVariant.find({ product_id: product._id });
+            const productWithVariants = { ...product.toObject(), variants };
+            res.json(productWithVariants);
         } else {
             res.status(404).json({ message: 'Product not found' });
         }
@@ -237,38 +239,25 @@ const createProduct = async (req, res) => {
             metaDescription,
             metaKeywords,
             bestFit,
-            sizeChart,
         } = req.body;
 
-        // Check if category is a string name and not an ObjectId
-        let categoryId = category;
-        if (category && !mongoose.Types.ObjectId.isValid(category)) {
-            let cat = await Category.findOne({ name: category });
-            if (!cat) {
-                // Create new category if it doesn't exist
-                cat = await Category.create({ name: category });
-            }
-            categoryId = cat._id;
-        }
+        // No longer relying on Category ObjectId ref
 
         const product = new Product({
             name,
             description,
-            price,
+            basePrice: price, // mapping from price payload
             discountPrice,
-            countInStock: countInStock || 0,
-            category: categoryId,
+            category, // Now a string
             brand,
-            sizes: sizes || [],
-            colors: colors || [],
             collections,
             material,
             gender,
+            sku,
             images: images || [],
             isFeatured: isFeatured || false,
             isNewArrival: isNewArrival || false,
             tags: tags || [],
-            sku,
             user: req.user._id,
             dimensions,
             weight,
@@ -276,10 +265,21 @@ const createProduct = async (req, res) => {
             metaDescription,
             metaKeywords,
             bestFit,
-            sizeChart,
         });
 
         const createdProduct = await product.save();
+
+        if (req.body.variantStock) {
+            for (const [size, numStock] of Object.entries(req.body.variantStock)) {
+                await ProductVariant.create({
+                    product_id: createdProduct._id,
+                    size,
+                    color: colors && colors.length > 0 ? colors[0] : 'Default',
+                    countInStock: parseInt(numStock) || 0,
+                    sku: `${createdProduct.slug}-${size}`.toLowerCase(),
+                });
+            }
+        }
 
         // Invalidate cache
         await clearCache('products_*')();
@@ -300,17 +300,25 @@ const updateProduct = async (req, res) => {
         const product = await Product.findById(req.params.id);
 
         if (product) {
-            // Handle category update if present in body
-            if (req.body.category && typeof req.body.category === 'string' && !mongoose.Types.ObjectId.isValid(req.body.category)) {
-                let cat = await Category.findOne({ name: req.body.category });
-                if (!cat) {
-                    cat = await Category.create({ name: req.body.category });
-                }
-                req.body.category = cat._id;
-            }
+            // Using string category, no ref populate logic needed
 
             Object.assign(product, req.body);
             const updatedProduct = await product.save();
+
+            if (req.body.variantStock) {
+                // Delete existing ones
+                await ProductVariant.deleteMany({ product_id: product._id });
+                // Recreate them
+                for (const [size, numStock] of Object.entries(req.body.variantStock)) {
+                    await ProductVariant.create({
+                        product_id: product._id,
+                        size,
+                        color: req.body.colors && req.body.colors.length > 0 ? req.body.colors[0] : 'Default',
+                        countInStock: parseInt(numStock) || 0,
+                        sku: `${product.slug}-${size}`.toLowerCase(),
+                    });
+                }
+            }
 
             // Invalidate cache
             await clearCache('products_*')();
@@ -334,6 +342,7 @@ const deleteProduct = async (req, res) => {
         const product = await Product.findById(req.params.id);
 
         if (product) {
+            await ProductVariant.deleteMany({ product_id: req.params.id });
             await Product.deleteOne({ _id: req.params.id });
 
             // Invalidate cache
@@ -368,7 +377,7 @@ const getRelatedProducts = async (req, res) => {
             relatedProducts = await Product.find({
                 category: product.category,
                 _id: { $ne: product._id }
-            }).limit(4).populate('category');
+            }).limit(4);
         }
 
         // 2. If not enough, try tags or collections (placeholder logic for now)
@@ -376,7 +385,7 @@ const getRelatedProducts = async (req, res) => {
             const moreProducts = await Product.find({
                 _id: { $ne: product._id, $nin: relatedProducts.map(p => p._id) },
                 // simple fallback: just other products for now to fill the row
-            }).limit(4 - relatedProducts.length).populate('category');
+            }).limit(4 - relatedProducts.length);
             relatedProducts = [...relatedProducts, ...moreProducts];
         }
 

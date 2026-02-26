@@ -24,11 +24,11 @@ const Hero = () => {
     },
     {
       image: "https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?w=1600",
-      title: "MEN'S COLLECTION",
+      title: "UNISEX COLLECTION",
       subtitle: "Premium Quality",
-      description: "Crafted for comfort, designed for impact. Elevate your wardrobe with timeless essentials.",
-      cta: "Shop Men",
-      link: "/collection/men",
+      description: "Fashion that fits everyone. No boundaries, just great style.",
+      cta: "Shop Unisex",
+      link: "/collection/unisex",
     },
   ];
 
@@ -55,8 +55,8 @@ const Hero = () => {
         <div
           key={index}
           className={`absolute inset-0 transition-all duration-[1200ms] ease-in-out ${index === activeIndex
-              ? "opacity-100 scale-100"
-              : "opacity-0 scale-105"
+            ? "opacity-100 scale-100"
+            : "opacity-0 scale-105"
             }`}
         >
           <img
@@ -117,7 +117,7 @@ const Hero = () => {
             </Link>
             <Link
               to="/collection/new-arrivals"
-              className="px-8 py-4 border-2 border-white/40 text-white font-bold uppercase tracking-[0.15em] text-sm rounded-xl hover:bg-white hover:text-brand-dark-brown hover:border-white transition-all duration-300 backdrop-blur-sm"
+              className="px-8 py-4 border-2 border-white/40 text-white font-bold uppercase tracking-[0.15em] text-sm rounded-xl hover:bg-white hover:text-brand-dark-brown transition-all duration-300 backdrop-blur-sm"
             >
               New Arrivals
             </Link>
@@ -132,8 +132,8 @@ const Hero = () => {
             key={index}
             onClick={() => goToSlide(index)}
             className={`rounded-full transition-all duration-500 ${index === activeIndex
-                ? "w-10 h-1.5 bg-brand-gold shadow-md shadow-brand-gold/30"
-                : "w-5 h-1.5 bg-white/30 hover:bg-white/50"
+              ? "w-10 h-1.5 bg-brand-gold shadow-md shadow-brand-gold/30"
+              : "w-5 h-1.5 bg-white/30 hover:bg-white/50"
               }`}
             aria-label={`Slide ${index + 1}`}
           />

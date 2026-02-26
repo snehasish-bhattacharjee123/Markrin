@@ -108,12 +108,12 @@ const AdminHomePage = () => {
                                         <td className='p-4'>{order.user?.name || 'N/A'}</td>
                                         <td className='p-4 font-semibold'>${order.totalPrice?.toFixed(2)}</td>
                                         <td className='p-4'>
-                                            <span className={`px-2 py-1 rounded text-xs font-bold uppercase ${order.status === 'Delivered' ? 'bg-green-100 text-green-700' :
-                                                order.status === 'Shipped' ? 'bg-blue-100 text-blue-700' :
-                                                    order.status === 'Cancelled' ? 'bg-red-100 text-red-700' :
-                                                        'bg-yellow-100 text-yellow-700'
+                                            <span className={`px-2 py-1 rounded text-xs font-bold uppercase ${order.order_status === 'Delivered' ? 'bg-green-100 text-green-700' :
+                                                    order.order_status === 'Processing' ? 'bg-blue-100 text-blue-700' :
+                                                        order.order_status === 'Cancelled' ? 'bg-red-100 text-red-700' :
+                                                            'bg-yellow-100 text-yellow-700'
                                                 }`}>
-                                                {order.status}
+                                                {order.order_status || 'Pending'}
                                             </span>
                                         </td>
                                     </tr>

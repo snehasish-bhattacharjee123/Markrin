@@ -1,7 +1,8 @@
 const Order = require('../models/Order');
 const Cart = require('../models/Cart');
 const Product = require('../models/Product');
-
+const ProductVariant = require('../models/ProductVariant');
+const Payment = require('../models/Payment');
 // @desc    Create new order
 // @route   POST /api/orders
 // @access  Private
@@ -10,24 +11,31 @@ const createOrder = async (req, res) => {
         const { shippingAddress, paymentMethod } = req.body;
 
         // Get user's cart
-        const cart = await Cart.findOne({ user: req.user._id }).populate(
-            'items.product'
-        );
+        const cart = await Cart.findOne({ user: req.user._id }).populate({
+            path: 'items.variant_id',
+            populate: {
+                path: 'product_id',
+                select: 'name images'
+            }
+        });
 
         if (!cart || cart.items.length === 0) {
             return res.status(400).json({ message: 'Cart is empty' });
         }
 
         // Build order items from cart
-        const orderItems = cart.items.map((item) => ({
-            product: item.product._id,
-            name: item.product.name,
-            image: item.product.images[0]?.url || '',
-            quantity: item.quantity,
-            size: item.size,
-            color: item.color,
-            price: item.price,
-        }));
+        const orderItems = cart.items.map((item) => {
+            const variant = item.variant_id;
+            const product = variant.product_id;
+
+            return {
+                variant_id: variant._id,
+                name: product.name,
+                image: product.images[0]?.url || '',
+                quantity: item.quantity,
+                priceAtTimeOfPurchase: item.price,
+            };
+        });
 
         // Calculate prices
         const itemsPrice = cart.items.reduce(
@@ -45,10 +53,11 @@ const createOrder = async (req, res) => {
             user: req.user._id,
             orderItems,
             shippingAddress,
-            paymentMethod: paymentMethod || 'COD',
             shippingPrice,
             taxPrice,
             totalPrice,
+            payment_status: 'Unpaid',
+            order_status: 'Pending'
         });
 
         const createdOrder = await order.save();
@@ -57,9 +66,9 @@ const createOrder = async (req, res) => {
         cart.items = [];
         await cart.save();
 
-        // Update product stock
+        // Update product variant stock
         for (const item of orderItems) {
-            await Product.findByIdAndUpdate(item.product, {
+            await ProductVariant.findByIdAndUpdate(item.variant_id, {
                 $inc: { countInStock: -item.quantity },
             });
         }
@@ -78,7 +87,13 @@ const getMyOrders = async (req, res) => {
     try {
         const orders = await Order.find({ user: req.user._id })
             .sort({ createdAt: -1 })
-            .populate('orderItems.product', 'name images');
+            .populate({
+                path: 'orderItems.variant_id',
+                populate: {
+                    path: 'product_id',
+                    select: 'name images'
+                }
+            });
 
         res.json(orders);
     } catch (error) {
@@ -123,15 +138,20 @@ const updateOrderToPaid = async (req, res) => {
         const order = await Order.findById(req.params.id);
 
         if (order) {
-            order.isPaid = true;
-            order.paidAt = Date.now();
-            order.paymentResult = {
-                id: req.body.id,
-                status: req.body.status,
-                update_time: req.body.update_time,
-                email_address: req.body.email_address,
-            };
+            order.payment_status = 'Paid';
+            order.order_status = 'Processing';
 
+            // Create payment record
+            const payment = new Payment({
+                order_id: order._id,
+                user_id: req.user._id,
+                gateway: 'Stripe',
+                transaction_id: req.body.id,
+                amount: order.totalPrice,
+                status: 'Succeeded'
+            });
+
+            await payment.save();
             const updatedOrder = await order.save();
             res.json(updatedOrder);
         } else {

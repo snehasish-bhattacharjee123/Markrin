@@ -95,72 +95,75 @@ function CartDrawer({ drawerOpen, toggleCartDrawer }) {
             </div>
           ) : (
             <div className="space-y-4">
-              {cart.items.map((item) => (
-                <div
-                  key={item._id}
-                  className="flex gap-4 p-4 bg-gray-50 rounded-xl"
-                >
-                  {/* Product Image */}
-                  <Link
-                    to={`/product/${item.product?.slug || item.product?._id}`}
-                    onClick={toggleCartDrawer}
+              {cart.items.map((item) => {
+                const product = item?.variant_id?.product_id || item?.product || item;
+                return (
+                  <div
+                    key={item._id}
+                    className="flex gap-4 p-4 bg-gray-50 rounded-xl"
                   >
-                    <img
-                      src={item.product?.images?.[0]?.url || "https://via.placeholder.com/100"}
-                      alt={item.product?.name || "Product"}
-                      className="w-20 h-20 object-cover rounded-lg hover:opacity-80 transition-opacity"
-                    />
-                  </Link>
-
-                  {/* Product Details */}
-                  <div className="flex-grow">
+                    {/* Product Image */}
                     <Link
-                      to={`/product/${item.product?.slug || item.product?._id}`}
+                      to={`/product/${product?.slug || product?._id}`}
                       onClick={toggleCartDrawer}
                     >
-                      <h3 className="font-semibold text-brand-dark-brown text-sm line-clamp-1 hover:text-brand-gold transition-colors">
-                        {item.product?.name || "Product"}
-                      </h3>
+                      <img
+                        src={product?.images?.[0]?.url || "https://via.placeholder.com/100"}
+                        alt={product?.name || "Product"}
+                        className="w-20 h-20 object-cover rounded-lg hover:opacity-80 transition-opacity"
+                      />
                     </Link>
-                    <div className="flex gap-2 mt-1">
-                      {item.size && (
-                        <span className="text-xs text-gray-500">Size: {item.size}</span>
-                      )}
-                      {item.color && (
-                        <span className="text-xs text-gray-500">Color: {item.color}</span>
-                      )}
-                    </div>
-                    <p className="font-bold text-brand-gold mt-1">
-                      ${item.price?.toFixed(2)}
-                    </p>
 
-                    {/* Quantity Controls */}
-                    <div className="flex items-center justify-between mt-2">
-                      <div className="flex items-center border border-gray-200 rounded-lg">
+                    {/* Product Details */}
+                    <div className="flex-grow">
+                      <Link
+                        to={`/product/${product?.slug || product?._id}`}
+                        onClick={toggleCartDrawer}
+                      >
+                        <h3 className="font-semibold text-brand-dark-brown text-sm line-clamp-1 hover:text-brand-gold transition-colors">
+                          {product?.name || "Product"}
+                        </h3>
+                      </Link>
+                      <div className="flex gap-2 mt-1">
+                        {item.variant_id?.size && item.variant_id.size !== 'Default' && (
+                          <span className="text-xs text-gray-500">Size: {item.variant_id.size}</span>
+                        )}
+                        {item.variant_id?.color && item.variant_id.color !== 'Default' && (
+                          <span className="text-xs text-gray-500">Color: {item.variant_id.color}</span>
+                        )}
+                      </div>
+                      <p className="font-bold text-brand-gold mt-1">
+                        ₹{item.price?.toFixed(0)}
+                      </p>
+
+                      {/* Quantity Controls */}
+                      <div className="flex items-center justify-between mt-2">
+                        <div className="flex items-center border border-gray-200 rounded-lg">
+                          <button
+                            onClick={() => updateQuantity(item._id, item.quantity - 1)}
+                            className="p-1 hover:bg-gray-100 transition-colors"
+                          >
+                            <HiMinus className="w-4 h-4" />
+                          </button>
+                          <span className="px-3 text-sm font-medium">{item.quantity}</span>
+                          <button
+                            onClick={() => updateQuantity(item._id, item.quantity + 1)}
+                            className="p-1 hover:bg-gray-100 transition-colors"
+                          >
+                            <HiPlus className="w-4 h-4" />
+                          </button>
+                        </div>
                         <button
-                          onClick={() => updateQuantity(item._id, item.quantity - 1)}
-                          className="p-1 hover:bg-gray-100 transition-colors"
+                          onClick={() => removeItem(item._id)}
+                          className="text-red-500 hover:text-red-700 transition-colors"
                         >
-                          <HiMinus className="w-4 h-4" />
-                        </button>
-                        <span className="px-3 text-sm font-medium">{item.quantity}</span>
-                        <button
-                          onClick={() => updateQuantity(item._id, item.quantity + 1)}
-                          className="p-1 hover:bg-gray-100 transition-colors"
-                        >
-                          <HiPlus className="w-4 h-4" />
+                          <HiOutlineTrash className="w-5 h-5" />
                         </button>
                       </div>
-                      <button
-                        onClick={() => removeItem(item._id)}
-                        className="text-red-500 hover:text-red-700 transition-colors"
-                      >
-                        <HiOutlineTrash className="w-5 h-5" />
-                      </button>
                     </div>
                   </div>
-                </div>
-              ))}
+                )
+              })}
             </div>
           )}
         </div>
@@ -183,7 +186,7 @@ function CartDrawer({ drawerOpen, toggleCartDrawer }) {
             <div className="flex justify-between items-center mb-4">
               <span className="text-gray-600">Subtotal</span>
               <span className="text-xl font-bold text-brand-dark-brown">
-                ${subtotal.toFixed(2)}
+                ₹{subtotal.toFixed(0)}
               </span>
             </div>
             <p className="text-xs text-gray-400 mb-4">

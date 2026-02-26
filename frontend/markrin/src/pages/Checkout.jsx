@@ -277,7 +277,7 @@ function Checkout() {
                       resetForm();
                       setShowAddressForm(true);
                     }}
-                    className="w-full bg-white border-2 border-dashed border-gray-200 rounded-2xl p-5 flex items-center gap-3 text-brand-gold font-bold text-sm hover:border-brand-gold hover:bg-brand-gold/5 transition-all"
+                    className="w-full bg-white border-2 border-dashed border-gray-200 rounded-2xl p-5 flex items-center gap-3 text-brand-gold font-bold text-sm hover:bg-brand-gold/5 transition-all"
                   >
                     <HiPlus className="w-5 h-5" />
                     Add New Address
@@ -317,7 +317,7 @@ function Checkout() {
                               onClick={() => setFormData((p) => ({ ...p, label }))}
                               className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider border-2 transition-all ${formData.label === label
                                 ? 'border-brand-gold bg-brand-gold/10 text-brand-gold'
-                                : 'border-gray-100 text-gray-400 hover:border-gray-200'
+                                : 'border-gray-100 text-gray-400'
                                 }`}
                             >
                               {label === 'Home' && <RiHome4Line className="w-4 h-4" />}
@@ -470,7 +470,7 @@ function Checkout() {
                       onClick={() => setSelectedAddressIndex(index)}
                       className={`bg-white rounded-2xl border-2 p-5 sm:p-6 cursor-pointer transition-all ${selectedAddressIndex === index
                         ? 'border-brand-gold shadow-md shadow-brand-gold/10'
-                        : 'border-gray-100 hover:border-gray-200'
+                        : 'border-gray-100'
                         }`}
                     >
                       <div className="flex items-start gap-4">

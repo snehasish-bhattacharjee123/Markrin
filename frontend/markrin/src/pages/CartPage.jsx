@@ -116,7 +116,12 @@ function CartPage() {
 
     const handleMoveToWishlist = async (item) => {
         try {
-            await toggleWishlist(item.product?._id);
+            const product = item?.variant_id?.product_id || item?.product || item;
+            if (!product?._id) {
+                toast.error("Invalid product");
+                return;
+            }
+            await toggleWishlist(product._id);
             await removeItem(item._id);
             setSelectedItems((prev) => {
                 const next = new Set(prev);
@@ -263,8 +268,8 @@ function CartPage() {
                                     <div
                                         onClick={toggleSelectAll}
                                         className={`w-5 h-5 border-2 rounded transition-all flex items-center justify-center cursor-pointer ${allSelected
-                                                ? "border-brand-gold bg-brand-gold"
-                                                : "border-gray-300 bg-white"
+                                            ? "border-brand-gold bg-brand-gold"
+                                            : "border-gray-300 bg-white"
                                             }`}
                                     >
                                         {allSelected && (
@@ -355,7 +360,7 @@ function CartPage() {
                                                     setCouponCode(e.target.value.toUpperCase())
                                                 }
                                                 placeholder="Enter coupon code"
-                                                className="flex-grow px-4 py-3 bg-gray-50 border border-gray-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-gold/20 focus:border-brand-gold transition-all uppercase tracking-wider placeholder:normal-case placeholder:tracking-normal"
+                                                className="flex-grow px-4 py-3 bg-gray-50 border border-gray-100 rounded-lg text-sm focus:outline-none focus:outline-none transition-all uppercase tracking-wider placeholder:normal-case placeholder:tracking-normal"
                                             />
                                             <button
                                                 type="submit"
@@ -538,7 +543,7 @@ function CartItemCard({
     onRemove,
     onMoveToWishlist,
 }) {
-    const product = item.product;
+    const product = item?.variant_id?.product_id || item?.product || item;
     const estimatedDelivery = new Date();
     estimatedDelivery.setDate(estimatedDelivery.getDate() + 5);
 
@@ -553,8 +558,8 @@ function CartItemCard({
                     <div
                         onClick={onToggleSelect}
                         className={`w-5 h-5 border-2 rounded transition-all flex items-center justify-center cursor-pointer ${isSelected
-                                ? "border-brand-gold bg-brand-gold"
-                                : "border-gray-300 bg-white"
+                            ? "border-brand-gold bg-brand-gold"
+                            : "border-gray-300 bg-white"
                             }`}
                     >
                         {isSelected && (
@@ -598,7 +603,7 @@ function CartItemCard({
                                 to={`/product/${product?.slug || product?._id}`}
                             >
                                 <h3 className="text-sm font-bold text-brand-dark-brown leading-snug hover:text-brand-gold transition-colors line-clamp-2">
-                                    {product?.name || "Product"}
+                                    {product?.name || item.name || "Product"}
                                 </h3>
                             </Link>
                             {product?.category && (
@@ -622,29 +627,33 @@ function CartItemCard({
                     {/* Size & Qty Controls */}
                     <div className="flex flex-wrap items-center gap-3 mt-3">
                         {/* Size Dropdown */}
-                        {product?.sizes?.length > 0 && (
-                            <div className="flex items-center gap-1.5">
-                                <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400">
-                                    Size:
-                                </span>
-                                <select
-                                    value={item.size || ""}
-                                    onChange={(e) => onUpdateSize(item._id, e.target.value)}
-                                    className="px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-xs font-bold text-brand-dark-brown focus:outline-none focus:ring-2 focus:ring-brand-gold/20 focus:border-brand-gold cursor-pointer appearance-none pr-7"
-                                    style={{
-                                        backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%234E3B31' strokeWidth='1.5' fill='none'/%3E%3C/svg%3E")`,
-                                        backgroundRepeat: "no-repeat",
-                                        backgroundPosition: "right 8px center",
-                                    }}
-                                >
-                                    {product.sizes.map((s) => (
+                        <div className="flex items-center gap-1.5">
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400">
+                                Size:
+                            </span>
+                            <select
+                                value={item.variant_id?.size || item.size || ""}
+                                onChange={(e) => onUpdateSize(item._id, e.target.value)}
+                                className="px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-xs font-bold text-brand-dark-brown focus:outline-none focus:outline-none cursor-pointer appearance-none pr-7"
+                                style={{
+                                    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%234E3B31' strokeWidth='1.5' fill='none'/%3E%3C/svg%3E")`,
+                                    backgroundRepeat: "no-repeat",
+                                    backgroundPosition: "right 8px center",
+                                }}
+                            >
+                                {product?.sizes?.length > 0 ? (
+                                    product.sizes.map((s) => (
                                         <option key={s} value={s}>
                                             {s}
                                         </option>
-                                    ))}
-                                </select>
-                            </div>
-                        )}
+                                    ))
+                                ) : (
+                                    <option value={item.variant_id?.size || item.size || ""}>
+                                        {item.variant_id?.size || item.size || "Default"}
+                                    </option>
+                                )}
+                            </select>
+                        </div>
 
                         {/* Quantity Controls */}
                         <div className="flex items-center gap-1.5">

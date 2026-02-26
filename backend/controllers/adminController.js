@@ -152,11 +152,11 @@ const updateOrderStatus = async (req, res) => {
         const order = await Order.findById(req.params.id);
 
         if (order) {
-            order.status = status;
+            order.order_status = status;
 
             if (status === 'Delivered') {
                 order.deliveredAt = Date.now();
-                order.isPaid = true;
+                order.payment_status = 'Paid';
                 order.paidAt = Date.now();
             }
 
@@ -178,7 +178,7 @@ const getDashboardStats = async (req, res) => {
     try {
         // Total revenue from paid orders
         const revenueResult = await Order.aggregate([
-            { $match: { isPaid: true } },
+            { $match: { payment_status: 'Paid' } },
             { $group: { _id: null, totalRevenue: { $sum: '$totalPrice' } } },
         ]);
         const totalRevenue = revenueResult[0]?.totalRevenue || 0;
@@ -200,7 +200,7 @@ const getDashboardStats = async (req, res) => {
 
         // Orders by status
         const ordersByStatus = await Order.aggregate([
-            { $group: { _id: '$status', count: { $sum: 1 } } },
+            { $group: { _id: '$order_status', count: { $sum: 1 } } },
         ]);
 
         res.json({

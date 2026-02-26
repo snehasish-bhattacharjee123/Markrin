@@ -61,7 +61,7 @@ const MyOrderPage = () => {
                 <th className="px-6 py-4">Date</th>
                 <th className="px-6 py-4">Shipping</th>
                 <th className="px-6 py-4">Total</th>
-                <th className="px-6 py-4 text-center">Status</th>
+                <th className="px-6 py-4 text-center">Order Status</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
@@ -96,17 +96,21 @@ const MyOrderPage = () => {
                       {order.shippingAddress?.state}
                     </td>
                     <td className="px-6 py-4 font-bold text-brand-text">
-                      ${order.totalPrice?.toFixed(2)}
+                      ₹{order.totalPrice?.toFixed(2)}
                     </td>
-                    <td className="px-6 py-4 text-center">
-                      <span
-                        className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${order.isPaid
-                            ? "bg-green-100 text-green-700"
-                            : "bg-brand-maroon-accent/10 text-brand-maroon-accent"
+                    <td className="px-6 py-4 text-center space-y-2">
+                      <div
+                        className={`inline-block px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${order.order_status === 'Delivered' ? "bg-green-100 text-green-700"
+                            : order.order_status === 'Cancelled' ? "bg-red-100 text-red-700"
+                              : order.order_status === 'Processing' ? "bg-blue-100 text-blue-700"
+                                : "bg-yellow-100 text-yellow-700"
                           }`}
                       >
-                        {order.isPaid ? "Paid" : "Pending"}
-                      </span>
+                        {order.order_status || 'Pending'}
+                      </div><br />
+                      <div className="text-[10px] font-bold text-gray-400">
+                        {order.isPaid ? 'Paid' : 'Pending Payment'}
+                      </div>
                     </td>
                   </tr>
                 ))
@@ -141,14 +145,20 @@ const MyOrderPage = () => {
                       {order._id.slice(-8).toUpperCase()}
                     </p>
                   </div>
-                  <span
-                    className={`px-2 py-1 rounded text-[10px] font-bold uppercase ${order.isPaid
-                        ? "bg-green-100 text-green-700"
-                        : "bg-brand-maroon-accent text-white"
-                      }`}
-                  >
-                    {order.isPaid ? "Paid" : "Pending"}
-                  </span>
+                  <div className="flex flex-col items-end gap-1">
+                    <span
+                      className={`px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider ${order.order_status === 'Delivered' ? "bg-green-100 text-green-700"
+                        : order.order_status === 'Cancelled' ? "bg-red-100 text-red-700"
+                          : order.order_status === 'Processing' ? "bg-blue-100 text-blue-700"
+                            : "bg-yellow-100 text-yellow-700"
+                        }`}
+                    >
+                      {order.order_status || 'Pending'}
+                    </span>
+                    <span className="text-[10px] font-bold text-gray-400">
+                      {order.isPaid ? 'Paid' : 'Pending Payment'}
+                    </span>
+                  </div>
                 </div>
 
                 <div className="space-y-4">
@@ -164,7 +174,7 @@ const MyOrderPage = () => {
                           {item.name}
                         </p>
                         <p className="text-xs text-gray-500">
-                          Qty: {item.quantity} • ${item.price?.toFixed(2)}
+                          Qty: {item.quantity} • ₹{item.priceAtTimeOfPurchase?.toFixed(2) || item.price?.toFixed(2)}
                         </p>
                       </div>
                     </div>
@@ -176,7 +186,7 @@ const MyOrderPage = () => {
                     {new Date(order.createdAt).toLocaleDateString()}
                   </span>
                   <span className="font-bold text-lg text-brand-dark-brown">
-                    ${order.totalPrice?.toFixed(2)}
+                    ₹{order.totalPrice?.toFixed(2)}
                   </span>
                 </div>
               </div>
@@ -187,8 +197,8 @@ const MyOrderPage = () => {
             </div>
           )}
         </div>
-      </div>
-    </div>
+      </div >
+    </div >
   );
 };
 

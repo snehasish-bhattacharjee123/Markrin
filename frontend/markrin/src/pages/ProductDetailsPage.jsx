@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef, useMemo } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { productsAPI } from '../api';
+import api from '../api';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { useWishlist } from '../context/WishlistContext';
@@ -38,8 +39,11 @@ function ProductDetailsPage() {
 
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [selectedSize, setSelectedSize] = useState('');
+  const [selectedColor, setSelectedColor] = useState('');
+  const [variants, setVariants] = useState([]);
   const [quantity, setQuantity] = useState(1);
   const [isSizeChartOpen, setIsSizeChartOpen] = useState(false);
+  const [sizeChartData, setSizeChartData] = useState(null);
 
   const [openAccordion, setOpenAccordion] = useState('description');
   const [isInWishlist, setIsInWishlist] = useState(false);
@@ -70,6 +74,23 @@ function ProductDetailsPage() {
           setIsInWishlist(checkWishlist(data._id));
         }
 
+        // Fetch variants
+        try {
+          const variantsData = await productsAPI.getVariants(data._id);
+          const vList = variantsData.data || variantsData || [];
+          setVariants(vList);
+
+          if (vList.length > 0) {
+            // Auto-select first color
+            const uniqueColors = [...new Set(vList.map(v => v.color))].filter(Boolean);
+            if (uniqueColors.length > 0) {
+              setSelectedColor(uniqueColors[0]);
+            }
+          }
+        } catch (err) {
+          console.error("Failed to load variants", err);
+        }
+
         // Fetch related products
         if (data.category) {
           setRelatedLoading(true);
@@ -78,6 +99,14 @@ function ProductDetailsPage() {
             const categoryValue = typeof data.category === 'object'
               ? (data.category._id || data.category.name || '')
               : data.category;
+
+            // Fetch size chart data for this category
+            try {
+              const res = await api.sizecharts.getByCategory(categoryValue);
+              setSizeChartData(res.data);
+            } catch (err) {
+              console.log('No size chart found', err.message);
+            }
 
             const relatedData = await productsAPI.getAll({
               category: categoryValue,
@@ -104,18 +133,35 @@ function ProductDetailsPage() {
   }, [slug, isAuthenticated]);
 
   const onAdd = async () => {
-    if (product.sizes?.length && !selectedSize) {
-      toast.error('Please select a size', { duration: 1500 });
+    if (!variants || variants.length === 0) {
+      toast.error('This product is currently unavailable.');
       return;
     }
+
+    if (!selectedSize) {
+      toast.error('Please select a size first.');
+      return;
+    }
+
+    // Find the specific variant matching selected color & size
+    const matchedVariant = variants.find(v => v.color === selectedColor && v.size === selectedSize);
+
+    if (!matchedVariant) {
+      toast.error('This combination is currently unavailable.');
+      return;
+    }
+
+    if (quantity > matchedVariant.countInStock) {
+      toast.error(`Only ${matchedVariant.countInStock} items available in stock.`);
+      return;
+    }
+
     setAddingToCart(true);
     try {
       await addItem({
-        productId: product._id,
+        variant_id: matchedVariant._id,
         quantity,
-        size: selectedSize,
       });
-      toast.success('Added to cart!');
     } catch (err) {
       toast.error(err.message);
     } finally {
@@ -242,12 +288,12 @@ function ProductDetailsPage() {
   }
 
   const activeImage = product.images?.[activeImageIndex];
-  const discountPercentage = product.discountPrice && product.discountPrice < product.price
-    ? Math.round(((product.price - product.discountPrice) / product.price) * 100)
+  const discountPercentage = product.discountPrice && product.discountPrice < product.basePrice
+    ? Math.round(((product.basePrice - product.discountPrice) / product.basePrice) * 100)
     : 0;
-  const displayPrice = product.discountPrice && product.discountPrice < product.price
+  const displayPrice = product.discountPrice && product.discountPrice < product.basePrice
     ? product.discountPrice
-    : product.price;
+    : product.basePrice;
 
   return (
     <div className="min-h-screen bg-white font-inter">
@@ -259,15 +305,15 @@ function ProductDetailsPage() {
           <nav className="flex items-center gap-1.5 text-xs text-gray-400 flex-wrap">
             <Link to="/" className="hover:text-brand-dark-brown transition-colors font-medium">Home</Link>
             <HiChevronRight className="w-3 h-3 text-gray-300" />
-            {product.gender && (
+            {product.gender && product.gender !== 'Unisex' && (
               <>
-                <Link to={`/collections/${product.gender?.toLowerCase()}`} className="hover:text-brand-dark-brown transition-colors font-medium capitalize">
+                <Link to={`/collection/${product.gender?.toLowerCase()}`} className="hover:text-brand-dark-brown transition-colors font-medium capitalize">
                   {product.gender}
                 </Link>
                 <HiChevronRight className="w-3 h-3 text-gray-300" />
               </>
             )}
-            <Link to={`/collections/${product.category?.name?.toLowerCase() || product.category?.toString().toLowerCase()}`} className="hover:text-brand-dark-brown transition-colors font-medium capitalize">
+            <Link to={`/collection/${product.category?.name?.toLowerCase() || product.category?.toString().toLowerCase()}`} className="hover:text-brand-dark-brown transition-colors font-medium capitalize">
               {product.category?.name || product.category}
             </Link>
             <HiChevronRight className="w-3 h-3 text-gray-300" />
@@ -285,19 +331,19 @@ function ProductDetailsPage() {
           {/* ============================================================ */}
           {/* LEFT: IMAGE GALLERY (Grid Layout) */}
           {/* ============================================================ */}
-          <div className="product-gallery-container h-auto md:h-[600px] sticky top-[80px]">
+          <div className="product-gallery-container h-fit sticky top-[100px]">
             <PDPGallery product={product} />
           </div>
 
           {/* ============================================================ */}
           {/* RIGHT: PRODUCT INFO (Bewakoof-style layout) */}
           {/* ============================================================ */}
-          <div className="lg:sticky lg:top-[80px] lg:self-start lg:max-h-[calc(100vh-100px)] lg:overflow-y-auto scrollbar-hide">
+          <div className="lg:self-start">
             <div className="space-y-0">
 
               {/* Brand */}
               <Link
-                to={`/collections/${product.category?.name?.toLowerCase() || product.category?.toString().toLowerCase()}`}
+                to={`/collection/${product.category?.name?.toLowerCase() || product.category?.toString().toLowerCase()}`}
                 className="text-sm font-bold text-brand-gold hover:underline"
               >
                 {product.brand || 'Markrin'}
@@ -317,7 +363,7 @@ function ProductDetailsPage() {
                   {discountPercentage > 0 && (
                     <>
                       <span className="text-sm text-gray-400 line-through">
-                        ₹{Math.round(product.price)}
+                        ₹{Math.round(product.basePrice)}
                       </span>
                       <span className="text-sm font-bold text-green-600">
                         {discountPercentage}% OFF
@@ -357,7 +403,7 @@ function ProductDetailsPage() {
                   <span className="px-3 py-1 bg-gray-50 border border-gray-200 rounded-md text-xs font-medium text-gray-600">
                     {product.material}
                   </span>
-                  {product.gender && (
+                  {product.gender && product.gender !== 'Unisex' && (
                     <span className="px-3 py-1 bg-gray-50 border border-gray-200 rounded-md text-xs font-medium text-gray-600">
                       {product.gender}
                     </span>
@@ -368,52 +414,104 @@ function ProductDetailsPage() {
               {/* Divider */}
               <hr className="border-gray-100 my-4" />
 
-              {/* Color Display */}
-              {product.colors?.length > 0 && (
-                <div className="mb-4">
-                  <div className="flex items-center gap-2 mb-3">
-                    <span className="text-sm font-semibold text-gray-700">Colour:</span>
-                    <span className="text-sm text-gray-500">{product.colors[0]}</span>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    {product.colors.map((color) => (
-                      <span
-                        key={color}
-                        className="px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-700 font-medium hover:border-brand-dark-brown transition-colors cursor-pointer"
-                      >
-                        {color}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
+              {/* Product Variants (Colors/Sizes) */}
+              {variants.length > 0 ? (
+                <div className="mb-6 space-y-5">
+                  {/* Color Selection */}
+                  {(() => {
+                    const uniqueColors = [...new Set(variants.map(v => v.color))].filter(Boolean);
+                    if (uniqueColors.length <= 1 && !uniqueColors[0]) return null;
 
-              {/* Size Selection */}
-              {product.sizes?.length > 0 && (
-                <div className="mb-4">
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="text-sm font-semibold text-gray-700">Select Size</span>
-                    <button
-                      onClick={() => setIsSizeChartOpen(true)}
-                      className="text-xs text-blue-500 hover:underline font-medium flex items-center gap-0.5 cursor-pointer"
-                    >
-                      Size guide <HiChevronRight className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    {product.sizes.map((size) => (
-                      <button
-                        key={size}
-                        onClick={() => setSelectedSize(size)}
-                        className={`min-w-[48px] h-12 px-4 rounded-lg border-2 text-sm font-semibold transition-all duration-200 ${selectedSize === size
-                          ? 'bg-brand-dark-brown text-white border-brand-dark-brown shadow-md'
-                          : 'border-gray-200 text-gray-600 hover:border-gray-400'
-                          }`}
-                      >
-                        {size}
-                      </button>
-                    ))}
-                  </div>
+                    return (
+                      <div>
+                        <span className="text-sm font-semibold text-gray-700 mb-2 block">
+                          Color: <span className="font-bold text-gray-900">{selectedColor}</span>
+                        </span>
+                        <div className="flex flex-wrap gap-2">
+                          {uniqueColors.map(color => (
+                            <button
+                              key={color}
+                              onClick={() => {
+                                setSelectedColor(color);
+                                setSelectedSize(''); // Reset size on color change
+                              }}
+                              className={`px-4 py-2 border rounded-lg text-sm font-medium transition-all ${selectedColor === color
+                                ? 'border-brand-dark-brown bg-brand-dark-brown text-white'
+                                : 'border-gray-200 text-gray-600'
+                                }`}
+                            >
+                              {color}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })()}
+
+                  {/* Size Selection */}
+                  {selectedColor && (() => {
+                    // Get sizes available for the selected color
+                    const availableVariants = variants.filter(v => v.color === selectedColor);
+                    // Deduplicate sizes just in case
+                    const sizes = [...new Map(availableVariants.map(v => [v.size, v])).values()];
+
+                    if (sizes.length === 0) return null;
+
+                    return (
+                      <div>
+                        <div className="flex justify-between items-end mb-2">
+                          <span className="text-sm font-semibold text-gray-700">
+                            Select Size
+                          </span>
+                          <button
+                            onClick={() => setIsSizeChartOpen(true)}
+                            className="text-xs font-bold text-brand-dark-brown underline hover:text-brand-gold transition-colors"
+                          >
+                            Size Guide
+                          </button>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          {sizes.map((variant) => {
+                            const isSelected = selectedSize === variant.size;
+                            const isOutOfStock = variant.countInStock <= 0;
+
+                            return (
+                              <div key={variant._id || variant.size} className="flex flex-col items-center gap-1">
+                                <button
+                                  onClick={() => !isOutOfStock && setSelectedSize(variant.size)}
+                                  disabled={isOutOfStock}
+                                  className={`
+                                    min-w-[48px] h-12 px-3 border rounded-lg text-sm font-bold transition-all
+                                    ${isSelected
+                                      ? 'border-brand-dark-brown bg-brand-dark-brown text-white shadow-md'
+                                      : 'border-gray-200 text-gray-700'}
+                                    ${isOutOfStock ? 'opacity-40 cursor-not-allowed bg-gray-50 text-gray-400 border-gray-100 relative' : ''}
+                                  `}
+                                >
+                                  {variant.size}
+                                  {isOutOfStock && (
+                                    <div className="absolute inset-0 flex items-center justify-center overflow-hidden">
+                                      <div className="w-full h-px bg-gray-300 rotate-45 transform origin-center"></div>
+                                    </div>
+                                  )}
+                                </button>
+                                <span className={`text-[10px] font-medium ${isOutOfStock ? 'text-red-500' : 'text-emerald-600'}`}>
+                                  {isOutOfStock ? 'Out' : `${variant.countInStock} Left`}
+                                </span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                        {!selectedSize && (
+                          <p className="text-xs text-red-500 mt-2">Please select a size.</p>
+                        )}
+                      </div>
+                    );
+                  })()}
+                </div>
+              ) : (
+                <div className="mb-6 p-4 bg-red-50 text-red-600 rounded-lg text-sm font-medium">
+                  This product is currently out of stock or unavailable.
                 </div>
               )}
 
@@ -451,18 +549,15 @@ function ProductDetailsPage() {
               <div className="flex gap-3 mb-5">
                 <button
                   onClick={onAdd}
-                  disabled={product.countInStock === 0 || addingToCart}
-                  className={`flex-1 h-14 rounded-xl font-bold uppercase tracking-wider text-sm transition-all duration-200 flex items-center justify-center gap-2.5 ${product.countInStock === 0
-                    ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                    : 'bg-brand-dark-brown text-white hover:bg-[#2a1810] active:scale-[0.98] shadow-lg'
-                    }`}
+                  disabled={addingToCart}
+                  className={`flex-1 h-14 rounded-xl font-bold uppercase tracking-wider text-sm transition-all duration-200 flex items-center justify-center gap-2.5 bg-brand-dark-brown text-white hover:bg-[#2a1810] shadow-lg`}
                 >
                   {addingToCart ? (
                     <div className="animate-spin h-5 w-5 border-2 border-white/30 border-t-white rounded-full" />
                   ) : (
                     <>
                       <HiOutlineShoppingBag className="w-5 h-5" />
-                      {product.countInStock === 0 ? 'Out of Stock' : 'Add to Bag'}
+                      Add to Bag
                     </>
                   )}
                 </button>
@@ -472,7 +567,7 @@ function ProductDetailsPage() {
                   disabled={wishlistLoading}
                   className={`w-14 h-14 rounded-xl border-2 flex items-center justify-center transition-all duration-300 ${isInWishlist
                     ? 'border-red-300 bg-red-50 text-red-500'
-                    : 'border-gray-200 text-gray-400 hover:border-red-300 hover:text-red-500'
+                    : 'border-gray-200 text-gray-400 hover:text-red-500'
                     }`}
                 >
                   {wishlistLoading ? (
@@ -486,15 +581,25 @@ function ProductDetailsPage() {
               </div>
 
               {/* Stock Info */}
-              <div className={`flex items-center gap-2 text-xs font-medium mb-4 ${product.countInStock > 0 ? 'text-emerald-600' : 'text-red-500'}`}>
-                <span className={`w-1.5 h-1.5 rounded-full ${product.countInStock > 0 ? 'bg-emerald-500' : 'bg-red-500'} animate-pulse`} />
-                {product.countInStock > 0
-                  ? product.countInStock < 10
-                    ? `Only ${product.countInStock} left – order soon!`
-                    : 'In Stock'
-                  : 'Out of Stock'
+              {selectedSize && variants.length > 0 && (() => {
+                const matched = variants.find(v => v.color === selectedColor && v.size === selectedSize);
+                if (matched && matched.countInStock > 0) {
+                  return (
+                    <div className={`flex items-center gap-2 text-xs font-medium mb-4 text-emerald-600`}>
+                      <span className={`w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse`} />
+                      In Stock ({matched.countInStock} available)
+                    </div>
+                  )
+                } else if (matched && matched.countInStock <= 0) {
+                  return (
+                    <div className={`flex items-center gap-2 text-xs font-medium mb-4 text-red-600`}>
+                      <span className={`w-1.5 h-1.5 rounded-full bg-red-500`} />
+                      Out of Stock
+                    </div>
+                  )
                 }
-              </div>
+                return null;
+              })()}
 
               <hr className="border-gray-100" />
 
@@ -780,7 +885,7 @@ function ProductDetailsPage() {
       <SizeChartModal
         isOpen={isSizeChartOpen}
         onClose={() => setIsSizeChartOpen(false)}
-        imageUrl={product.sizeChart}
+        sizeChartData={sizeChartData}
       />
     </div>
 

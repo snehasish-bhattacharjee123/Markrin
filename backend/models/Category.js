@@ -36,8 +36,8 @@ const categorySchema = new mongoose.Schema(
     }
 );
 
-// Pre-save hook to generate slug from name
-categorySchema.pre('save', function (next) {
+// Pre-validate hook to generate slug from name before validation
+categorySchema.pre('validate', function (next) {
     if (this.isModified('name') || !this.slug) {
         this.slug = this.name
             .toLowerCase()

@@ -106,19 +106,20 @@ function JeansEditScroll() {
                         className="w-full !pb-4 !px-1"
                     >
                         {products.map((product) => {
+                            const activeBasePrice = product.basePrice || product.price || 0;
                             const discountPercentage =
-                                product.discountPrice && product.discountPrice < product.price
-                                    ? Math.round(((product.price - product.discountPrice) / product.price) * 100)
+                                product.discountPrice && product.discountPrice < activeBasePrice
+                                    ? Math.round(((activeBasePrice - product.discountPrice) / activeBasePrice) * 100)
                                     : 0;
 
                             const displayPrice =
-                                product.discountPrice && product.discountPrice < product.price
+                                product.discountPrice && product.discountPrice < activeBasePrice
                                     ? product.discountPrice
-                                    : product.price;
+                                    : activeBasePrice;
 
                             return (
                                 <SwiperSlide key={product._id} className="h-auto">
-                                    <div className="bg-white rounded-md overflow-hidden shadow-sm h-full flex flex-col hover:shadow-md transition-shadow duration-300 border border-transparent hover:border-gray-100">
+                                    <div className="bg-white rounded-md overflow-hidden shadow-sm h-full flex flex-col hover:shadow-md transition-shadow duration-300 border border-transparent">
                                         <Link to={`/product/${product.slug || product._id}`} className="block relative aspect-[3/4] overflow-hidden bg-gray-100">
                                             <img
                                                 src={getCardUrl(product.images?.[0]?.url)}
@@ -175,7 +176,7 @@ function JeansEditScroll() {
                                                 {discountPercentage > 0 && (
                                                     <>
                                                         <span className="text-xs text-gray-400 line-through">
-                                                            ₹{Math.round(product.price)}
+                                                            ₹{Math.round(activeBasePrice)}
                                                         </span>
                                                         <span className="text-xs font-bold text-green-600">
                                                             {discountPercentage}% OFF

@@ -7,29 +7,38 @@ const mongoose = require('mongoose');
 // @access  Private
 const getCart = async (req, res) => {
     try {
-        let cart = await Cart.findOne({ user: req.user._id }).populate(
-            'items.product',
-            'name price images countInStock sizes colors'
-        );
+        let cart = await Cart.findOne({ user: req.user._id }).populate({
+            path: 'items.variant_id',
+            populate: {
+                path: 'product_id',
+                select: 'name basePrice discountPrice images slug category'
+            }
+        });
 
         if (!cart) {
             // Create empty cart if doesn't exist
             cart = await Cart.create({ user: req.user._id, items: [] });
-            cart = await Cart.findById(cart._id).populate(
-                'items.product',
-                'name price images countInStock sizes colors'
-            );
+            cart = await Cart.findById(cart._id).populate({
+                path: 'items.variant_id',
+                populate: {
+                    path: 'product_id',
+                    select: 'name basePrice discountPrice images slug category'
+                }
+            });
         }
 
-        // Remove stale items whose product reference no longer exists
+        // Remove stale items whose variant or product reference no longer exists
         const originalLength = cart.items.length;
-        cart.items = cart.items.filter((item) => item.product);
+        cart.items = cart.items.filter((item) => item.variant_id && item.variant_id.product_id);
         if (cart.items.length !== originalLength) {
             await cart.save();
-            cart = await Cart.findById(cart._id).populate(
-                'items.product',
-                'name price images countInStock sizes colors'
-            );
+            cart = await Cart.findById(cart._id).populate({
+                path: 'items.variant_id',
+                populate: {
+                    path: 'product_id',
+                    select: 'name basePrice discountPrice images slug category'
+                }
+            });
         }
 
         res.json(cart);
@@ -44,20 +53,44 @@ const getCart = async (req, res) => {
 // @access  Private
 const addToCart = async (req, res) => {
     try {
-        const { productId, quantity, size, color } = req.body;
+        let { variant_id, quantity } = req.body;
 
-        if (!mongoose.Types.ObjectId.isValid(productId)) {
-            return res.status(400).json({ message: 'Invalid product id' });
+        if (!mongoose.Types.ObjectId.isValid(variant_id)) {
+            return res.status(400).json({ message: 'Invalid variant id' });
         }
 
-        // Validate product exists
-        const product = await Product.findById(productId);
-        if (!product) {
-            return res.status(404).json({ message: 'Product not found' });
+        const ProductVariant = require('../models/ProductVariant');
+        const Product = require('../models/Product');
+
+        let variant = await ProductVariant.findById(variant_id).populate('product_id', 'basePrice discountPrice name slug');
+
+        if (!variant) {
+            // Check if it's actually a Product ID (frontend placeholder behavior)
+            const product = await Product.findById(variant_id);
+            if (!product) {
+                return res.status(404).json({ message: 'Product variant not found' });
+            }
+
+            // Find first variant for this product, or create a default one if none exist
+            variant = await ProductVariant.findOne({ product_id: product._id }).populate('product_id', 'basePrice discountPrice name slug');
+            if (!variant) {
+                variant = await ProductVariant.create({
+                    product_id: product._id,
+                    size: 'Default',
+                    color: 'Default',
+                    countInStock: 100, // mock stock
+                    sku: `SKU-${product._id.toString().substring(0, 8)}`,
+                });
+                // hydrate populate for downstream logic
+                variant.product_id = product;
+            }
+
+            // Re-map variant_id to the actual variant's ID
+            variant_id = variant._id.toString();
         }
 
         // Check stock
-        if (product.countInStock < quantity) {
+        if (variant.countInStock < quantity) {
             return res.status(400).json({ message: 'Not enough stock available' });
         }
 
@@ -73,33 +106,35 @@ const addToCart = async (req, res) => {
 
         // Check if item already exists in cart
         const existingItemIndex = cart.items.findIndex(
-            (item) =>
-                item.product.toString() === productId &&
-                item.size === size &&
-                item.color === color
+            (item) => item.variant_id.toString() === variant_id
         );
 
         if (existingItemIndex > -1) {
             // Update quantity
             cart.items[existingItemIndex].quantity += quantity;
         } else {
+            const actualPrice = (variant.product_id.discountPrice && variant.product_id.discountPrice < variant.product_id.basePrice)
+                ? variant.product_id.discountPrice
+                : variant.product_id.basePrice;
+
             // Add new item
             cart.items.push({
-                product: productId,
+                variant_id,
                 quantity,
-                size,
-                color,
-                price: product.price,
+                price: actualPrice,
             });
         }
 
         await cart.save();
 
         // Populate and return
-        cart = await Cart.findById(cart._id).populate(
-            'items.product',
-            'name price images countInStock sizes colors'
-        );
+        cart = await Cart.findById(cart._id).populate({
+            path: 'items.variant_id',
+            populate: {
+                path: 'product_id',
+                select: 'name basePrice discountPrice images slug category'
+            }
+        });
 
         res.json(cart);
     } catch (error) {
@@ -113,7 +148,7 @@ const addToCart = async (req, res) => {
 // @access  Private
 const updateCartItem = async (req, res) => {
     try {
-        const { quantity, size, color } = req.body;
+        const { quantity } = req.body;
         const { itemId } = req.params;
 
         const cart = await Cart.findOne({ user: req.user._id });
@@ -131,32 +166,8 @@ const updateCartItem = async (req, res) => {
         }
 
         const item = cart.items[itemIndex];
-        const productId = item.product.toString();
 
-        // If updating size or color, check if another item with same specs already exists
-        if (size !== undefined || color !== undefined) {
-            const newSize = size !== undefined ? size : item.size;
-            const newColor = color !== undefined ? color : item.color;
-
-            const existingSameItemIndex = cart.items.findIndex(
-                (it, idx) =>
-                    idx !== itemIndex &&
-                    it.product.toString() === productId &&
-                    it.size === newSize &&
-                    it.color === newColor
-            );
-
-            if (existingSameItemIndex > -1) {
-                // Merge quantities and remove the current item
-                cart.items[existingSameItemIndex].quantity += (quantity !== undefined ? quantity : item.quantity);
-                cart.items.splice(itemIndex, 1);
-            } else {
-                // Just update specs
-                if (size !== undefined) item.size = size;
-                if (color !== undefined) item.color = color;
-                if (quantity !== undefined) item.quantity = quantity;
-            }
-        } else if (quantity !== undefined) {
+        if (quantity !== undefined) {
             if (quantity <= 0) {
                 cart.items.splice(itemIndex, 1);
             } else {
@@ -166,10 +177,13 @@ const updateCartItem = async (req, res) => {
 
         await cart.save();
 
-        const updatedCart = await Cart.findById(cart._id).populate(
-            'items.product',
-            'name price images countInStock sizes colors'
-        );
+        const updatedCart = await Cart.findById(cart._id).populate({
+            path: 'items.variant_id',
+            populate: {
+                path: 'product_id',
+                select: 'name basePrice discountPrice images slug category'
+            }
+        });
 
         res.json(updatedCart);
     } catch (error) {
@@ -195,10 +209,13 @@ const removeFromCart = async (req, res) => {
 
         await cart.save();
 
-        const updatedCart = await Cart.findById(cart._id).populate(
-            'items.product',
-            'name price images countInStock'
-        );
+        const updatedCart = await Cart.findById(cart._id).populate({
+            path: 'items.variant_id',
+            populate: {
+                path: 'product_id',
+                select: 'name basePrice discountPrice images slug category'
+            }
+        });
 
         res.json(updatedCart);
     } catch (error) {

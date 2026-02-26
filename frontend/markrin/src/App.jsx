@@ -26,6 +26,7 @@ import AdminHomePage from "./pages/AdminHomePage";
 import UserManagement from "./components/Admin/UserManagement";
 import ProductManagement from "./components/Admin/ProductManagement";
 import OrderManagement from "./components/Admin/OrderManagement";
+import SizeChartManagement from "./components/Admin/SizeChartManagement";
 
 // Guard
 import ProtectedRoute from "./components/Common/ProtectedRoute";
@@ -123,9 +124,9 @@ function App() {
                 <Route path="collections" element={<Shop />} />
                 <Route path="collection/:collection" element={<CollectionPage />} />
                 {/* Direct category routes */}
-                <Route path="hoodie" element={<CollectionPage />} />
+                <Route path="hoodies" element={<CollectionPage />} />
                 <Route path="oversized" element={<CollectionPage />} />
-                <Route path="sweat-shirt" element={<CollectionPage />} />
+                <Route path="sweatshirt" element={<CollectionPage />} />
                 <Route path="normal-tshirt" element={<CollectionPage />} />
               </Route>
 
@@ -141,6 +142,7 @@ function App() {
               >
                 <Route index element={<AdminHomePage />} />
                 <Route path="products" element={<ProductManagement />} />
+                <Route path="size-charts" element={<SizeChartManagement />} />
                 <Route path="orders" element={<OrderManagement />} />
                 <Route path="users" element={<UserManagement />} />
               </Route>

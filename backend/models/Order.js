@@ -1,9 +1,9 @@
 const mongoose = require('mongoose');
 
 const orderItemSchema = new mongoose.Schema({
-    product: {
+    variant_id: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Product',
+        ref: 'ProductVariant',
         required: true,
     },
     name: {
@@ -19,13 +19,7 @@ const orderItemSchema = new mongoose.Schema({
         required: true,
         min: 1,
     },
-    size: {
-        type: String,
-    },
-    color: {
-        type: String,
-    },
-    price: {
+    priceAtTimeOfPurchase: {
         type: Number,
         required: true,
     },
@@ -46,16 +40,6 @@ const orderSchema = new mongoose.Schema(
             postalCode: { type: String, required: true },
             country: { type: String, required: true, default: 'India' },
         },
-        paymentMethod: {
-            type: String,
-            default: 'COD',
-        },
-        paymentResult: {
-            id: String,
-            status: String,
-            update_time: String,
-            email_address: String,
-        },
         totalPrice: {
             type: Number,
             required: true,
@@ -71,18 +55,16 @@ const orderSchema = new mongoose.Schema(
             required: true,
             default: 0.0,
         },
-        isPaid: {
-            type: Boolean,
-            required: true,
-            default: false,
-        },
-        paidAt: {
-            type: Date,
-        },
-        status: {
+        payment_status: {
             type: String,
-            enum: ['Processing', 'Shipped', 'Delivered', 'Cancelled'],
-            default: 'Processing',
+            enum: ['Unpaid', 'Paid', 'Refunded'],
+            default: 'Unpaid',
+            required: true,
+        },
+        order_status: {
+            type: String,
+            enum: ['Pending', 'Processing', 'Delivered', 'Cancelled'],
+            default: 'Pending',
         },
         deliveredAt: {
             type: Date,

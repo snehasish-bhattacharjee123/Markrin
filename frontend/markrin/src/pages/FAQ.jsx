@@ -11,7 +11,7 @@ const faqData = [
             },
             {
                 q: "Do you ship internationally?",
-                a: "Yes! We ship worldwide to over 100 countries. Shipping costs and delivery times vary by location. Free shipping is available on orders over $100 for domestic and $150 for international orders.",
+                a: "Yes! We ship worldwide to over 100 countries. Shipping costs and delivery times vary by location. Free shipping is available on orders over ₹2,000 for domestic and ₹5,000 for international orders.",
             },
             {
                 q: "How can I track my order?",
@@ -177,8 +177,8 @@ function FAQ() {
                         <button
                             onClick={() => setActiveCategory("all")}
                             className={`px-5 py-2 rounded-full text-sm font-bold whitespace-nowrap transition-all ${activeCategory === "all"
-                                    ? "bg-brand-dark-brown text-white"
-                                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                                ? "bg-brand-dark-brown text-white"
+                                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
                                 }`}
                         >
                             All Categories
@@ -188,8 +188,8 @@ function FAQ() {
                                 key={category.category}
                                 onClick={() => setActiveCategory(category.category)}
                                 className={`px-5 py-2 rounded-full text-sm font-bold whitespace-nowrap transition-all ${activeCategory === category.category
-                                        ? "bg-brand-dark-brown text-white"
-                                        : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                                    ? "bg-brand-dark-brown text-white"
+                                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
                                     }`}
                             >
                                 {category.category}

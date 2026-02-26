@@ -276,8 +276,8 @@ function Profile() {
                     key={item.id}
                     onClick={() => handleTabClick(item.id)}
                     className={`w-full flex items-center gap-3.5 px-6 py-3.5 text-sm font-medium transition-all border-l-[3px] ${activeTab === item.id
-                        ? "border-brand-gold text-brand-gold bg-brand-gold/5"
-                        : "border-transparent text-gray-600 hover:bg-gray-50 hover:text-brand-dark-brown"
+                      ? "border-brand-gold text-brand-gold bg-brand-gold/5"
+                      : "border-transparent text-gray-600 hover:bg-gray-50 hover:text-brand-dark-brown"
                       }`}
                   >
                     <item.icon className="w-5 h-5" />
@@ -341,7 +341,7 @@ function Profile() {
                           handleTabClick(card.tab);
                         }
                       }}
-                      className="bg-white rounded-2xl border border-gray-100 p-6 text-center hover:border-brand-gold/30 hover:shadow-md hover:shadow-brand-gold/5 transition-all duration-300 group"
+                      className="bg-white rounded-2xl border border-gray-100 p-6 text-center hover:shadow-md hover:shadow-brand-gold/5 transition-all duration-300 group"
                     >
                       <div className="w-12 h-12 bg-brand-gold/10 rounded-xl flex items-center justify-center mx-auto mb-4 group-hover:bg-brand-gold/20 transition-colors">
                         <card.icon className="w-6 h-6 text-brand-gold" />
@@ -390,7 +390,7 @@ function Profile() {
                           })
                         }
                         required
-                        className="w-full px-4 py-3.5 border border-gray-200 rounded-xl text-sm text-brand-dark-brown focus:outline-none focus:ring-2 focus:ring-brand-gold/20 focus:border-brand-gold transition-all"
+                        className="w-full px-4 py-3.5 border border-gray-200 rounded-xl text-sm text-brand-dark-brown focus:outline-none focus:outline-none transition-all"
                       />
                     </div>
                     <div>
@@ -406,7 +406,7 @@ function Profile() {
                             lastName: e.target.value,
                           })
                         }
-                        className="w-full px-4 py-3.5 border border-gray-200 rounded-xl text-sm text-brand-dark-brown focus:outline-none focus:ring-2 focus:ring-brand-gold/20 focus:border-brand-gold transition-all"
+                        className="w-full px-4 py-3.5 border border-gray-200 rounded-xl text-sm text-brand-dark-brown focus:outline-none focus:outline-none transition-all"
                       />
                     </div>
                   </div>
@@ -426,7 +426,7 @@ function Profile() {
                         })
                       }
                       required
-                      className="w-full px-4 py-3.5 border border-gray-200 rounded-xl text-sm text-brand-dark-brown focus:outline-none focus:ring-2 focus:ring-brand-gold/20 focus:border-brand-gold transition-all"
+                      className="w-full px-4 py-3.5 border border-gray-200 rounded-xl text-sm text-brand-dark-brown focus:outline-none focus:outline-none transition-all"
                     />
                   </div>
 
@@ -451,7 +451,7 @@ function Profile() {
                           }
                           maxLength={10}
                           placeholder="Enter mobile number"
-                          className="w-full pl-12 pr-4 py-3.5 border border-gray-200 rounded-xl text-sm text-brand-dark-brown focus:outline-none focus:ring-2 focus:ring-brand-gold/20 focus:border-brand-gold transition-all"
+                          className="w-full pl-12 pr-4 py-3.5 border border-gray-200 rounded-xl text-sm text-brand-dark-brown focus:outline-none focus:outline-none transition-all"
                         />
                       </div>
                     </div>
@@ -472,7 +472,7 @@ function Profile() {
                         })
                       }
                       placeholder="dd-mm-yyyy"
-                      className="w-full px-4 py-3.5 border border-gray-200 rounded-xl text-sm text-brand-dark-brown focus:outline-none focus:ring-2 focus:ring-brand-gold/20 focus:border-brand-gold transition-all"
+                      className="w-full px-4 py-3.5 border border-gray-200 rounded-xl text-sm text-brand-dark-brown focus:outline-none focus:outline-none transition-all"
                     />
                     <p className="text-[11px] text-gray-400 mt-1.5">
                       Share your DOB to get special gifts on the 1st day of your
@@ -494,8 +494,8 @@ function Profile() {
                             setProfileData({ ...profileData, gender: g })
                           }
                           className={`px-6 py-2.5 rounded-lg text-sm font-medium border-2 transition-all ${profileData.gender === g
-                              ? "border-brand-gold bg-brand-gold text-brand-dark-brown"
-                              : "border-gray-200 text-gray-500 hover:border-gray-300"
+                            ? "border-brand-gold bg-brand-gold text-brand-dark-brown"
+                            : "border-gray-200 text-gray-500"
                             }`}
                         >
                           {g}
@@ -523,7 +523,7 @@ function Profile() {
                           })
                         }
                         placeholder="Leave blank to keep current"
-                        className="w-full px-4 py-3.5 border border-gray-200 rounded-xl text-sm text-brand-dark-brown focus:outline-none focus:ring-2 focus:ring-brand-gold/20 focus:border-brand-gold transition-all"
+                        className="w-full px-4 py-3.5 border border-gray-200 rounded-xl text-sm text-brand-dark-brown focus:outline-none focus:outline-none transition-all"
                       />
                     </div>
                     <div>
@@ -540,7 +540,7 @@ function Profile() {
                           })
                         }
                         placeholder="Confirm new password"
-                        className="w-full px-4 py-3.5 border border-gray-200 rounded-xl text-sm text-brand-dark-brown focus:outline-none focus:ring-2 focus:ring-brand-gold/20 focus:border-brand-gold transition-all"
+                        className="w-full px-4 py-3.5 border border-gray-200 rounded-xl text-sm text-brand-dark-brown focus:outline-none focus:outline-none transition-all"
                       />
                     </div>
                   </div>
@@ -659,16 +659,13 @@ function Profile() {
                                 </td>
                                 <td className="px-6 py-4 text-center">
                                   <span
-                                    className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${order.status === "Delivered"
-                                        ? "bg-green-100 text-green-700"
-                                        : order.status === "Cancelled"
-                                          ? "bg-red-100 text-red-700"
-                                          : order.status === "Shipped"
-                                            ? "bg-blue-100 text-blue-700"
-                                            : "bg-yellow-100 text-yellow-700"
+                                    className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${order.order_status === "Delivered" ? "bg-green-100 text-green-700"
+                                      : order.order_status === "Cancelled" ? "bg-red-100 text-red-700"
+                                        : order.order_status === "Processing" ? "bg-blue-100 text-blue-700"
+                                          : "bg-yellow-100 text-yellow-700"
                                       }`}
                                   >
-                                    {order.status}
+                                    {order.order_status || 'Pending'}
                                   </span>
                                 </td>
                               </tr>
@@ -694,14 +691,13 @@ function Profile() {
                                 </p>
                               </div>
                               <span
-                                className={`px-2 py-1 rounded text-[10px] font-bold uppercase ${order.status === "Delivered"
-                                    ? "bg-green-100 text-green-700"
-                                    : order.status === "Cancelled"
-                                      ? "bg-red-100 text-red-700"
+                                className={`px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider ${order.order_status === "Delivered" ? "bg-green-100 text-green-700"
+                                  : order.order_status === "Cancelled" ? "bg-red-100 text-red-700"
+                                    : order.order_status === "Processing" ? "bg-blue-100 text-blue-700"
                                       : "bg-yellow-100 text-yellow-700"
                                   }`}
                               >
-                                {order.status}
+                                {order.order_status || 'Pending'}
                               </span>
                             </div>
                             <div className="space-y-4">
@@ -762,24 +758,24 @@ function Profile() {
                     )}
                   </h2>
                 </div>
-                 <div className="p-6 sm:p-8">
-                    {wishlist.length === 0 ? (
-                      <div className="text-center py-20">
-                        <RiHeartLine className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                        <p className="text-gray-500 mb-4">
-                          Your wishlist is empty
-                        </p>
-                        <Link
-                          to="/shop"
-                          className="inline-block px-6 py-3 bg-brand-dark-brown text-white font-bold uppercase tracking-wider text-sm rounded-xl hover:bg-brand-gold hover:text-brand-dark-brown transition-all"
-                        >
-                          Browse Products
-                        </Link>
-                      </div>
-                    ) : (
-                      <>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                          {wishlist.map((product) => (
+                <div className="p-6 sm:p-8">
+                  {wishlist.length === 0 ? (
+                    <div className="text-center py-20">
+                      <RiHeartLine className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                      <p className="text-gray-500 mb-4">
+                        Your wishlist is empty
+                      </p>
+                      <Link
+                        to="/shop"
+                        className="inline-block px-6 py-3 bg-brand-dark-brown text-white font-bold uppercase tracking-wider text-sm rounded-xl hover:bg-brand-gold hover:text-brand-dark-brown transition-all"
+                      >
+                        Browse Products
+                      </Link>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {wishlist.map((product) => (
                           <div
                             key={product._id}
                             className="group bg-gray-50 rounded-xl overflow-hidden hover:shadow-md transition-all"
@@ -821,8 +817,8 @@ function Profile() {
                                   onClick={() => handleAddToCart(product)}
                                   disabled={product.countInStock === 0}
                                   className={`p-2 rounded-lg text-xs font-bold uppercase transition-all ${product.countInStock === 0
-                                      ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                                      : "bg-brand-dark-brown text-white hover:bg-brand-gold hover:text-brand-dark-brown"
+                                    ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                                    : "bg-brand-dark-brown text-white hover:bg-brand-gold hover:text-brand-dark-brown"
                                     }`}
                                 >
                                   <HiOutlineShoppingBag className="w-4 h-4" />
@@ -878,7 +874,7 @@ function Profile() {
                           handleTabClick(card.tab);
                         }
                       }}
-                      className="bg-white rounded-2xl border border-gray-100 p-6 text-center hover:border-brand-gold/30 hover:shadow-md hover:shadow-brand-gold/5 transition-all duration-300 group"
+                      className="bg-white rounded-2xl border border-gray-100 p-6 text-center hover:shadow-md hover:shadow-brand-gold/5 transition-all duration-300 group"
                     >
                       <div className="w-12 h-12 bg-brand-gold/10 rounded-xl flex items-center justify-center mx-auto mb-4 group-hover:bg-brand-gold/20 transition-colors">
                         <card.icon className="w-6 h-6 text-brand-gold" />
@@ -944,7 +940,7 @@ function AddressesTab({
               })
             }
             placeholder="House/Flat No., Building, Street, Area"
-            className="w-full px-4 py-3.5 border border-gray-200 rounded-xl text-sm text-brand-dark-brown focus:outline-none focus:ring-2 focus:ring-brand-gold/20 focus:border-brand-gold transition-all"
+            className="w-full px-4 py-3.5 border border-gray-200 rounded-xl text-sm text-brand-dark-brown focus:outline-none focus:outline-none transition-all"
           />
         </div>
 
@@ -1002,11 +998,11 @@ function AddressesTab({
                   }
                 }}
                 placeholder="700023"
-                className={`w-full px-4 py-3.5 border rounded-xl text-sm text-brand-dark-brown focus:outline-none focus:ring-2 focus:ring-brand-gold/20 focus:border-brand-gold transition-all pr-12 ${pincodeError
-                    ? "border-red-300"
-                    : pincodeSuccess
-                      ? "border-green-300"
-                      : "border-gray-200"
+                className={`w-full px-4 py-3.5 border rounded-xl text-sm text-brand-dark-brown focus:outline-none focus:outline-none transition-all pr-12 ${pincodeError
+                  ? "border-red-300"
+                  : pincodeSuccess
+                    ? "border-green-300"
+                    : "border-gray-200"
                   }`}
               />
               <div className="absolute right-3 top-1/2 -translate-y-1/2">
@@ -1043,7 +1039,7 @@ function AddressesTab({
               }
               readOnly={pincodeSuccess}
               placeholder="Kolkata"
-              className={`w-full px-4 py-3.5 border border-gray-200 rounded-xl text-sm text-brand-dark-brown focus:outline-none focus:ring-2 focus:ring-brand-gold/20 focus:border-brand-gold transition-all ${pincodeSuccess ? "bg-green-50/30" : ""
+              className={`w-full px-4 py-3.5 border border-gray-200 rounded-xl text-sm text-brand-dark-brown focus:outline-none focus:outline-none transition-all ${pincodeSuccess ? "bg-green-50/30" : ""
                 }`}
             />
           </div>
@@ -1064,7 +1060,7 @@ function AddressesTab({
               }
               readOnly={pincodeSuccess}
               placeholder="West Bengal"
-              className={`w-full px-4 py-3.5 border border-gray-200 rounded-xl text-sm text-brand-dark-brown focus:outline-none focus:ring-2 focus:ring-brand-gold/20 focus:border-brand-gold transition-all ${pincodeSuccess ? "bg-green-50/30" : ""
+              className={`w-full px-4 py-3.5 border border-gray-200 rounded-xl text-sm text-brand-dark-brown focus:outline-none focus:outline-none transition-all ${pincodeSuccess ? "bg-green-50/30" : ""
                 }`}
             />
           </div>
@@ -1082,7 +1078,7 @@ function AddressesTab({
                 })
               }
               placeholder="India"
-              className="w-full px-4 py-3.5 border border-gray-200 rounded-xl text-sm text-brand-dark-brown focus:outline-none focus:ring-2 focus:ring-brand-gold/20 focus:border-brand-gold transition-all"
+              className="w-full px-4 py-3.5 border border-gray-200 rounded-xl text-sm text-brand-dark-brown focus:outline-none focus:outline-none transition-all"
             />
           </div>
         </div>

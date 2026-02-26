@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { toast } from "sonner";
+import { FiEye, FiEyeOff } from "react-icons/fi";
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -9,6 +10,7 @@ const Register = () => {
     email: "",
     password: "",
   });
+  const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
 
@@ -115,7 +117,7 @@ const Register = () => {
                 placeholder="John Doe"
                 value={formData.name}
                 onChange={handleChange}
-                className={`w-full p-3 bg-transparent border rounded-lg text-brand-text focus:outline-none focus:ring-2 focus:ring-brand-gold/20 focus:border-brand-gold transition-all ${errors.name ? "border-red-500" : "border-gray-200"}`}
+                className={`w-full p-3 bg-transparent border rounded-lg text-brand-text focus:outline-none transition-all ${errors.name ? "border-red-500" : "border-gray-200"}`}
                 required
                 disabled={isLoading}
               />
@@ -138,7 +140,7 @@ const Register = () => {
                 placeholder="name@company.com"
                 value={formData.email}
                 onChange={handleChange}
-                className={`w-full p-3 bg-transparent border rounded-lg text-brand-text focus:outline-none focus:ring-2 focus:ring-brand-gold/20 focus:border-brand-gold transition-all ${errors.email ? "border-red-500" : "border-gray-200"}`}
+                className={`w-full p-3 bg-transparent border rounded-lg text-brand-text focus:outline-none transition-all ${errors.email ? "border-red-500" : "border-gray-200"}`}
                 required
                 disabled={isLoading}
               />
@@ -155,16 +157,25 @@ const Register = () => {
               >
                 Password
               </label>
-              <input
-                id="password"
-                type="password"
-                placeholder="••••••••"
-                value={formData.password}
-                onChange={handleChange}
-                className={`w-full p-3 bg-transparent border rounded-lg text-brand-text focus:outline-none focus:ring-2 focus:ring-brand-gold/20 focus:border-brand-gold transition-all ${errors.password ? "border-red-500" : "border-gray-200"}`}
-                required
-                disabled={isLoading}
-              />
+              <div className="relative">
+                <input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  placeholder="••••••••"
+                  value={formData.password}
+                  onChange={handleChange}
+                  className={`w-full p-3 pr-10 bg-transparent border rounded-lg text-brand-text focus:outline-none transition-all ${errors.password ? "border-red-500" : "border-gray-200"}`}
+                  required
+                  disabled={isLoading}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-brand-dark-brown focus:outline-none"
+                >
+                  {showPassword ? <FiEyeOff size={18} /> : <FiEye size={18} />}
+                </button>
+              </div>
               {errors.password && (
                 <p className="text-red-500 text-xs mt-1">{errors.password}</p>
               )}

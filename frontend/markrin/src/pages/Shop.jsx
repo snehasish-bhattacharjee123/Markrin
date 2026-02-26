@@ -15,6 +15,7 @@ import { useAuth } from "../context/AuthContext";
 import { useWishlist } from "../context/WishlistContext";
 import { getCardUrl } from "../utils/cloudinaryHelper";
 import { toast } from "sonner";
+import QuickAddModal from "../components/Products/QuickAddModal";
 
 const ITEMS_PER_PAGE = 12;
 
@@ -34,6 +35,7 @@ function Shop() {
     const [sortBy, setSortBy] = useState(searchParams.get("sort") || "newest");
     const loadMoreRef = useRef(null);
     const sidebarRef = useRef(null);
+    const [quickAddProduct, setQuickAddProduct] = useState(null);
 
     // Fetch products with pagination
     const fetchProducts = useCallback(
@@ -49,6 +51,7 @@ function Shop() {
                 const color = searchParams.get("color");
                 const size = searchParams.get("size");
                 const material = searchParams.get("material");
+                const minPrice = searchParams.get("minPrice");
                 const maxPrice = searchParams.get("maxPrice");
 
                 if (category) filters.category = category;
@@ -57,6 +60,7 @@ function Shop() {
                 if (color) filters.color = color;
                 if (size) filters.size = size;
                 if (material) filters.material = material;
+                if (minPrice) filters.minPrice = minPrice;
                 if (maxPrice) filters.maxPrice = maxPrice;
 
                 filters.sort = sortBy;
@@ -157,7 +161,7 @@ function Shop() {
     const handleAddToCart = async (e, product) => {
         e.preventDefault();
         e.stopPropagation();
-        if (product._id) await addItem({ productId: product._id, quantity: 1 });
+        setQuickAddProduct(product);
     };
 
     // Get active filter count
@@ -168,6 +172,7 @@ function Shop() {
         if (searchParams.get("color")) count++;
         if (searchParams.get("size")) count++;
         if (searchParams.get("material")) count++;
+        if (searchParams.get("minPrice") && Number(searchParams.get("minPrice")) > 0) count++;
         if (searchParams.get("maxPrice") && Number(searchParams.get("maxPrice")) < 500) count++;
         return count;
     };
@@ -338,17 +343,18 @@ function Shop() {
                             <>
                                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4 lg:gap-5">
                                     {products.map((product) => {
+                                        const activeBasePrice = product.basePrice || product.price || 0;
                                         const discountPercentage =
                                             product.discountPrice &&
-                                                product.discountPrice < product.price
+                                                product.discountPrice < activeBasePrice
                                                 ? Math.round(
-                                                    ((product.price - product.discountPrice) /
-                                                        product.price) *
+                                                    ((activeBasePrice - product.discountPrice) /
+                                                        activeBasePrice) *
                                                     100
                                                 )
                                                 : product.originalPrice
                                                     ? Math.round(
-                                                        ((product.originalPrice - product.price) /
+                                                        ((product.originalPrice - activeBasePrice) /
                                                             product.originalPrice) *
                                                         100
                                                     )
@@ -448,15 +454,15 @@ function Shop() {
                                                             <div className="flex items-center gap-2">
                                                                 <span className="font-bold text-brand-dark-brown text-base">
                                                                     ₹{
-                                                                        (product.discountPrice && product.discountPrice < product.price
+                                                                        (product.discountPrice && product.discountPrice < activeBasePrice
                                                                             ? product.discountPrice
-                                                                            : product.price
+                                                                            : activeBasePrice
                                                                         )?.toFixed(0)
                                                                     }
                                                                 </span>
-                                                                {(product.originalPrice || (product.discountPrice && product.discountPrice < product.price)) && (
+                                                                {(product.originalPrice || (product.discountPrice && product.discountPrice < activeBasePrice)) && (
                                                                     <span className="text-xs text-gray-400 line-through">
-                                                                        ₹{(product.originalPrice || product.price)?.toFixed(0)}
+                                                                        ₹{(product.originalPrice || activeBasePrice)?.toFixed(0)}
                                                                     </span>
                                                                 )}
                                                             </div>
@@ -501,6 +507,12 @@ function Shop() {
                     </div>
                 </div>
             </div>
+
+            <QuickAddModal
+                isOpen={!!quickAddProduct}
+                onClose={() => setQuickAddProduct(null)}
+                product={quickAddProduct}
+            />
         </div>
     );
 }

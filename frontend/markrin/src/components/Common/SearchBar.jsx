@@ -133,7 +133,7 @@ function SearchBar() {
                         <p className="text-xs text-gray-500">{product.category}</p>
                       </div>
                       <div className="text-sm font-bold text-brand-gold">
-                        ${product.price?.toFixed(2)}
+                        ₹{product.price?.toFixed(0)}
                       </div>
                     </Link>
                   ))}

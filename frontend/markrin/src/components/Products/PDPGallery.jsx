@@ -44,13 +44,14 @@ const PDPGallery = ({ product }) => {
         } catch (err) { }
     };
 
+    const activeBasePrice = product?.basePrice || product?.price || 0;
     const discountPercentage =
-        product.discountPrice && product.discountPrice < product.price
-            ? Math.round(((product.price - product.discountPrice) / product.price) * 100)
+        product.discountPrice && product.discountPrice < activeBasePrice
+            ? Math.round(((activeBasePrice - product.discountPrice) / activeBasePrice) * 100)
             : 0;
 
     return (
-        <div className={`product-gallery ${images.length > 1 ? "grid grid-cols-1 md:grid-cols-[82px_1fr]" : "flex"} gap-3 h-full`}>
+        <div className={`product-gallery ${images.length > 1 ? "grid grid-cols-1 md:grid-cols-[82px_1fr]" : "flex"} gap-3 h-fit`}>
 
             {/* 1. Vertical Thumbnail Strip (Desktop) */}
             {images.length > 1 && (
@@ -81,7 +82,7 @@ const PDPGallery = ({ product }) => {
                                 <div
                                     className={`w-[72px] h-[94px] rounded-xl overflow-hidden border-2 cursor-pointer transition-all duration-200 ${activeIndex === idx
                                         ? "border-brand-dark-brown shadow-md opacity-100"
-                                        : "border-transparent opacity-60 hover:opacity-100 hover:border-gray-200"
+                                        : "border-transparent opacity-60 hover:opacity-100"
                                         }`}
                                 >
                                     <img

@@ -16,7 +16,7 @@ function FeaaturesSection() {
           </div>
           <h4 className="tracking-tighter mb-2 ">Free Shipping</h4>
           <p className="text-gray-600 text-sm tracking-tighter">
-            On all orders over $50
+            On all orders over ₹1000
           </p>
         </div>
         {/* Featured 2 */}

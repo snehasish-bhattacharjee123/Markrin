@@ -44,7 +44,7 @@ function Topbar() {
                 Free Home Delivery for Paid Orders 🚚
               </span>
               <span className="text-xs font-medium tracking-widest uppercase whitespace-nowrap">
-                <span className="text-brand-gold">✦</span> Feel the Soul of Art <span className="text-brand-gold">✦</span> Free Shipping Over $100
+                <span className="text-brand-gold">✦</span> Feel the Soul of Art <span className="text-brand-gold">✦</span> Free Shipping Over ₹2000
               </span>
               <span className="text-xs font-medium tracking-widest uppercase whitespace-nowrap">
                 7-Day Money-Back Guarantee 🥇
@@ -57,7 +57,7 @@ function Topbar() {
                 Free Home Delivery for Paid Orders 🚚
               </span>
               <span className="text-xs font-medium tracking-widest uppercase whitespace-nowrap">
-                <span className="text-brand-gold">✦</span> Feel the Soul of Art <span className="text-brand-gold">✦</span> Free Shipping Over $100
+                <span className="text-brand-gold">✦</span> Feel the Soul of Art <span className="text-brand-gold">✦</span> Free Shipping Over ₹2000
               </span>
               <span className="text-xs font-medium tracking-widest uppercase whitespace-nowrap">
                 7-Day Money-Back Guarantee 🥇

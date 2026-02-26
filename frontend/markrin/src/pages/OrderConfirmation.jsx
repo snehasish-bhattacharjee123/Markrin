@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { ordersAPI } from '../api';
-import { RiCheckboxCircleFill, RiTruckLine, RiMapPinLine, RiCalendarCheckLine } from 'react-icons/ri';
+import { RiCheckboxCircleFill, RiTruckLine, RiMapPinLine, RiCalendarCheckLine, RiDownload2Line } from 'react-icons/ri';
+import jsPDF from 'jspdf';
 
 function OrderConfirmation() {
     const { id } = useParams();
@@ -41,10 +42,85 @@ function OrderConfirmation() {
         );
     }
 
+    const downloadReceipt = () => {
+        try {
+            const pdf = new jsPDF({
+                orientation: 'portrait',
+                unit: 'pt',
+                format: 'a4'
+            });
+
+            pdf.setFont("helvetica");
+
+            // Header
+            pdf.setFontSize(24);
+            pdf.setTextColor(78, 59, 49); // #4E3B31 (brand-dark-brown)
+            pdf.text("MARKRIN", 40, 60);
+
+            pdf.setFontSize(12);
+            pdf.setTextColor(150, 150, 150);
+            pdf.text("Order Receipt / Challan", 40, 80);
+
+            pdf.setFontSize(10);
+            pdf.text(`Order ID: #${order._id.slice(-8).toUpperCase()}`, 400, 60);
+            pdf.text(`Date: ${new Date().toLocaleDateString()}`, 400, 75);
+
+            pdf.setDrawColor(200, 200, 200);
+            pdf.line(40, 100, 550, 100);
+
+            // Shipping Info
+            pdf.setFontSize(12);
+            pdf.setTextColor(78, 59, 49);
+            pdf.text("Shipping Details:", 40, 130);
+
+            pdf.setFontSize(10);
+            pdf.setTextColor(100, 100, 100);
+            const addr = order.shippingAddress;
+            pdf.text(`${addr.street}`, 40, 150);
+            pdf.text(`${addr.city}, ${addr.state}`, 40, 165);
+            pdf.text(`${addr.postalCode}, ${addr.country}`, 40, 180);
+
+            // Items Table Header
+            pdf.line(40, 210, 550, 210);
+            pdf.setFontSize(10);
+            pdf.setTextColor(78, 59, 49);
+            pdf.text("Item", 40, 230);
+            pdf.text("Qty", 400, 230);
+            pdf.text("Price", 500, 230);
+            pdf.line(40, 240, 550, 240);
+
+            // Items List
+            let yPos = 260;
+            pdf.setTextColor(100, 100, 100);
+            order.orderItems.forEach((item) => {
+                pdf.text(`${item.name || 'Product'}`, 40, yPos);
+                pdf.text(`${item.quantity}`, 405, yPos);
+                pdf.text(`Rs ${((item.priceAtTimeOfPurchase || 0) * item.quantity).toFixed(2)}`, 500, yPos);
+                yPos += 20;
+            });
+
+            // Total
+            pdf.line(40, yPos + 10, 550, yPos + 10);
+            pdf.setFontSize(14);
+            pdf.setTextColor(78, 59, 49);
+            pdf.text("Total Paid:", 350, yPos + 40);
+            pdf.text(`Rs ${order.totalPrice.toFixed(2)}`, 500, yPos + 40);
+
+            // Footer
+            pdf.setFontSize(10);
+            pdf.setTextColor(150, 150, 150);
+            pdf.text("Thank you for choosing Markrin!", 40, yPos + 100);
+
+            pdf.save(`Challan_Markrin_${order._id.slice(-8).toUpperCase()}.pdf`);
+        } catch (error) {
+            console.error('Error generating PDF:', error);
+        }
+    };
+
     return (
         <div className="min-h-screen bg-brand-cream py-16">
             <div className="max-w-3xl mx-auto px-6">
-                <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden text-center p-8 md:p-12">
+                <div id="receipt-content" className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden text-center p-8 md:p-12">
                     <div className="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-6">
                         <RiCheckboxCircleFill size={48} />
                     </div>
@@ -90,24 +166,31 @@ function OrderConfirmation() {
                                     <img src={item.image} alt={item.name} className="w-12 h-12 object-cover rounded-lg" />
                                     <div className="flex-grow">
                                         <p className="text-sm font-semibold text-brand-dark-brown">{item.name}</p>
-                                        <p className="text-xs text-gray-500">Qty: {item.quantity} {item.size ? `• Size: ${item.size}` : ''}</p>
+                                        <p className="text-xs text-gray-500">Qty: {item.quantity}</p>
                                     </div>
                                     <div className="text-sm font-bold text-brand-dark-brown">
-                                        ${(item.price * item.quantity).toFixed(2)}
+                                        ₹{(item.priceAtTimeOfPurchase * item.quantity).toFixed(2)}
                                     </div>
                                 </div>
                             ))}
                             <div className="pt-4 flex justify-between items-center text-lg">
                                 <span className="font-bold text-brand-dark-brown">Total Paid</span>
-                                <span className="font-bold text-brand-gold">${order.totalPrice.toFixed(2)}</span>
+                                <span className="font-bold text-brand-gold">₹{order.totalPrice.toFixed(2)}</span>
                             </div>
                         </div>
                     </div>
 
-                    <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                    <div id="receipt-actions" className="flex flex-col sm:flex-row gap-4 justify-center mt-8">
+                        <button
+                            onClick={downloadReceipt}
+                            className="px-8 py-4 bg-brand-dark-brown text-white font-bold uppercase tracking-widest text-xs hover:bg-brand-gold hover:text-brand-dark-brown transition-all rounded-xl flex items-center justify-center gap-2"
+                        >
+                            <RiDownload2Line size={18} />
+                            Download Receipt
+                        </button>
                         <Link
                             to="/orders"
-                            className="px-8 py-4 bg-brand-dark-brown text-white font-bold uppercase tracking-widest text-xs hover:bg-brand-gold hover:text-brand-dark-brown transition-all rounded-xl"
+                            className="px-8 py-4 border border-brand-dark-brown text-brand-dark-brown font-bold uppercase tracking-widest text-xs hover:bg-brand-dark-brown hover:text-white transition-all rounded-xl"
                         >
                             View My Orders
                         </Link>

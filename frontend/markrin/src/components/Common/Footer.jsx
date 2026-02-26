@@ -74,9 +74,9 @@ function Footer() {
               {[
                 { label: "All Products", path: "/shop" },
                 { label: "New Arrivals", path: "/collection/new-arrivals" },
-                { label: "Graphic Tees", path: "/collection/graphic-tees" },
-                { label: "Men's Collection", path: "/collection/men" },
-                { label: "Women's Collection", path: "/collection/women" },
+                { label: "Oversized", path: "/collection/oversized" },
+                { label: "Hoodies", path: "/collection/hoodie" },
+                { label: "Sweatshirts", path: "/collection/sweat-shirt" },
               ].map((item) => (
                 <li key={item.path}>
                   <Link
@@ -151,7 +151,7 @@ function Footer() {
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label={label}
-                  className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center transition-all duration-300 hover:bg-brand-gold hover:text-brand-dark-brown hover:border-brand-gold hover:scale-110"
+                  className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center transition-all duration-300 hover:bg-brand-gold hover:text-brand-dark-brown hover:scale-110"
                 >
                   <Icon className="w-4 h-4" />
                 </a>

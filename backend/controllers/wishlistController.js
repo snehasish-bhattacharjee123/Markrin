@@ -15,6 +15,17 @@ const getWishlist = async (req, res) => {
 
         if (!wishlist) {
             wishlist = await Wishlist.create({ user: req.user._id, products: [] });
+        } else {
+            // Clean up any deleted products from the wishlist
+            const validProducts = await Product.find({ _id: { $in: wishlist.products } }).select('_id');
+            const validIds = validProducts.map(p => p._id.toString());
+            const origLength = wishlist.products.length;
+
+            wishlist.products = wishlist.products.filter(id => validIds.includes(id.toString()));
+
+            if (wishlist.products.length !== origLength) {
+                await wishlist.save();
+            }
         }
 
         // Get total count before pagination
@@ -24,7 +35,7 @@ const getWishlist = async (req, res) => {
         const populatedWishlist = await Wishlist.findOne({ user: req.user._id })
             .populate({
                 path: 'products',
-                select: 'name price images countInStock category isFeatured isNewArrival',
+                select: 'name basePrice images category isFeatured isNewArrival',
                 options: {
                     skip: (pageNum - 1) * limitNum,
                     limit: limitNum,
@@ -78,12 +89,14 @@ const addToWishlist = async (req, res) => {
         await wishlist.save();
 
         const updatedWishlist = await Wishlist.findById(wishlist._id)
-            .populate('products', 'name price images countInStock category');
+            .populate('products', 'name basePrice images category');
+
+        const validProducts = updatedWishlist.products.filter(p => p !== null);
 
         res.json({
             message: 'Added to wishlist',
-            products: updatedWishlist.products,
-            total: updatedWishlist.products.length,
+            products: validProducts,
+            total: validProducts.length,
         });
     } catch (error) {
         console.error(error);
@@ -111,12 +124,14 @@ const removeFromWishlist = async (req, res) => {
         await wishlist.save();
 
         const updatedWishlist = await Wishlist.findById(wishlist._id)
-            .populate('products', 'name price images countInStock category');
+            .populate('products', 'name basePrice images category');
+
+        const validProducts = updatedWishlist.products.filter(p => p !== null);
 
         res.json({
             message: 'Removed from wishlist',
-            products: updatedWishlist.products,
-            total: updatedWishlist.products.length,
+            products: validProducts,
+            total: validProducts.length,
         });
     } catch (error) {
         console.error(error);

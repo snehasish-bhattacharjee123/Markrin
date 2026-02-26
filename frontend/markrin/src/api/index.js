@@ -169,6 +169,15 @@ export const productsAPI = {
         }
         return data;
     },
+
+    getVariants: async (id) => {
+        const response = await fetchWithTimeout(`${API_BASE_URL}/products/${id}/variants`);
+        const data = await response.json();
+        if (!response.ok) {
+            throw new Error(data.message || 'Failed to fetch product variants');
+        }
+        return data;
+    },
 };
 
 // Cart API
@@ -184,11 +193,11 @@ export const cartAPI = {
         return data;
     },
 
-    addItem: async (productId, quantity, size, color) => {
+    addItem: async (variant_id, quantity) => {
         const response = await customFetch(`${API_BASE_URL}/cart`, {
             method: 'POST',
             headers: getAuthHeaders(),
-            body: JSON.stringify({ productId, quantity, size, color }),
+            body: JSON.stringify({ variant_id, quantity }),
         });
         const data = await response.json();
         if (!response.ok) {
@@ -562,6 +571,53 @@ export const paymentAPI = {
     },
 };
 
+// Size Chart API
+export const sizeChartAPI = {
+    getAll: async () => {
+        const response = await fetchWithTimeout(`${API_BASE_URL}/sizecharts`, {
+            credentials: 'include'
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.message || 'Failed to fetch size charts');
+        return data;
+    },
+    getByCategory: async (category) => {
+        const response = await fetchWithTimeout(`${API_BASE_URL}/sizecharts/category/${category}`);
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.message || 'Failed to fetch size chart');
+        return data;
+    },
+    create: async (payload) => {
+        const response = await customFetch(`${API_BASE_URL}/sizecharts`, {
+            method: 'POST',
+            headers: getAuthHeaders(),
+            body: JSON.stringify(payload),
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.message || 'Failed to create size chart');
+        return data;
+    },
+    update: async (id, payload) => {
+        const response = await customFetch(`${API_BASE_URL}/sizecharts/${id}`, {
+            method: 'PUT',
+            headers: getAuthHeaders(),
+            body: JSON.stringify(payload),
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.message || 'Failed to update size chart');
+        return data;
+    },
+    delete: async (id) => {
+        const response = await customFetch(`${API_BASE_URL}/sizecharts/${id}`, {
+            method: 'DELETE',
+            headers: getAuthHeaders(),
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.message || 'Failed to delete size chart');
+        return data;
+    },
+};
+
 export default {
     auth: authAPI,
     products: productsAPI,
@@ -571,4 +627,5 @@ export default {
     upload: uploadAPI,
     admin: adminAPI,
     payment: paymentAPI,
+    sizecharts: sizeChartAPI,
 };

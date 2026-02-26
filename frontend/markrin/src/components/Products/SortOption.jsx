@@ -23,7 +23,7 @@ const SortOption = () => {
         id="sort"
         onChange={handleSortChange}
         value={searchParams.get("sortBy") || ""}
-        className="appearance-none bg-brand-white border border-gray-200 text-brand-dark-brown text-sm font-bold uppercase tracking-widest px-4 py-3 pr-10 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-gold/20 focus:border-brand-gold transition-all cursor-pointer"
+        className="appearance-none bg-brand-white border border-gray-200 text-brand-dark-brown text-sm font-bold uppercase tracking-widest px-4 py-3 pr-10 rounded-xl focus:outline-none focus:outline-none transition-all cursor-pointer"
       >
         <option value="">Default Sorting</option>
         <option value="priceAsc">Price: Low to High</option>

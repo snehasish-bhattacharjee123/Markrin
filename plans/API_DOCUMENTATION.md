@@ -180,11 +180,9 @@ Response:
       {
         "_id": "65c000000000000000000001",
         "name": "Casual Shirt",
-        "price": 150,
+        "basePrice": 150,
         "category": "shirts",
-        "images": [...],
-        "sizes": ["S", "M", "L"],
-        "colors": ["blue", "red"]
+        "images": [...]
       },
       {...}
     ],
@@ -213,13 +211,10 @@ Response:
     "_id": "65c000000000000000000001",
     "name": "Casual Shirt",
     "description": "Comfortable cotton shirt",
-    "price": 150,
+    "basePrice": 150,
     "discountPrice": 120,
-    "countInStock": 50,
     "category": "shirts",
     "brand": "BrandX",
-    "sizes": ["S", "M", "L"],
-    "colors": ["blue", "red"],
     "images": [...],
     "isFeatured": false,
     "isNewArrival": true
@@ -233,13 +228,17 @@ POST /api/products
 {
   "name": "New Shirt",
   "description": "Latest collection shirt",
-  "price": 200,
+  "price": 200,             // Mapped to basePrice in database
   "discountPrice": 160,
-  "countInStock": 100,
-  "category": "shirts",
+  "category": "shirts",     // String (can be dynamic)
+  "sizes": ["S", "M", "L"],
+  "colors": ["Black"],
+  "variantStock": {         // Optional: Used to automatically create ProductVariants with per-size stock
+    "S": 10,
+    "M": 15,
+    "L": 5
+  },
   "brand": "BrandX",
-  "sizes": ["S", "M", "L", "XL"],
-  "colors": ["blue", "red", "black"],
   "images": [...],
   "isFeatured": true,
   "isNewArrival": true
@@ -281,10 +280,8 @@ Response:
     "items": [
       {
         "_id": "65c000000000000000000011",
-        "product": {...},
+        "variant_id": "65c0variant0000000000001",
         "quantity": 2,
-        "size": "M",
-        "color": "blue",
         "price": 150
       }
     ]
@@ -296,10 +293,8 @@ Response:
 ```javascript
 POST /api/cart
 {
-  "productId": "65c000000000000000000001",
-  "quantity": 2,
-  "size": "M",
-  "color": "blue"
+  "variant_id": "65c0variant0000000000001",
+  "quantity": 2
 }
 
 Response:
@@ -325,9 +320,7 @@ Response:
 ```javascript
 PUT /api/cart/65c000000000000000000011
 {
-  "quantity": 3,
-  "size": "L",
-  "color": "red"
+  "quantity": 3
 }
 
 Response:
@@ -338,10 +331,8 @@ Response:
     "items": [
       {
         "_id": "65c000000000000000000011",
-        "product": {...},
+        "variant_id": "65c0variant0000000000001",
         "quantity": 3,
-        "size": "L",
-        "color": "red",
         "price": 150
       }
     ]
@@ -397,8 +388,7 @@ POST /api/orders
     "city": "New York",
     "state": "NY",
     "pincode": "10001"
-  },
-  "paymentMethod": "COD"
+  }
 }
 
 Response:
@@ -409,12 +399,12 @@ Response:
     "user": "65c000000000000000000000",
     "orderItems": [...],
     "shippingAddress": {...},
-    "paymentMethod": "COD",
     "itemsPrice": 300,
     "shippingPrice": 50,
     "taxPrice": 54,
     "totalPrice": 404,
-    "status": "Processing"
+    "order_status": "Processing",
+    "payment_status": "Unpaid"
   }
 }
 ```
@@ -452,8 +442,8 @@ Response:
     "orderItems": [...],
     "shippingAddress": {...},
     "totalPrice": 404,
-    "status": "Processing",
-    "paymentMethod": "COD"
+    "order_status": "Processing",
+    "payment_status": "Unpaid"
   }
 }
 ```
@@ -473,9 +463,8 @@ Response:
   "success": true,
   "data": {
     "_id": "65c000000000000000000020",
-    "isPaid": true,
-    "paidAt": "2024-01-01T10:30:00.000Z",
-    "paymentResult": {...}
+    "payment_status": "Paid",
+    "order_status": "Processing"
   }
 }
 ```
@@ -801,7 +790,64 @@ Response:
   "data": {
     "_id": "65c000000000000000000020",
     "status": "Delivered",
-    "deliveredAt": "2024-01-02T10:00:00.000Z"
+}
+}
+```
+
+### 9. Categories APIs
+
+| Method | Endpoint | Description | Protected |
+|--------|----------|-------------|-----------|
+| GET | `/categories/` | Get all categories | No |
+| GET | `/categories/:id` | Get category by ID | No |
+| POST | `/categories/` | Create category | Yes (Admin) |
+| PUT | `/categories/:id` | Update category | Yes (Admin) |
+| DELETE | `/categories/:id` | Delete category | Yes (Admin) |
+
+### 10. Product Variants APIs
+
+| Method | Endpoint | Description | Protected |
+|--------|----------|-------------|-----------|
+| GET | `/products/:productId/variants/` | Get all variants for a product | No |
+| POST | `/products/:productId/variants/` | Create product variant | Yes (Admin) |
+| PUT | `/products/:productId/variants/:id`| Update product variant | Yes (Admin) |
+| DELETE | `/products/:productId/variants/:id`| Delete product variant | Yes (Admin) |
+
+### 11. Product Reviews APIs
+
+| Method | Endpoint | Description | Protected |
+|--------|----------|-------------|-----------|
+| GET | `/products/:productId/reviews/` | Get all reviews for a product | No |
+| POST | `/products/:productId/reviews/` | Create review for a product | Yes |
+| DELETE | `/products/:productId/reviews/:id`| Delete a user review | Yes |
+
+### 12. Size Chart APIs
+
+| Method | Endpoint | Description | Protected |
+|--------|----------|-------------|-----------|
+| GET | `/sizecharts/category/:category` | Get size chart by category (fuzzy keyword match) | No |
+| POST | `/sizecharts/` | Create size chart | Yes (Admin) |
+| PUT | `/sizecharts/:id` | Update size chart | Yes (Admin) |
+| DELETE | `/sizecharts/:id` | Delete size chart | Yes (Admin) |
+
+#### Get Size Chart by Category
+```javascript
+// Uses a split-term regex to match product categories (e.g. "Normal Tshirt") 
+// with a stored size chart category (e.g. "tshirt").
+GET /api/sizecharts/category/Normal%20Tshirt
+
+Response:
+{
+  "success": true,
+  "data": {
+    "_id": "651234567890",
+    "category": "tshirt",
+    "image_url_cm": "https://res.cloudinary.com/.../cm.jpg",
+    "image_url_inch": "https://res.cloudinary.com/.../inch.jpg",
+    "measurement_data": {
+      "S": { "chest": 40, "length": 28 },
+      "M": { "chest": 42, "length": 29 }
+    }
   }
 }
 ```
@@ -869,7 +915,9 @@ Response: {
     "cart": "/api/cart",
     "orders": "/api/orders",
     "admin": "/api/admin",
-    "wishlist": "/api/wishlist"
+    "wishlist": "/api/wishlist",
+    "categories": "/api/categories",
+    "sizecharts": "/api/sizecharts"
   }
 }
 ```

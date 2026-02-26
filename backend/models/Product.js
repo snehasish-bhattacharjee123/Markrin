@@ -11,9 +11,9 @@ const productSchema = new mongoose.Schema(
             type: String,
             required: [true, 'Please add a description'],
         },
-        price: {
+        basePrice: {
             type: Number,
-            required: [true, 'Please add a price'],
+            required: [true, 'Please add a base price'],
             min: 0,
         },
         discountPrice: {
@@ -21,34 +21,15 @@ const productSchema = new mongoose.Schema(
             min: 0,
             default: 0,
         },
-        countInStock: {
-            type: Number,
-            required: true,
-            default: 0,
-            min: 0,
-        },
-        sku: {
+        category: {
             type: String,
             required: true,
-            unique: true,
             trim: true,
-        },
-        category: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'Category',
-            required: true,
         },
         brand: {
             type: String,
             trim: true,
         },
-        sizes: [
-            {
-                type: String,
-                enum: ['XS', 'S', 'M', 'L', 'XL', 'XXL'],
-            },
-        ],
-        colors: [String],
         collections: {
             type: String,
             required: true,
@@ -61,7 +42,8 @@ const productSchema = new mongoose.Schema(
         gender: {
             type: String,
             required: true,
-            enum: ['Men', 'Women', 'Unisex'],
+            enum: ['Unisex'],
+            default: 'Unisex',
         },
         images: [
             {
@@ -102,9 +84,7 @@ const productSchema = new mongoose.Schema(
         metaTitle: String,
         metaDescription: String,
         metaKeywords: String,
-        sizeChart: {
-            type: String,
-        },
+
         bestFit: {
             type: String,
         },
@@ -114,6 +94,11 @@ const productSchema = new mongoose.Schema(
             height: Number,
         },
         weight: Number,
+        sku: {
+            type: String,
+            unique: true,
+            sparse: true
+        },
         slug: {
             type: String,
             unique: true,
@@ -126,8 +111,8 @@ const productSchema = new mongoose.Schema(
     }
 );
 
-// Pre-save hook to generate slug from name
-productSchema.pre('save', function (next) {
+// Pre-validate hook to generate slug from name
+productSchema.pre('validate', function (next) {
     if (this.isModified('name') || !this.slug) {
         this.slug = this.name
             .toLowerCase()
@@ -139,9 +124,8 @@ productSchema.pre('save', function (next) {
 });
 
 // Index for faster filtering and search
-productSchema.index({ name: 'text', sku: 'text' }); // Text index for full-text search
+productSchema.index({ name: 'text' }); // Text index for full-text search
 productSchema.index({ name: 1 }); // Regular index for starts-with/regex search
-// productSchema.index({ sku: 1 }); // Unique index is already handled in schema
-productSchema.index({ category: 1, gender: 1, brand: 1, price: 1 });
+productSchema.index({ category: 1, gender: 1, brand: 1, basePrice: 1 });
 
 module.exports = mongoose.model('Product', productSchema);

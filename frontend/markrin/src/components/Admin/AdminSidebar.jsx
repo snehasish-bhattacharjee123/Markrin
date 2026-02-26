@@ -25,6 +25,7 @@ const AdminSidebar = () => {
     const menuItems = [
         { path: '/admin', icon: FaHome, label: 'Dashboard', exact: true },
         { path: '/admin/products', icon: FaBox, label: 'Products' },
+        { path: '/admin/size-charts', icon: FaChartBar, label: 'Size Charts' },
         { path: '/admin/orders', icon: FaShoppingCart, label: 'Orders' },
         { path: '/admin/users', icon: FaUsers, label: 'Users' },
     ];

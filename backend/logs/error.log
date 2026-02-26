@@ -19,3 +19,4 @@
 {"level":"error","message":"Unhandled Rejection: [object Object]","service":"markrin-backend","timestamp":"2026-02-19 15:33:57"}
 {"level":"error","message":"Unhandled Rejection: [object Object]","service":"markrin-backend","timestamp":"2026-02-19 15:47:01"}
 {"level":"error","message":"Unhandled Rejection: VersionError: No matching document found for id \"6993716aef5283de2ab59c04\" version 4 modifiedPaths \"refreshTokens\"","service":"markrin-backend","timestamp":"2026-02-19 16:10:19"}
+{"level":"error","message":"Unhandled Rejection: VersionError: No matching document found for id \"6993716aef5283de2ab59c04\" version 19 modifiedPaths \"refreshTokens\"","service":"markrin-backend","timestamp":"2026-02-21 16:50:08"}

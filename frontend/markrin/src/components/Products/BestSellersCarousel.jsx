@@ -13,6 +13,7 @@ import { useAuth } from "../../context/AuthContext";
 import { useWishlist } from "../../context/WishlistContext";
 import { toast } from "sonner";
 import { getCardUrl } from "../../utils/cloudinaryHelper";
+import QuickAddModal from "./QuickAddModal";
 
 function BestSellersCarousel() {
   const [products, setProducts] = useState([]);
@@ -20,6 +21,7 @@ function BestSellersCarousel() {
   const scrollRef = useRef(null);
   const { isAuthenticated } = useAuth();
   const { wishlist, toggleWishlist, isInWishlist } = useWishlist();
+  const [quickAddProduct, setQuickAddProduct] = useState(null);
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -103,13 +105,13 @@ function BestSellersCarousel() {
           <div className="hidden md:flex items-center gap-2">
             <button
               onClick={() => scroll("left")}
-              className="w-10 h-10 rounded-full border-2 border-gray-200 flex items-center justify-center text-gray-400 hover:border-brand-gold hover:text-brand-gold transition-all duration-200"
+              className="w-10 h-10 rounded-full border-2 border-gray-200 flex items-center justify-center text-gray-400 hover:text-brand-gold transition-all duration-200"
             >
               <HiChevronLeft className="w-5 h-5" />
             </button>
             <button
               onClick={() => scroll("right")}
-              className="w-10 h-10 rounded-full border-2 border-gray-200 flex items-center justify-center text-gray-400 hover:border-brand-gold hover:text-brand-gold transition-all duration-200"
+              className="w-10 h-10 rounded-full border-2 border-gray-200 flex items-center justify-center text-gray-400 hover:text-brand-gold transition-all duration-200"
             >
               <HiChevronRight className="w-5 h-5" />
             </button>
@@ -122,18 +124,17 @@ function BestSellersCarousel() {
           className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide scroll-smooth snap-x snap-mandatory"
         >
           {products.map((product) => {
+            const activeBasePrice = product.basePrice || product.price || 0;
             const discountPercentage =
-              product.discountPrice &&
-                product.discountPrice < product.price
+              product.discountPrice && product.discountPrice < activeBasePrice
                 ? Math.round(
-                  ((product.price - product.discountPrice) / product.price) *
-                  100
+                  ((activeBasePrice - product.discountPrice) / activeBasePrice) * 100
                 )
                 : 0;
             const displayPrice =
-              product.discountPrice && product.discountPrice < product.price
+              product.discountPrice && product.discountPrice < activeBasePrice
                 ? product.discountPrice
-                : product.price;
+                : activeBasePrice;
 
             return (
               <Link
@@ -169,8 +170,8 @@ function BestSellersCarousel() {
                     <button
                       onClick={(e) => handleToggleWishlist(e, product._id)}
                       className={`absolute top-3 right-3 w-9 h-9 rounded-full flex items-center justify-center transition-all duration-200 ${isInWishlist(product._id)
-                          ? "bg-red-50 text-red-500"
-                          : "bg-white/80 backdrop-blur-sm text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100"
+                        ? "bg-red-50 text-red-500"
+                        : "bg-white/80 backdrop-blur-sm text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100"
                         }`}
                     >
                       {isInWishlist(product._id) ? (
@@ -186,6 +187,7 @@ function BestSellersCarousel() {
                         onClick={(e) => {
                           e.preventDefault();
                           e.stopPropagation();
+                          setQuickAddProduct(product);
                         }}
                         className="w-full py-2.5 bg-brand-dark-brown/95 backdrop-blur-sm text-white text-xs font-bold uppercase tracking-wider rounded-xl hover:bg-brand-gold hover:text-brand-dark-brown transition-colors duration-200 flex items-center justify-center gap-2"
                       >
@@ -209,7 +211,7 @@ function BestSellersCarousel() {
                       </span>
                       {discountPercentage > 0 && (
                         <span className="text-xs text-gray-400 line-through">
-                          ₹{product.price?.toFixed(0)}
+                          ₹{activeBasePrice?.toFixed(0)}
                         </span>
                       )}
                     </div>
@@ -240,6 +242,12 @@ function BestSellersCarousel() {
           </Link>
         </div>
       </div>
+
+      <QuickAddModal
+        isOpen={!!quickAddProduct}
+        onClose={() => setQuickAddProduct(null)}
+        product={quickAddProduct}
+      />
     </section>
   );
 }

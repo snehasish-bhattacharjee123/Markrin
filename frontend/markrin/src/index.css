@@ -221,3 +221,16 @@ input[type="radio"] {
 .animate-marquee:hover {
   animation-play-state: paused;
 }
+
+/* ================================================
+   15. Global Cursor Pointer for Clickables
+   ================================================ */
+button,
+[role="button"],
+input[type="button"],
+input[type="submit"],
+input[type="reset"],
+a,
+select {
+  cursor: pointer;
+}

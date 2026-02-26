@@ -99,7 +99,7 @@ const UserManagement = () => {
                         placeholder="Name"
                         value={formData.name}
                         onChange={handleChange}
-                        className="p-2 border rounded focus:ring-2 focus:ring-brand-gold/20 focus:border-brand-gold outline-none"
+                        className="p-2 border rounded focus:outline-none outline-none"
                         required
                     />
                     <input
@@ -108,7 +108,7 @@ const UserManagement = () => {
                         placeholder="Email"
                         value={formData.email}
                         onChange={handleChange}
-                        className="p-2 border rounded focus:ring-2 focus:ring-brand-gold/20 focus:border-brand-gold outline-none"
+                        className="p-2 border rounded focus:outline-none outline-none"
                         required
                     />
                     <input
@@ -117,14 +117,14 @@ const UserManagement = () => {
                         placeholder="Password"
                         value={formData.password}
                         onChange={handleChange}
-                        className="p-2 border rounded focus:ring-2 focus:ring-brand-gold/20 focus:border-brand-gold outline-none"
+                        className="p-2 border rounded focus:outline-none outline-none"
                         required
                     />
                     <select
                         name="role"
                         value={formData.role}
                         onChange={handleChange}
-                        className="p-2 border rounded focus:ring-2 focus:ring-brand-gold/20 focus:border-brand-gold outline-none"
+                        className="p-2 border rounded focus:outline-none outline-none"
                     >
                         <option value="customer">Customer</option>
                         <option value="admin">Admin</option>

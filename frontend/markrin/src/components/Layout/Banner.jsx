@@ -7,13 +7,13 @@ function Banner() {
     <section className="py-6 lg:py-8 px-4 lg:px-8 bg-brand-cream">
       <div className="container mx-auto">
         <Link
-          to="/collection/men"
+          to="/collection/oversized"
           className="group relative block rounded-2xl overflow-hidden h-56 sm:h-64 lg:h-80"
         >
           {/* Background Image */}
           <img
             src="https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1400&q=80"
-            alt="Men's Collection"
+            alt="Oversized Collection"
             className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
             loading="lazy"
           />

@@ -13,25 +13,19 @@ const categories = [
         name: "Hoodies",
         label: "Stay Cozy",
         image: "https://images.unsplash.com/photo-1556906781-9a412961c28c?w=600&q=80",
-        path: "/collection/hoodie",
+        path: "/collection/hoodies",
     },
     {
-        name: "Sweatshirts",
+        name: "Sweatshirt",
         label: "Warm & Stylish",
         image: "https://images.unsplash.com/photo-1556821840-3a63f95609a7?w=600&q=80",
-        path: "/collection/sweat-shirt",
+        path: "/collection/sweatshirt",
     },
     {
-        name: "T-Shirts",
+        name: "Normal Tshirt",
         label: "Classic Tees",
         image: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=600&q=80",
         path: "/collection/normal-tshirt",
-    },
-    {
-        name: "Unisex",
-        label: "For Everyone",
-        image: "https://images.unsplash.com/photo-1523381210434-271e8be1f52b?w=600&q=80",
-        path: "/collection/unisex",
     },
 ];
 
@@ -59,7 +53,7 @@ function CategoryGrid() {
                 </div>
 
                 {/* Category Grid */}
-                <div className="grid grid-cols-3 md:grid-cols-6 gap-3 lg:gap-4">
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-6">
                     {categories.map((cat, index) => (
                         <Link
                             key={cat.name}

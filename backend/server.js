@@ -235,6 +235,7 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/wishlist', wishlistRoutes);
 app.use('/api/payment', require('./routes/paymentRoutes'));
 app.use('/api/upload', uploadRoutes);
+app.use('/api/sizecharts', require('./routes/sizeChartRoutes'));
 
 // Health check route
 app.get('/', (req, res) => {
@@ -248,6 +249,8 @@ app.get('/', (req, res) => {
             orders: '/api/orders',
             admin: '/api/admin',
             wishlist: '/api/wishlist',
+            categories: '/api/categories',
+            sizecharts: '/api/sizecharts',
         },
     });
 });

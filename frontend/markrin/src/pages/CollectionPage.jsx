@@ -9,16 +9,15 @@ import { useWishlist } from "../context/WishlistContext";
 import { toast } from "sonner";
 import { getCardUrl } from "../utils/cloudinaryHelper";
 import FilterSidebar from "../components/Products/FilterSidebar";
+import QuickAddModal from "../components/Products/QuickAddModal";
 
 const ITEMS_PER_PAGE = 12;
 
 const collectionMeta = {
-  men: { title: "Men's Collection", description: "Discover premium menswear designed for the modern man.", banner: "https://images.unsplash.com/photo-1617137968427-85924c800a22?w=1600&q=80" },
-  women: { title: "Women's Collection", description: "Elegant fashion essentials crafted for the confident woman.", banner: "https://images.unsplash.com/photo-1483985988355-763728e1935b?w=1600&q=80" },
   unisex: { title: "Unisex Collection", description: "Fashion that fits everyone. No boundaries, just great style.", banner: "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?w=1600&q=80" },
-  hoodie: { title: "Hoodies", description: "Cozy hoodies to keep you warm and stylish all season long.", banner: "https://images.unsplash.com/photo-1556906781-9a412961c28c?w=1600&q=80" },
+  hoodies: { title: "Hoodies", description: "Cozy hoodies to keep you warm and stylish all season long.", banner: "https://images.unsplash.com/photo-1556906781-9a412961c28c?w=1600&q=80" },
   oversized: { title: "Oversized Collection", description: "Bold, oversized fits for the ultimate streetwear look.", banner: "https://images.unsplash.com/photo-1618354691438-25bc04584c23?w=1600&q=80" },
-  "sweat-shirt": { title: "Sweatshirts", description: "Premium sweatshirts that combine comfort with street style.", banner: "https://images.unsplash.com/photo-1556821840-3a63f95609a7?w=1600&q=80" },
+  sweatshirt: { title: "Sweatshirts", description: "Premium sweatshirts that combine comfort with street style.", banner: "https://images.unsplash.com/photo-1556821840-3a63f95609a7?w=1600&q=80" },
   "normal-tshirt": { title: "T-Shirts", description: "Classic tees that are essentials in every wardrobe.", banner: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=1600&q=80" },
   "new-arrivals": { title: "New Arrivals", description: "Fresh drops just for you. Be the first to get the latest.", banner: "https://images.unsplash.com/photo-1523381210434-271e8be1f52b?w=1600&q=80" },
   featured: { title: "Featured Products", description: "Our handpicked selection of the best products.", banner: "https://images.unsplash.com/photo-1556905055-8f358a7a47b2?w=1600&q=80" },
@@ -35,6 +34,8 @@ const CollectionPage = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [sortBy, setSortBy] = useState("newest");
   const [wishlistLoading, setWishlistLoading] = useState({});
+  const [quickAddModalOpen, setQuickAddModalOpen] = useState(false);
+  const [quickAddProduct, setQuickAddProduct] = useState(null);
   const sidebarRef = useRef(null);
   const loadMoreRef = useRef(null);
   const { collection: paramCollection } = useParams();
@@ -73,13 +74,10 @@ const CollectionPage = () => {
 
     try {
       const filters = {};
-      // Map route to backend filters
-      if (collection === 'men') filters.gender = 'Men';
-      if (collection === 'women') filters.gender = 'Women';
       if (collection === 'unisex') filters.gender = 'Unisex';
 
-      const validCategories = ['oversized', 'sweat-shirt', 'hoodie', 'normal-tshirt'];
-      if (collection && !['all', 'men', 'women', 'unisex', 'new-arrivals', 'featured'].includes(collection)) {
+      const validCategories = ['oversized', 'sweatshirt', 'hoodies', 'normal-tshirt'];
+      if (collection && !['all', 'unisex', 'new-arrivals', 'featured'].includes(collection)) {
         if (validCategories.includes(collection)) {
           filters.category = collection;
         }
@@ -186,12 +184,11 @@ const CollectionPage = () => {
     }
   };
 
-  const handleAddToCart = async (e, product) => {
+  const handleAddToCart = (e, product) => {
     e.preventDefault();
     e.stopPropagation();
-    if (product._id) {
-      await addItem({ productId: product._id, quantity: 1 });
-    }
+    setQuickAddProduct(product);
+    setQuickAddModalOpen(true);
   };
 
   const handleSortChange = (e) => {
@@ -313,99 +310,109 @@ const CollectionPage = () => {
             ) : (
               <>
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 lg:gap-6">
-                  {products.map((product) => (
-                    <div key={product._id} className="group">
-                      <div className="relative overflow-hidden rounded-xl bg-gray-50 mb-3 aspect-[3/4]">
-                        <Link to={`/product/${product.slug || product._id}`}>
-                          <img
-                            src={getCardUrl(product.images?.[0]?.url) || "https://via.placeholder.com/400"}
-                            alt={product.name}
-                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                            loading="lazy"
-                          />
-                        </Link>
+                  {products.map((product) => {
+                    const activeBasePrice = product.basePrice || product.price || 0;
+                    const discountPercentage = product.discountPrice && product.discountPrice < activeBasePrice
+                      ? Math.round(((activeBasePrice - product.discountPrice) / activeBasePrice) * 100)
+                      : (product.originalPrice ? Math.round(((product.originalPrice - activeBasePrice) / product.originalPrice) * 100) : 0);
+                    const displayPrice = product.discountPrice && product.discountPrice < activeBasePrice ? product.discountPrice : activeBasePrice;
+                    const showOriginal = product.originalPrice || (product.discountPrice && product.discountPrice < activeBasePrice);
+                    const listPrice = product.originalPrice || activeBasePrice;
 
-                        {/* Wishlist Button */}
-                        <button
-                          onClick={(e) => handleToggleWishlist(e, product)}
-                          disabled={wishlistLoading[product._id]}
-                          className="absolute top-3 right-3 p-2 rounded-full bg-white/90 shadow-sm hover:bg-white transition-all hover:scale-110"
-                        >
-                          {wishlistLoading[product._id] ? (
-                            <div className="w-4 h-4 animate-spin border-2 border-gray-300 border-t-brand-gold rounded-full" />
-                          ) : isInWishlist(product._id) ? (
-                            <HiHeart className="w-4 h-4 text-red-500" />
-                          ) : (
-                            <HiOutlineHeart className="w-4 h-4 text-gray-500" />
-                          )}
-                        </button>
+                    return (
+                      <div key={product._id} className="group">
+                        <div className="relative overflow-hidden rounded-xl bg-gray-50 mb-3 aspect-[3/4]">
+                          <Link to={`/product/${product.slug || product._id}`}>
+                            <img
+                              src={getCardUrl(product.images?.[0]?.url) || "https://via.placeholder.com/400"}
+                              alt={product.name}
+                              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                              loading="lazy"
+                            />
+                          </Link>
 
-                        {/* Hover Action */}
-                        <div className="absolute inset-x-0 bottom-0 p-3 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
+                          {/* Wishlist Button */}
                           <button
-                            onClick={(e) => handleAddToCart(e, product)}
-                            disabled={product.countInStock === 0}
-                            className={`w-full py-2.5 rounded-lg font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-lg ${product.countInStock === 0
-                              ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                              : 'bg-white text-brand-dark-brown hover:bg-brand-gold'
-                              }`}
+                            onClick={(e) => handleToggleWishlist(e, product)}
+                            disabled={wishlistLoading[product._id]}
+                            className="absolute top-3 right-3 p-2 rounded-full bg-white/90 shadow-sm hover:bg-white transition-all hover:scale-110"
                           >
-                            <HiOutlineShoppingBag className="w-4 h-4" />
-                            {product.countInStock === 0 ? 'Out of Stock' : 'Add to Cart'}
+                            {wishlistLoading[product._id] ? (
+                              <div className="w-4 h-4 animate-spin border-2 border-gray-300 border-t-brand-gold rounded-full" />
+                            ) : isInWishlist(product._id) ? (
+                              <HiHeart className="w-4 h-4 text-red-500" />
+                            ) : (
+                              <HiOutlineHeart className="w-4 h-4 text-gray-500" />
+                            )}
                           </button>
-                        </div>
 
-                        {/* Badges */}
-                        <div className="absolute top-3 left-3 flex flex-col gap-1.5">
-                          {product.isNewArrival && (
-                            <span className="px-2.5 py-1 bg-green-500 text-white text-[10px] font-bold uppercase rounded-full">New</span>
-                          )}
-                          {product.isFeatured && !product.isNewArrival && (
-                            <span className="px-2.5 py-1 bg-brand-gold text-brand-dark-brown text-[10px] font-bold uppercase rounded-full">Featured</span>
-                          )}
-                          {product.originalPrice && (
-                            <span className="px-2.5 py-1 bg-red-500 text-white text-[10px] font-bold rounded-full">
-                              -{Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)}%
-                            </span>
-                          )}
-                        </div>
-
-                        {product.countInStock === 0 && (
-                          <div className="absolute inset-0 bg-white/60 flex items-center justify-center">
-                            <span className="px-4 py-2 bg-gray-800 text-white text-xs font-bold uppercase rounded-lg">Sold Out</span>
+                          {/* Hover Action */}
+                          <div className="absolute inset-x-0 bottom-0 p-3 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
+                            <button
+                              onClick={(e) => handleAddToCart(e, product)}
+                              disabled={product.countInStock === 0}
+                              className={`w-full py-2.5 rounded-lg font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-lg ${product.countInStock === 0
+                                ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                                : 'bg-white text-brand-dark-brown hover:bg-brand-gold'
+                                }`}
+                            >
+                              <HiOutlineShoppingBag className="w-4 h-4" />
+                              {product.countInStock === 0 ? 'Out of Stock' : 'Add to Cart'}
+                            </button>
                           </div>
-                        )}
-                      </div>
 
-                      <Link to={`/product/${product.slug || product._id}`} className="block px-1">
-                        <p className="text-[10px] text-brand-gold font-bold uppercase tracking-[0.15em] mb-1">
-                          {product.brand || "Markrin"}
-                        </p>
-                        <h3 className="text-sm font-semibold text-gray-800 mb-1 line-clamp-1 group-hover:text-brand-gold transition-colors">
-                          {product.name}
-                        </h3>
-                        <div className="flex items-center gap-2">
-                          <span className="font-bold text-gray-900">₹{product.price?.toFixed(2)}</span>
-                          {product.originalPrice && (
-                            <>
-                              <span className="text-xs text-gray-400 line-through">₹{product.originalPrice?.toFixed(2)}</span>
-                              <span className="text-xs font-bold text-green-600">
-                                {Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)}% OFF
+                          {/* Badges */}
+                          <div className="absolute top-3 left-3 flex flex-col gap-1.5">
+                            {product.isNewArrival && (
+                              <span className="px-2.5 py-1 bg-green-500 text-white text-[10px] font-bold uppercase rounded-full">New</span>
+                            )}
+                            {product.isFeatured && !product.isNewArrival && (
+                              <span className="px-2.5 py-1 bg-brand-gold text-brand-dark-brown text-[10px] font-bold uppercase rounded-full">Featured</span>
+                            )}
+                            {discountPercentage > 0 && (
+                              <span className="px-2.5 py-1 bg-red-500 text-white text-[10px] font-bold rounded-full">
+                                -{discountPercentage}%
                               </span>
-                            </>
+                            )}
+                          </div>
+
+                          {product.countInStock === 0 && (
+                            <div className="absolute inset-0 bg-white/60 flex items-center justify-center">
+                              <span className="px-4 py-2 bg-gray-800 text-white text-xs font-bold uppercase rounded-lg">Sold Out</span>
+                            </div>
                           )}
                         </div>
-                        {/* Rating */}
-                        {product.rating > 0 && (
-                          <div className="flex items-center gap-1 mt-1">
-                            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-green-600 text-white text-[10px] font-bold rounded">
-                              ★ {product.rating?.toFixed(1)}
-                            </span>
+
+                        <Link to={`/product/${product.slug || product._id}`} className="block px-1">
+                          <p className="text-[10px] text-brand-gold font-bold uppercase tracking-[0.15em] mb-1">
+                            {product.brand || "Markrin"}
+                          </p>
+                          <h3 className="text-sm font-semibold text-gray-800 mb-1 line-clamp-1 group-hover:text-brand-gold transition-colors">
+                            {product.name}
+                          </h3>
+                          <div className="flex items-center gap-2">
+                            <span className="font-bold text-gray-900">₹{displayPrice?.toFixed(2)}</span>
+                            {showOriginal && (
+                              <>
+                                <span className="text-xs text-gray-400 line-through">₹{listPrice?.toFixed(2)}</span>
+                                <span className="text-xs font-bold text-green-600">
+                                  {discountPercentage}% OFF
+                                </span>
+                              </>
+                            )}
                           </div>
-                        )}
-                      </Link>
-                    </div>
-                  ))}
+                          {/* Rating */}
+                          {product.rating > 0 && (
+                            <div className="flex items-center gap-1 mt-1">
+                              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-green-600 text-white text-[10px] font-bold rounded">
+                                ★ {product.rating?.toFixed(1)}
+                              </span>
+                            </div>
+                          )}
+                        </Link>
+                      </div>
+                    )
+                  })}
                 </div>
 
                 {/* Load More Trigger */}
@@ -427,6 +434,16 @@ const CollectionPage = () => {
           </div>
         </div>
       </div>
+
+      {/* Quick Add Modal */}
+      <QuickAddModal
+        isOpen={quickAddModalOpen}
+        onClose={() => {
+          setQuickAddModalOpen(false);
+          setQuickAddProduct(null);
+        }}
+        product={quickAddProduct}
+      />
     </div>
   );
 };

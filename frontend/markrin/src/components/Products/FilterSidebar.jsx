@@ -13,24 +13,19 @@ const FilterSidebar = () => {
     material: searchParams.get("material")?.split(",") || [],
     brand: searchParams.get("brand")?.split(",") || [],
     minPrice: searchParams.get("minPrice") || 0,
-    maxPrice: searchParams.get("maxPrice") || 500,
+    maxPrice: searchParams.get("maxPrice") || 5000,
   });
 
   const [priceRange, setPriceRange] = useState([
     Number(filters.minPrice),
-    Number(filters.maxPrice),
+    Number(filters.maxPrice) || 5000,
   ]);
 
   // Categories matching the Product model
-  const categories = [
-    "oversized",
-    "sweat-shirt",
-    "hoodie",
-    "normal-tshirt",
-  ];
+  const categories = ['Oversized', 'Sweatshirts', 'Hoodies', 'Normal Tshirt'];
 
   // Genders matching the Product model
-  const genders = ["Men", "Women", "Unisex"];
+  const genders = ["Unisex"];
 
   // Colors matching the Product model
   const colors = [
@@ -63,11 +58,11 @@ const FilterSidebar = () => {
       material: params.material ? params.material.split(",") : [],
       brand: params.brand ? params.brand.split(",") : [],
       minPrice: params.minPrice || 0,
-      maxPrice: params.maxPrice || 500,
+      maxPrice: params.maxPrice || 5000,
     });
     setPriceRange([
       Number(params.minPrice) || 0,
-      Number(params.maxPrice) || 500,
+      Number(params.maxPrice) || 5000,
     ]);
   }, [searchParams]);
 
@@ -96,11 +91,16 @@ const FilterSidebar = () => {
     handleFilterChange(key, newValues);
   };
 
-  const handlePriceChange = (e) => {
-    const newMax = Number(e.target.value);
-    setPriceRange([0, newMax]);
-    handleFilterChange("maxPrice", newMax);
-    handleFilterChange("minPrice", 0);
+  const handlePriceChange = (type, value) => {
+    const newVal = Number(value);
+    const newRange = type === 'min' ? [newVal, priceRange[1]] : [priceRange[0], newVal];
+
+    // Validation: min shouldn't exceed max, max shouldn't be below min
+    if (type === 'min' && newVal > priceRange[1]) return;
+    if (type === 'max' && newVal < priceRange[0]) return;
+
+    setPriceRange(newRange);
+    handleFilterChange(type === 'min' ? "minPrice" : "maxPrice", newVal);
   };
 
   const clearAllFilters = () => {
@@ -112,9 +112,9 @@ const FilterSidebar = () => {
       material: [],
       brand: [],
       minPrice: 0,
-      maxPrice: 500,
+      maxPrice: 5000,
     });
-    setPriceRange([0, 500]);
+    setPriceRange([0, 5000]);
     setSearchParams(new URLSearchParams());
   };
 
@@ -125,7 +125,7 @@ const FilterSidebar = () => {
     filters.size.length > 0 ||
     filters.material.length > 0 ||
     filters.brand.length > 0 ||
-    Number(filters.maxPrice) < 500;
+    Number(filters.maxPrice) < 5000;
 
   return (
     <div className="p-6 bg-brand-white rounded-2xl border border-gray-100 h-fit font-inter">
@@ -170,57 +170,45 @@ const FilterSidebar = () => {
         </div>
       </div>
 
-      {/* Gender Filter */}
-      <div className="mb-8">
-        <h4 className="text-xs font-bold uppercase tracking-widest text-brand-gold mb-4">
-          Gender
-        </h4>
-        <div className="space-y-2">
-          {genders.map((gender) => (
-            <label
-              key={gender}
-              className="flex items-center space-x-3 cursor-pointer group"
-            >
-              <input
-                type="radio"
-                name="gender"
-                className="w-4 h-4 border-gray-300 text-brand-gold focus:ring-brand-gold/20 cursor-pointer"
-                checked={filters.gender === gender}
-                onChange={() => handleFilterChange("gender", gender)}
-              />
-              <span className="text-sm text-gray-600 group-hover:text-brand-dark-brown transition-colors">
-                {gender}
-              </span>
-            </label>
-          ))}
-          {filters.gender && (
-            <button
-              onClick={() => handleFilterChange("gender", "")}
-              className="text-xs text-gray-400 hover:text-brand-maroon-accent transition-colors mt-1"
-            >
-              Clear gender
-            </button>
-          )}
-        </div>
-      </div>
-
       {/* Price Range Filter */}
       <div className="mb-8">
         <h4 className="text-xs font-bold uppercase tracking-widest text-brand-gold mb-4">
           Price Range
         </h4>
-        <input
-          type="range"
-          min="0"
-          max="500"
-          step="10"
-          value={priceRange[1]}
-          onChange={handlePriceChange}
-          className="w-full h-2 bg-brand-cream rounded-lg appearance-none cursor-pointer accent-brand-gold"
-        />
-        <div className="flex justify-between mt-2 text-xs font-bold text-brand-dark-brown">
-          <span>$0</span>
-          <span className="px-2 py-1 bg-brand-gold/20 rounded-lg">${priceRange[1]}</span>
+        <div className="space-y-4">
+          <div className="flex gap-4">
+            <div className="flex-1">
+              <label className="text-[10px] text-gray-400 uppercase font-bold mb-1 block">Min</label>
+              <input
+                type="number"
+                min="0"
+                max="5000"
+                value={priceRange[0]}
+                onChange={(e) => handlePriceChange('min', e.target.value)}
+                className="w-full px-2 py-1.5 border border-gray-100 rounded-lg text-xs focus:ring-1 focus:ring-brand-gold outline-none"
+              />
+            </div>
+            <div className="flex-1">
+              <label className="text-[10px] text-gray-400 uppercase font-bold mb-1 block">Max</label>
+              <input
+                type="number"
+                min="0"
+                max="5000"
+                value={priceRange[1]}
+                onChange={(e) => handlePriceChange('max', e.target.value)}
+                className="w-full px-2 py-1.5 border border-gray-100 rounded-lg text-xs focus:ring-1 focus:ring-brand-gold outline-none"
+              />
+            </div>
+          </div>
+          <input
+            type="range"
+            min="0"
+            max="5000"
+            step="50"
+            value={priceRange[1]}
+            onChange={(e) => handlePriceChange('max', e.target.value)}
+            className="w-full h-1.5 bg-brand-cream rounded-lg appearance-none cursor-pointer accent-brand-gold"
+          />
         </div>
       </div>
 
@@ -269,7 +257,7 @@ const FilterSidebar = () => {
               onClick={() => handleCheckboxChange("size", size)}
               className={`py-2 text-[10px] font-bold border rounded-lg transition-all ${filters.size.includes(size)
                 ? "bg-brand-dark-brown text-white border-brand-dark-brown"
-                : "bg-white text-gray-500 border-gray-100 hover:border-brand-gold hover:text-brand-gold"
+                : "bg-white text-gray-500 border-gray-100 hover:text-brand-gold"
                 }`}
             >
               {size}

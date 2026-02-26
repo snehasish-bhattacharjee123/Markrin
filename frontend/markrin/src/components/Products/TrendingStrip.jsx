@@ -35,7 +35,7 @@ function TrendingStrip() {
                         <Link
                             key={trend.title}
                             to={trend.link}
-                            className="group relative flex items-center gap-5 p-5 rounded-2xl bg-white border border-gray-100 hover:shadow-lg hover:border-brand-gold/20 transition-all duration-300"
+                            className="group relative flex items-center gap-5 p-5 rounded-2xl bg-white border border-gray-100 hover:shadow-lg transition-all duration-300"
                         >
                             {/* Image */}
                             <div className="w-16 h-16 rounded-xl overflow-hidden flex-shrink-0 bg-gray-100">

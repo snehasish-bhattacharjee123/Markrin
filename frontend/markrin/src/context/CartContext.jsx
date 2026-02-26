@@ -39,7 +39,8 @@ export const CartProvider = ({ children }) => {
     refreshCart();
   }, [isAuthenticated, refreshCart]);
 
-  const addItem = useCallback(async ({ productId, quantity = 1, size, color }) => {
+  const addItem = useCallback(async ({ variant_id, productId, quantity = 1 }) => {
+    const idToUse = variant_id || productId;
     if (!isAuthenticated) {
       toast.error('Please login to add items to cart');
       return;
@@ -47,7 +48,7 @@ export const CartProvider = ({ children }) => {
 
     setLoading(true);
     try {
-      const updated = await cartAPI.addItem(productId, quantity, size, color);
+      const updated = await cartAPI.addItem(idToUse, quantity);
       setCart(updated);
       toast.success('Added to cart');
     } catch (err) {
