@@ -4,7 +4,7 @@ import { productsAPI } from '../../api';
 import { useCart } from '../../context/CartContext';
 import { toast } from 'sonner';
 
-const QuickAddModal = ({ isOpen, onClose, product }) => {
+const QuickAddModal = ({ isOpen, onClose, product, onSuccess, buttonText = "Add to Cart" }) => {
     const { addItem } = useCart();
 
     const [variants, setVariants] = useState([]);
@@ -74,6 +74,9 @@ const QuickAddModal = ({ isOpen, onClose, product }) => {
                 variant_id: matchedVariant._id,
                 quantity: 1,
             });
+            if (onSuccess) {
+                onSuccess();
+            }
             onClose();
         } catch (err) {
             toast.error(err.message);
@@ -203,7 +206,7 @@ const QuickAddModal = ({ isOpen, onClose, product }) => {
                         ) : (
                             <>
                                 <HiOutlineShoppingBag className="w-5 h-5" />
-                                Add to Bag
+                                {buttonText}
                             </>
                         )}
                     </button>

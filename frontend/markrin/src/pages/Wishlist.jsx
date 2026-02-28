@@ -6,6 +6,7 @@ import { useCart } from "../context/CartContext";
 import { useWishlist } from "../context/WishlistContext";
 import { toast } from "sonner";
 import { RiDeleteBinLine } from 'react-icons/ri';
+import QuickAddModal from "../components/Products/QuickAddModal";
 
 const Wishlist = () => {
     const { wishlist, removeFromWishlist } = useWishlist();
@@ -19,15 +20,6 @@ const Wishlist = () => {
     const handleAddToCart = (product) => {
         setSelectedProduct(product);
         setSelectedSize("");
-    };
-
-    const confirmAddToCart = async () => {
-        await addItem({
-            productId: selectedProduct._id,
-            quantity: 1
-        });
-
-        setSelectedProduct(null);
     };
 
     if (!isAuthenticated) {
@@ -168,41 +160,17 @@ const Wishlist = () => {
                 )}
 
                 {/* Size Selection Modal */}
-                {selectedProduct && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
-                        <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
-                            <div className="flex justify-between items-start mb-4">
-                                <div>
-                                    <h3 className="text-xl font-bold text-brand-dark-brown">Select Options</h3>
-                                    <p className="text-sm text-gray-500">{selectedProduct.name}</p>
-                                </div>
-                                <button
-                                    onClick={() => setSelectedProduct(null)}
-                                    className="text-gray-400 hover:text-gray-600"
-                                >
-                                    ✕
-                                </button>
-                            </div>
-
-                            <p className="mb-6 text-gray-500">Variants selection coming soon...</p>
-
-                            <div className="flex gap-3">
-                                <button
-                                    onClick={() => setSelectedProduct(null)}
-                                    className="flex-1 py-3 border border-gray-200 rounded-xl font-bold text-gray-600 hover:bg-gray-50 transition-colors"
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    onClick={confirmAddToCart}
-                                    className="flex-1 py-3 bg-brand-dark-brown text-white rounded-xl font-bold hover:bg-brand-gold hover:text-brand-dark-brown transition-colors"
-                                >
-                                    Add to Cart
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                )}
+                <QuickAddModal
+                    isOpen={!!selectedProduct}
+                    onClose={() => setSelectedProduct(null)}
+                    product={selectedProduct}
+                    buttonText="Move to Cart"
+                    onSuccess={() => {
+                        if (selectedProduct && selectedProduct._id) {
+                            removeFromWishlist(selectedProduct._id);
+                        }
+                    }}
+                />
             </div>
         </div>
     );

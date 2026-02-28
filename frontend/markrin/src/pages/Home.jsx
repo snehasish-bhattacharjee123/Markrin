@@ -9,6 +9,7 @@ import BestSellersCarousel from "../components/Products/BestSellersCarousel";
 import FeaturedProducts from "../components/Products/FeaturedProducts";
 import PromoBanners from "../components/Layout/PromoBanners";
 import ShoppableVideoCarousel from "../components/Products/ShoppableVideoCarousel";
+import CuratedStyleShopTheLook from "../components/Products/CuratedStyleShopTheLook";
 import BrandFeatures from "../components/Layout/BrandFeatures";
 import Newsletter from "../components/Layout/Newsletter";
 import JeansEditScroll from "../components/Products/JeansEditScroll";
@@ -43,8 +44,8 @@ function Home() {
       {/* 8. Deal Grid (Bewakoof Style) */}
       <DealGrid />
 
-      {/* 9. Shoppable Video Carousel */}
-      <ShoppableVideoCarousel />
+      {/* 9. Curated Style Shop the Look */}
+      <CuratedStyleShopTheLook />
 
 
 

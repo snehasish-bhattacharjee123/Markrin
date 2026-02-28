@@ -9,7 +9,7 @@ const orderSchema = z.object({
             postalCode: z.string().min(1, 'Postal code is required'),
             country: z.string().optional().default('India'),
         }),
-        paymentMethod: z.enum(['Stripe', 'Razorpay', 'COD']).optional().default('COD'),
+        paymentMethod: z.enum(['Razorpay', 'COD']).optional().default('COD'),
     }),
 });
 

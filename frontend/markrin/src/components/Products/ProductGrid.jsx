@@ -130,7 +130,7 @@ function ProductGrid({ products = [] }) {
               {/* Product Info */}
               <div className="p-3.5 sm:p-4">
                 <p className="text-[9px] text-brand-gold font-bold uppercase tracking-[0.2em] mb-1">
-                  {product.brand || "Markrin"}
+                  {product.category || product.brand || "Markrin"}
                 </p>
                 <h3 className="font-semibold text-brand-dark-brown text-sm mb-2 line-clamp-1 group-hover:text-brand-gold transition-colors duration-200">
                   {product.name}

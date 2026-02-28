@@ -4,7 +4,7 @@ import { ordersAPI } from '../api';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import { toast } from 'sonner';
-import StripePayment from '../components/Checkout/StripePayment';
+import RazorpayPayment from '../components/Checkout/RazorpayPayment';
 import {
   HiCheckCircle,
   HiXCircle,
@@ -635,7 +635,7 @@ function Checkout() {
                           </span>
                         </div>
                         <span className="text-[11px] text-gray-400">
-                          Stripe Secure Checkout — Visa, Mastercard, etc.
+                          Razorpay Secure Checkout — UPI, Cards, Netbanking
                         </span>
                       </div>
                       <RiBankCard2Line className="w-6 h-6 text-gray-300 flex-shrink-0" />
@@ -751,9 +751,9 @@ function Checkout() {
         </div>
       </div>
 
-      {/* Stripe Payment Modal */}
+      {/* Razorpay Payment Modal */}
       {activeOrder && (
-        <StripePayment
+        <RazorpayPayment
           order={activeOrder}
           onClose={() => setActiveOrder(null)}
           onSuccess={() => {

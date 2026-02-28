@@ -145,7 +145,7 @@ const updateOrderToPaid = async (req, res) => {
             const payment = new Payment({
                 order_id: order._id,
                 user_id: req.user._id,
-                gateway: 'Stripe',
+                gateway: 'Razorpay',
                 transaction_id: req.body.id,
                 amount: order.totalPrice,
                 status: 'Succeeded'

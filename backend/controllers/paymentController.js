@@ -1,18 +1,22 @@
-const Stripe = require('stripe');
+const Razorpay = require('razorpay');
+const crypto = require('crypto');
 const Order = require('../models/Order');
 
-const stripe = process.env.STRIPE_SECRET_KEY
-    ? new Stripe(process.env.STRIPE_SECRET_KEY)
+const razorpay = process.env.RAZORPAY_KEY_ID
+    ? new Razorpay({
+        key_id: process.env.RAZORPAY_KEY_ID,
+        key_secret: process.env.RAZORPAY_KEY_SECRET,
+    })
     : null;
 
-// @desc    Create Payment Intent
-// @route   POST /api/payment/create-payment-intent
+// @desc    Create Razorpay Order
+// @route   POST /api/payment/create-order
 // @access  Private
 const createPaymentIntent = async (req, res) => {
     try {
-        if (!stripe) {
+        if (!razorpay) {
             return res.status(500).json({
-                message: 'Stripe is not configured. Please add STRIPE_SECRET_KEY to your env file.'
+                message: 'Razorpay is not configured. Please add RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET to your env file.'
             });
         }
 
@@ -23,20 +27,19 @@ const createPaymentIntent = async (req, res) => {
             return res.status(404).json({ message: 'Order not found' });
         }
 
-        // Create a PaymentIntent with the order amount and currency
-        const paymentIntent = await stripe.paymentIntents.create({
-            amount: Math.round(order.totalPrice * 100), // amount in cents
-            currency: 'usd', // or 'inr' depending on your region
-            automatic_payment_methods: {
-                enabled: true,
-            },
-            metadata: {
-                orderId: order._id.toString(),
-            },
-        });
+        const options = {
+            amount: Math.round(order.totalPrice * 100), // amount in the smallest currency unit (paise)
+            currency: 'INR',
+            receipt: `receipt_order_${order._id}`,
+        };
 
+        const razorpayOrder = await razorpay.orders.create(options);
+
+        // We send back both the order id from razorpay and the razorpayOrder
         res.send({
-            clientSecret: paymentIntent.client_secret,
+            id: razorpayOrder.id,
+            currency: razorpayOrder.currency,
+            amount: razorpayOrder.amount,
         });
     } catch (error) {
         console.error(error);
@@ -44,12 +47,12 @@ const createPaymentIntent = async (req, res) => {
     }
 };
 
-// @desc    Get Stripe Publishable Key
+// @desc    Get Razorpay Key
 // @route   GET /api/payment/config
 // @access  Public
 const getStripeKey = (req, res) => {
     try {
-        res.send({ publishableKey: process.env.STRIPE_PUBLISHABLE_KEY || '' });
+        res.send({ key: process.env.RAZORPAY_KEY_ID || '' });
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Server error', error: error.message });
